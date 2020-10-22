@@ -4,6 +4,12 @@
 # import statistics as stat
 # from math import factorial as fctl
 
+domin <- function(inputs) {
+
+Indep_Var_List <- attr(terms(as.formula(inputs)), "term.labels")
+
+print(Indep_Var_List)
+
     # ~~ Process arguments passed from stata ~~ #
 
 # Stata_Regression = use_stata_arguments[1]
@@ -41,6 +47,7 @@
 Combination_List <- lapply( (1:length(Indep_Var_List)), # use lapply() function to apply each distinct number of combination to ...
 							function(Comb_Num) {combn(Indep_Var_List, Comb_Num)} ) # ... combn() function using the the IV list to obtain all combinations
 
+print(Combination_List)[[2]]
 # Total_Indep_Vars = len(Combination_List) # number of IVs in model
 Total_Indep_Vars <- length(Indep_Var_List) # number of IVs in model
 
@@ -263,3 +270,4 @@ Total_Models_to_Estimate <- 2**Total_Indep_Vars - 1 # total number of models to 
 # General_Dominance_Ranks = [sorted(General_Dominance, reverse = True).index(Indep_Var)+1 for Indep_Var in General_Dominance] # rank general dominance statistics
 # sfi.Matrix.create('r(ranks)', 1, len(Ensemble_of_Models), 0) # create general dominance ranking matrix container in Stata
 # sfi.Matrix.store('r(ranks)', General_Dominance_Ranks) # post general dominance statistic rankings
+}
