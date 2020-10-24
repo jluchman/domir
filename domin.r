@@ -4,11 +4,13 @@
 # import statistics as stat
 # from math import factorial as fctl
 
-domin <- function(inputs) {
+domin <- function(formula_overall, R_regression, ...) {
 
-Indep_Var_List <- attr(terms(as.formula(inputs)), "term.labels")
+Indep_Var_List <- attr(terms(as.formula(formula_overall)), "term.labels")
 
 print(Indep_Var_List)
+Dep_Var <- all.vars(as.formula(formula_overall))[[1]]
+print(Dep_Var)
 
     # ~~ Process arguments passed from stata ~~ #
 
@@ -47,7 +49,7 @@ print(Indep_Var_List)
 Combination_List <- lapply( (1:length(Indep_Var_List)), # use lapply() function to apply each distinct number of combination to ...
 							function(Comb_Num) {combn(Indep_Var_List, Comb_Num)} ) # ... combn() function using the the IV list to obtain all combinations
 
-print(Combination_List)[[2]]
+print( paste0(Combination_List[[2]], collapse = " + ") )
 # Total_Indep_Vars = len(Combination_List) # number of IVs in model
 Total_Indep_Vars <- length(Indep_Var_List) # number of IVs in model
 
@@ -74,7 +76,18 @@ Total_Models_to_Estimate <- 2**Total_Indep_Vars - 1 # total number of models to 
 #                          " if " + If_Conditions +
 #                           "," + Regress_Options ) 
 #     
-#     if report: print(".", end="") 
+#     if report: print(".", end="")
+R_model_call <- function(Indep_Var_combination, Dep_Var, R_regression, ...) {
+
+    formula_to_use <- paste0(Dep_Var, " ~ ", paste0(Indep_Var_combination, collapse = " + " ))
+    
+    print(formula_to_use)
+
+    temp_result <- do.call(R_regression, list(formula_to_use, ...))  # build function that processes list then calls regression
+    
+    print(temp_result)
+
+}
 #     
 #     return( (Indep_Var_combination,
 #              sfi.Scalar.getValue(Fit_Statistic)) ) 
@@ -110,6 +123,8 @@ Total_Models_to_Estimate <- 2**Total_Indep_Vars - 1 # total number of models to 
 #     ~~ Obtain all subsets regression results ~~ #
 #     
 # Ensemble_of_Models = [] # initialize ensemble list container
+Ensemble_of_Models <- R_model_call(Combination_List[[2]], Dep_Var, R_regression, ...)
+print(Ensemble_of_Models)
 # 
 # """
 # 'Ensemble_of_Models' is structured such that:
