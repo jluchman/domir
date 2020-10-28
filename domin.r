@@ -4,7 +4,7 @@
 # import statistics as stat
 # from math import factorial as fctl
 
-domin <- function(formula_overall, R_regression, ...) {
+domin <- function(formula_overall, R_regression, fitstat_function, ...) {
 
 Indep_Var_List <- attr(terms(as.formula(formula_overall)), "term.labels")
 
@@ -49,7 +49,7 @@ print(Dep_Var)
 Combination_List <- lapply( (1:length(Indep_Var_List)), # use lapply() function to apply each distinct number of combination to ...
 							function(Comb_Num) {combn(Indep_Var_List, Comb_Num)} ) # ... combn() function using the the IV list to obtain all combinations
 
-print( paste0(Combination_List[[2]], collapse = " + ") )
+print(Combination_List)
 # Total_Indep_Vars = len(Combination_List) # number of IVs in model
 Total_Indep_Vars <- length(Indep_Var_List) # number of IVs in model
 
@@ -77,7 +77,7 @@ Total_Models_to_Estimate <- 2**Total_Indep_Vars - 1 # total number of models to 
 #                           "," + Regress_Options ) 
 #     
 #     if report: print(".", end="")
-R_model_call <- function(Indep_Var_combination, Dep_Var, R_regression, ...) {
+R_model_call <- function(Indep_Var_combination, Dep_Var, R_regression, fitstat_function, ...) {
 
     formula_to_use <- paste0(Dep_Var, " ~ ", paste0(Indep_Var_combination, collapse = " + " ))
     
@@ -85,7 +85,9 @@ R_model_call <- function(Indep_Var_combination, Dep_Var, R_regression, ...) {
 
     temp_result <- do.call(R_regression, list(formula_to_use, ...))  # build function that processes list then calls regression
     
-    print(temp_result)
+    #print(temp_result)
+    
+    return(get(fitstat_function[[2]], do.call(fitstat_function[[1]], list(temp_result))))
 
 }
 #     
@@ -123,8 +125,7 @@ R_model_call <- function(Indep_Var_combination, Dep_Var, R_regression, ...) {
 #     ~~ Obtain all subsets regression results ~~ #
 #     
 # Ensemble_of_Models = [] # initialize ensemble list container
-Ensemble_of_Models <- R_model_call(Combination_List[[2]], Dep_Var, R_regression, ...)
-print(Ensemble_of_Models)
+Ensemble_of_Models <- list() # initialize ensemble list container
 # 
 # """
 # 'Ensemble_of_Models' is structured such that:
@@ -143,6 +144,7 @@ print(Ensemble_of_Models)
 # else: flag_list = [] # if not at least 20 models, do not track  progress
 #     
 # for number_of_Indep_Vars in range(Total_Indep_Vars): # applying the modeling function across all IV combinations at a distinct number of IVs
+for (number_of_Indep_Vars in 1:Total_Indep_Vars) { # applying the modeling function across all IV combinations at a distinct number of IVs
 #     
 #     ensemble_end = (ensemble_end +
 #                     fctl(Total_Indep_Vars)/(fctl(number_of_Indep_Vars+1)*fctl(Total_Indep_Vars-(number_of_Indep_Vars+1)))) # ending point of ensemble -- cumulative
@@ -156,12 +158,16 @@ print(Ensemble_of_Models)
 #     else: # ... otherwise normal function
 #         Models_at_Indep_Var_number = list( map(st_model_call, 
 #                                    list(Combination_List[number_of_Indep_Vars]), report_model_list ) )
+    Models_at_Indep_Var_number <- lapply(as.data.frame(Combination_List[[number_of_Indep_Vars]]), R_model_call, Dep_Var, R_regression, fitstat_function, ...)
 #     
 #     Ensemble_of_Models.append(Models_at_Indep_Var_number) 
+    Ensemble_of_Models <- append(Ensemble_of_Models, Models_at_Indep_Var_number) 
 #     
 #     ensemble_begin = ensemble_end # update where the ensemble tracker will begin for next round
 # 
 # 
+}
+print(Ensemble_of_Models)
 #     ~~ Process all subsets - find the increments  ~~ #
 #     
 # Model_List = [[list(model) for model in Ensemble_of_Models[0]]]  # evaluate the map-ped models and record them - start with the single IV models...
