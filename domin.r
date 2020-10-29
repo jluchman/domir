@@ -164,7 +164,7 @@ for (number_of_Indep_Vars in 1:Total_Indep_Vars) { # applying the modeling funct
     Models_at_Indep_Var_number <- lapply(as.data.frame(Combination_List[[number_of_Indep_Vars]]), R_model_call, Dep_Var, R_regression, fitstat_function, ...)
 #     
 #     Ensemble_of_Models.append(Models_at_Indep_Var_number) 
-    Ensemble_of_Models <- append(Ensemble_of_Models, Models_at_Indep_Var_number) 
+    Ensemble_of_Models <- append(Ensemble_of_Models, list(Models_at_Indep_Var_number) )
 #     
 #     ensemble_begin = ensemble_end # update where the ensemble tracker will begin for next round
 # 
@@ -174,6 +174,8 @@ print(Ensemble_of_Models)
 #     ~~ Process all subsets - find the increments  ~~ #
 #     
 # Model_List = [[list(model) for model in Ensemble_of_Models[0]]]  # evaluate the map-ped models and record them - start with the single IV models...
+Model_List <- Ensemble_of_Models[[1]]  # evaluate the lapply-ed models and record them - start with the single IV models...
+print(Model_List)
 # 
 # for model in range(len(Model_List[0])): # ...for the single IV models...
 #     Model_List[0][model][1] = Model_List[0][model][1]-FitStat_Adjustment #... have to remove constant model results as well as all subets results
