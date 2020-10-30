@@ -176,11 +176,20 @@ print(Ensemble_of_Models)
 # Model_List = [[list(model) for model in Ensemble_of_Models[0]]]  # evaluate the map-ped models and record them - start with the single IV models...
 Model_List <- Ensemble_of_Models[[1]]  # evaluate the lapply-ed models and record them - start with the single IV models...
 print(Model_List)
+str(Model_List)
+FitStat_Adjustment <- 0 # ~~ temporary ~~ #
 # 
 # for model in range(len(Model_List[0])): # ...for the single IV models...
 #     Model_List[0][model][1] = Model_List[0][model][1]-FitStat_Adjustment #... have to remove constant model results as well as all subets results
+for (model in 1:length(Model_List)) { # ...for the single IV models...
+     
+     print(model)
+     Model_List[[model]][[2]] <- Model_List[[model]][[2]] - FitStat_Adjustment #... have to remove constant model results as well as all subets results
+     
+}
 # 
 # print("model list:", Model_List) #//
+print("model list:", Model_List) #//
 # 
 # for number_of_Indep_Vars in range(1, len(Ensemble_of_Models)): # when >1 IV in the model, processing needed...
 #     
