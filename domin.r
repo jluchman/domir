@@ -183,36 +183,63 @@ FitStat_Adjustment <- 0 # ~~ temporary ~~ #
 #     Model_List[0][model][1] = Model_List[0][model][1]-FitStat_Adjustment #... have to remove constant model results as well as all subets results
 for (model in 1:length(Model_List)) { # ...for the single IV models...
      
-     print(model)
      Model_List[[model]][[2]] <- Model_List[[model]][[2]] - FitStat_Adjustment #... have to remove constant model results as well as all subets results
      
 }
+
+print(Model_List)
+
 # 
 # print("model list:", Model_List) #//
-print("model list:", Model_List) #//
 # 
 # for number_of_Indep_Vars in range(1, len(Ensemble_of_Models)): # when >1 IV in the model, processing needed...
+for (number_of_Indep_Vars in 2:length(Ensemble_of_Models)) { # when >1 IV in the model, processing needed...
 #     
 #     Model_Incremented = []  # initialize/reset container for finding subset
+    Model_Incremented <- list()  # initialize/reset container for finding subset
 #     
 #     Indep_Var_Set_at_1lessIndep_Var = [set(Candidate_Indep_Var_Set[0]) for Candidate_Indep_Var_Set in Ensemble_of_Models[number_of_Indep_Vars-1]] # collect all sets IVs (coerced to be a set object), specifically all sets at one less IV in the model than the current number of IVs
+    Indep_Var_Set_at_1lessIndep_Var <- lapply(Ensemble_of_Models[[number_of_Indep_Vars-1]], function(Candidate_Indep_Var_Set) { Candidate_Indep_Var_Set[[1]] }) # collect all sets IVs (coerced to be a set object), specifically all sets at one less IV in the model than the current number of IVs
+    print(Indep_Var_Set_at_1lessIndep_Var)
 #     
 #     for model in range(0, len(Ensemble_of_Models[number_of_Indep_Vars])): # loop through all models at a specific number of IVs in the model...
+    for (model in 1:length(Ensemble_of_Models[[number_of_Indep_Vars]])) { # loop through all models at a specific number of IVs in the model...
 # 
 #         Indep_Var_Set = set(Ensemble_of_Models[number_of_Indep_Vars][model][0]) # IV set for a focal model; coerced to be set object
+        Indep_Var_Set <- Ensemble_of_Models[[number_of_Indep_Vars]][[model]][[1]] # IV set for a focal model; coerced to be set object
+        print(Indep_Var_Set)
 #         
 #         for at1less_model in range(0, len(Indep_Var_Set_at_1lessIndep_Var)): # loop through all models at one less than the specific number of IVs in the model...
+        for (at1less_model in 1:length(Indep_Var_Set_at_1lessIndep_Var)) { # loop through all models at one less than the specific number of IVs in the model...
 # 
 #             if Indep_Var_Set_at_1lessIndep_Var[at1less_model].issubset(Indep_Var_Set): # if IV set at one less is a subset of the predictors in the focal model...
+            print(length(intersect(Indep_Var_Set_at_1lessIndep_Var[[at1less_model]], Indep_Var_Set)) == length(Indep_Var_Set_at_1lessIndep_Var[[at1less_model]]))
+            if (length(intersect(Indep_Var_Set_at_1lessIndep_Var[[at1less_model]], Indep_Var_Set)) == length(Indep_Var_Set_at_1lessIndep_Var[[at1less_model]])) { # if IV set at one less is a subset of the predictors in the focal model...
 #                 
 #                 Model_Incremented.append( 
 #                 [ Ensemble_of_Models[number_of_Indep_Vars][model][0], # append IV names at focal ...
 #                   Ensemble_of_Models[number_of_Indep_Vars-1][at1less_model][0], # ...IV names at one less...
 #                   Ensemble_of_Models[number_of_Indep_Vars][model][1] - Ensemble_of_Models[number_of_Indep_Vars-1][at1less_model][1] ] # ...and the increment to the fit metric
 #                 )
+                 Model_Incremented <- append(Model_Incremented, 
+                 list(Ensemble_of_Models[[number_of_Indep_Vars]][[model]][[1]], # append IV names at focal ...
+                   Ensemble_of_Models[[number_of_Indep_Vars-1]][[at1less_model]][[1]], # ...IV names at one less...
+                   Ensemble_of_Models[[number_of_Indep_Vars]][[model]][[2]] - Ensemble_of_Models[[number_of_Indep_Vars-1]][[at1less_model]][[2]] ) # ...and the increment to the fit metric
+                 )
+                 
+                 
+            }
+        }
+        
+    print(Model_Incremented)
 #                 
+    }
 #     Model_List.append(Model_Incremented) 
+    Model_List <- append(Model_List, list(Model_Incremented))
 #         
+}
+print("model list")
+print(Model_List)
 # 
 # """
 # 'Model_List' is structured such that:
