@@ -174,16 +174,17 @@ print(Ensemble_of_Models)
 #     ~~ Process all subsets - find the increments  ~~ #
 #     
 # Model_List = [[list(model) for model in Ensemble_of_Models[0]]]  # evaluate the map-ped models and record them - start with the single IV models...
-Model_List <- Ensemble_of_Models[[1]]  # evaluate the lapply-ed models and record them - start with the single IV models...
-print(Model_List)
+Model_List <- list(Ensemble_of_Models[[1]])  # evaluate the lapply-ed models and record them - start with the single IV models...
+
 str(Model_List)
+
 FitStat_Adjustment <- 0 # ~~ temporary ~~ #
 # 
 # for model in range(len(Model_List[0])): # ...for the single IV models...
 #     Model_List[0][model][1] = Model_List[0][model][1]-FitStat_Adjustment #... have to remove constant model results as well as all subets results
 for (model in 1:length(Model_List)) { # ...for the single IV models...
      
-     Model_List[[model]][[2]] <- Model_List[[model]][[2]] - FitStat_Adjustment #... have to remove constant model results as well as all subets results
+     Model_List[[1]][[model]][[2]] <- Model_List[[1]][[model]][[2]] - FitStat_Adjustment #... have to remove constant model results as well as all subets results
      
 }
 
@@ -197,6 +198,7 @@ for (number_of_Indep_Vars in 2:length(Ensemble_of_Models)) { # when >1 IV in the
 #     
 #     Model_Incremented = []  # initialize/reset container for finding subset
     Model_Incremented <- list()  # initialize/reset container for finding subset
+    Location_in_Model_Incremented <- 1 # ... useful for R...
 #     
 #     Indep_Var_Set_at_1lessIndep_Var = [set(Candidate_Indep_Var_Set[0]) for Candidate_Indep_Var_Set in Ensemble_of_Models[number_of_Indep_Vars-1]] # collect all sets IVs (coerced to be a set object), specifically all sets at one less IV in the model than the current number of IVs
     Indep_Var_Set_at_1lessIndep_Var <- lapply(Ensemble_of_Models[[number_of_Indep_Vars-1]], function(Candidate_Indep_Var_Set) { Candidate_Indep_Var_Set[[1]] }) # collect all sets IVs (coerced to be a set object), specifically all sets at one less IV in the model than the current number of IVs
@@ -221,17 +223,18 @@ for (number_of_Indep_Vars in 2:length(Ensemble_of_Models)) { # when >1 IV in the
 #                   Ensemble_of_Models[number_of_Indep_Vars-1][at1less_model][0], # ...IV names at one less...
 #                   Ensemble_of_Models[number_of_Indep_Vars][model][1] - Ensemble_of_Models[number_of_Indep_Vars-1][at1less_model][1] ] # ...and the increment to the fit metric
 #                 )
-                 Model_Incremented <- append(Model_Incremented, 
+                 Model_Incremented[[Location_in_Model_Incremented]] <- #append(Model_Incremented, 
                  list(Ensemble_of_Models[[number_of_Indep_Vars]][[model]][[1]], # append IV names at focal ...
                    Ensemble_of_Models[[number_of_Indep_Vars-1]][[at1less_model]][[1]], # ...IV names at one less...
                    Ensemble_of_Models[[number_of_Indep_Vars]][[model]][[2]] - Ensemble_of_Models[[number_of_Indep_Vars-1]][[at1less_model]][[2]] ) # ...and the increment to the fit metric
-                 )
+                 #)
+                 Location_in_Model_Incremented <- Location_in_Model_Incremented + 1
                  
                  
             }
         }
         
-    print(Model_Incremented)
+    str(Model_Incremented)
 #                 
     }
 #     Model_List.append(Model_Incremented) 
@@ -239,7 +242,7 @@ for (number_of_Indep_Vars in 2:length(Ensemble_of_Models)) { # when >1 IV in the
 #         
 }
 print("model list")
-print(Model_List)
+str(Model_List)
 # 
 # """
 # 'Model_List' is structured such that:
@@ -252,14 +255,22 @@ print(Model_List)
 #     ~~ Obtain complete and conditional dominance statistics  ~~ #
 #     
 # Conditional_Dominance = [] # conditional dominance container
+Conditional_Dominance <- matrix(nrow=Total_Indep_Vars, ncol=Total_Indep_Vars) # conditional dominance container
 # 
 # if Complete_Flag: Complete_Dominance = [] # complete dominance container
+
+Complete_Flag <- TRUE # ~~ temporary ~~ #
+
+if (Complete_Flag) Complete_Dominance <- matrix(data=0, nrow=Total_Indep_Vars, ncol=Total_Indep_Vars) # complete dominance container
 # 
 # for Indep_Var in range(0, len(Model_List[0])): # for each IV in the model...
+for (Indep_Var in 1:Total_Indep_Vars) { # for each IV in the model...
 #     
 #     Conditional_atIndep_Var = [] # initialize/reset container for conditional dominance
+    Conditional_atIndep_Var <- list() # initialize/reset container for conditional dominance
 #     
 #     Conditional_atIndep_Var.append(Model_List[0][Indep_Var][1]) # for IV alone - copy fit statistic
+    Conditional_Dominance[Indep_Var, 1] <- Model_List[[1]][[Indep_Var]][[2]] # for IV alone - copy fit statistic
 # 
 #     Indep_Varname = set(Model_List[0][Indep_Var][0]) # record name of focal IV; coerce to set
 # 
@@ -300,6 +311,8 @@ print(Model_List)
 #     Conditional_Dominance.append(Conditional_atIndep_Var) # append full row of IV's conditional dominance statistics
 #     
 #     if Complete_Flag: Complete_Dominance.append(Complete_atIndep_Var) # append full row of IV's complete dominance logicals/designations
+}
+print(Conditional_Dominance)
 # 
 # if Complete_Flag:
 #     Complete_Dominance = [list(map(all, Indep_Var)) for Indep_Var in Complete_Dominance] # for each focal IV, make list comprehension that flags whether at each comparison (i.e., other IV) are all entries (i.e., specific comarisons between similar models) in list True?
