@@ -49,7 +49,7 @@ print(Dep_Var)
 Combination_List <- lapply( (1:length(Indep_Var_List)), # use lapply() function to apply each distinct number of combination to ...
 							function(Comb_Num) {combn(Indep_Var_List, Comb_Num)} ) # ... combn() function using the the IV list to obtain all combinations
 
-print(Combination_List)
+str(Combination_List)
 # Total_Indep_Vars = len(Combination_List) # number of IVs in model
 Total_Indep_Vars <- length(Indep_Var_List) # number of IVs in model
 
@@ -81,7 +81,7 @@ R_model_call <- function(Indep_Var_combination, Dep_Var, R_regression, fitstat_f
 
     formula_to_use <- paste0(Dep_Var, " ~ ", paste0(Indep_Var_combination, collapse = " + " ))
     
-    print(formula_to_use)
+    #print(formula_to_use)
 
     temp_result <- do.call(R_regression, list(formula_to_use, ...))  # build function that processes list then calls regression
     
@@ -170,7 +170,8 @@ for (number_of_Indep_Vars in 1:Total_Indep_Vars) { # applying the modeling funct
 # 
 # 
 }
-print(Ensemble_of_Models)
+print("Ensemble_of_Models")
+str(Ensemble_of_Models)
 #     ~~ Process all subsets - find the increments  ~~ #
 #     
 # Model_List = [[list(model) for model in Ensemble_of_Models[0]]]  # evaluate the map-ped models and record them - start with the single IV models...
@@ -187,8 +188,6 @@ for (model in 1:length(Model_List)) { # ...for the single IV models...
      Model_List[[1]][[model]][[2]] <- Model_List[[1]][[model]][[2]] - FitStat_Adjustment #... have to remove constant model results as well as all subets results
      
 }
-
-print(Model_List)
 
 # 
 # print("model list:", Model_List) #//
@@ -273,23 +272,33 @@ for (Indep_Var in 1:Total_Indep_Vars) { # for each IV in the model...
     Conditional_Dominance[Indep_Var, 1] <- Model_List[[1]][[Indep_Var]][[2]] # for IV alone - copy fit statistic
 # 
 #     Indep_Varname = set(Model_List[0][Indep_Var][0]) # record name of focal IV; coerce to set
+    Indep_Varname <- Model_List[[1]][[Indep_Var]][[1]] # record name of focal IV
 # 
 #     if Complete_Flag: Complete_atIndep_Var = [
 #         [Other_Indep_Var[1] < Model_List[0][Indep_Var][1]] # compare fit statistic values (is focal IV larger than other IV?) ...
-#         
-#         for Other_Indep_Var in Model_List[0][0:len(Model_List[0])] ] #... for other IVs alone (will compare to self also)
+#           for Other_Indep_Var in Model_List[0][0:len(Model_List[0])] ] #... for other IVs alone (will compare to self also)
+    if (Complete_Flag) #Complete_atIndep_Var <- 
+        Complete_atIndep_Var <- (Model_List[[1]][[Indep_Var]][[2]] > sapply(Model_List[[1]], function(specific_fit_stat) {specific_fit_stat[[2]]} ))   # ~ ... redo documentation ... ~ # the idea is to compare all vars at 1 IV
 # 
 #     for number_of_Indep_Vars in range(1, len(Model_List)): # for all numbers of IVs greater than 1...
+    for (number_of_Indep_Vars in 2:Total_Indep_Vars) { # for all numbers of IVs greater than 1...
 #  
 #         Relevant_Increments = [] # initialize/reset container for collecting specific/relevant conditional dominance increments
+        Relevant_Increments <- c() # initialize/reset container for collecting specific/relevant conditional dominance increments
 #         
 #         for model in range(0, len(Model_List[number_of_Indep_Vars])): # for each individual model within a specific number of IVs...
+        for (model in 1:length(Model_List[[number_of_Indep_Vars]])) { # for each individual model within a specific number of IVs...
 # 
 #             proceed_to_record = ( Indep_Varname.issubset( set(Model_List[number_of_Indep_Vars][model][0]) ) and not # flag this entry for recording if the focal IV name is in the IV set...
 #                          Indep_Varname.issubset( set(Model_List[number_of_Indep_Vars][model][1]) ) ) # ...but is _not_ in the IV set less one - thus, the fit statistic here is a valid "increment" for the focal IV
+            proceed_to_record <- any(intersect(Indep_Varname, Model_List[[number_of_Indep_Vars]][[model]][[1]])==Indep_Varname) &  # flag this entry for recording if the focal IV name is in the IV set...
+               !any(intersect(Indep_Varname, Model_List[[number_of_Indep_Vars]][[model]][[2]])==Indep_Varname) # ...but is _not_ in the IV set less one - thus, the fit statistic here is a valid "increment" for the focal IV
+               print(proceed_to_record)
 # 
 #             if proceed_to_record: 
 #                 Relevant_Increments.append(Model_List[number_of_Indep_Vars][model][2]) # always collect the fit statistic for conditional dominance computations
+            if (proceed_to_record)
+                Relevant_Increments <- append(Relevant_Increments, Model_List[[number_of_Indep_Vars]][[model]][[3]]) # always collect the fit statistic for conditional dominance computations
 #                 
 #                 if Complete_Flag:
 #                     for other_model in range(0, len(Model_List[number_of_Indep_Vars])): # also proceed to collect complete dominance data using this loop comparing to all other models within this number of IVs to find relevant comparisons
@@ -307,8 +316,11 @@ for (Indep_Var in 1:Total_Indep_Vars) { # for each IV in the model...
 #                             
 #                         
 #         Conditional_atIndep_Var.append(stat.mean(Relevant_Increments)) # compute conditional dominance at number of IVs for specific IV and append
+            Conditional_Dominance[Indep_Var, number_of_Indep_Vars] <- mean(Relevant_Increments) # compute conditional dominance at number of IVs for specific IV and append
+        }
 #     
 #     Conditional_Dominance.append(Conditional_atIndep_Var) # append full row of IV's conditional dominance statistics
+    }
 #     
 #     if Complete_Flag: Complete_Dominance.append(Complete_atIndep_Var) # append full row of IV's complete dominance logicals/designations
 }
