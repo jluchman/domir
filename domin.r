@@ -279,6 +279,7 @@ for (Indep_Var in 1:Total_Indep_Vars) { # for each IV in the model...
 #           for Other_Indep_Var in Model_List[0][0:len(Model_List[0])] ] #... for other IVs alone (will compare to self also)
     if (Complete_Flag) #Complete_atIndep_Var <- 
         Complete_atIndep_Var <- (Model_List[[1]][[Indep_Var]][[2]] > sapply(Model_List[[1]], function(specific_fit_stat) {specific_fit_stat[[2]]} ))   # ~ ... redo documentation ... ~ # the idea is to compare all vars at 1 IV
+        print(c("cmplt at indep", Complete_atIndep_Var, Indep_Var_List[Indep_Var]))
 # 
 #     for number_of_Indep_Vars in range(1, len(Model_List)): # for all numbers of IVs greater than 1...
     for (number_of_Indep_Vars in 2:Total_Indep_Vars) { # for all numbers of IVs greater than 1...
@@ -293,7 +294,7 @@ for (Indep_Var in 1:Total_Indep_Vars) { # for each IV in the model...
 #                          Indep_Varname.issubset( set(Model_List[number_of_Indep_Vars][model][1]) ) ) # ...but is _not_ in the IV set less one - thus, the fit statistic here is a valid "increment" for the focal IV
             proceed_to_record <- any(intersect(Indep_Varname, Model_List[[number_of_Indep_Vars]][[model]][[1]])==Indep_Varname) &  # flag this entry for recording if the focal IV name is in the IV set...
                !any(intersect(Indep_Varname, Model_List[[number_of_Indep_Vars]][[model]][[2]])==Indep_Varname) # ...but is _not_ in the IV set less one - thus, the fit statistic here is a valid "increment" for the focal IV
-               print(proceed_to_record)
+               #print(proceed_to_record)
 # 
 #             if proceed_to_record: 
 #                 Relevant_Increments.append(Model_List[number_of_Indep_Vars][model][2]) # always collect the fit statistic for conditional dominance computations
@@ -302,29 +303,59 @@ for (Indep_Var in 1:Total_Indep_Vars) { # for each IV in the model...
 #                 
 #                 if Complete_Flag:
 #                     for other_model in range(0, len(Model_List[number_of_Indep_Vars])): # also proceed to collect complete dominance data using this loop comparing to all other models within this number of IVs to find relevant comparisons
-# 
+            if (Complete_Flag) {
+                for (other_model in 1:length(Model_List[number_of_Indep_Vars])) { # also proceed to collect complete dominance data using this loop comparing to all other models within this number of IVs to find relevant comparisons
+
 #                        relevant_complete = ( # a relevant complete dominance comparsion is found when ...
 #                             set(Model_List[number_of_Indep_Vars][model][0]).issubset( set(Model_List[number_of_Indep_Vars][other_model][0]) ) and # ...the focal full model and the full other model have the same IV set (the only way they can be a 'subset' here) ...
 #                             len(set(Model_List[number_of_Indep_Vars][model][1]).difference( set(Model_List[number_of_Indep_Vars][other_model][1])) ) == 1 ) #... but their reduced IV set differs by one IV (this ensures it is not trying to compare the subset to itself)
 #  
+
+                       relevant_complete <- ( # a relevant complete dominance comparsion is found when ...
+                            setequal(Model_List[[number_of_Indep_Vars]][[model]][[2]], Model_List[[number_of_Indep_Vars]][[other_model]][[2]]) & # ...the focal full model and the full other model have the same IV set (the only way they can be a 'subset' here) ...
+                            (length(setdiff(Model_List[[number_of_Indep_Vars]][[model]][[1]], Model_List[[number_of_Indep_Vars]][[other_model]][[1]])) == 1) ) #... but their reduced IV set differs by one IV (this ensures it is not trying to compare the subset to itself)
+
+                        print(c("focal full", paste(Model_List[[number_of_Indep_Vars]][[model]][[1]], collapse=" "), "red foc", paste(Model_List[[number_of_Indep_Vars]][[model]][[2]], collapse=" "),
+                            "oth full", paste(Model_List[[number_of_Indep_Vars]][[other_model]][[1]], collapse=" "), "red oth", paste(Model_List[[number_of_Indep_Vars]][[other_model]][[2]], collapse=" "),
+                            relevant_complete, Model_List[[number_of_Indep_Vars]][[model]][[3]], Model_List[[number_of_Indep_Vars]][[other_model]][[3]]))
+
 #                        if relevant_complete: 
 #                             MatrixLocation_Complete = [Position_IV[0] for Position_IV in Model_List[0]].index(( # when a relevant comparison, obtain the index value for ...
 #                                        set(Model_List[number_of_Indep_Vars][model][1]).difference( set(Model_List[number_of_Indep_Vars][other_model][1]) ).pop(), )) #... the different element in the reduced model (to place it in the correct "row" for the dominance matrix/list)
+
+                    if (relevant_complete) {
+                        MatrixLocation_Complete <- (1:Total_Indep_Vars)[ Indep_Var_List %in% 
+                        setdiff(Model_List[[number_of_Indep_Vars]][[other_model]][[1]], Model_List[[number_of_Indep_Vars]][[model]][[1]]) ] #... the different element in the reduced model (to place it in the correct "row" for the dominance matrix/list)
+                        
+                        print(c(MatrixLocation_Complete, Complete_atIndep_Var[MatrixLocation_Complete], Model_List[[number_of_Indep_Vars]][[model]][[3]] > Model_List[[number_of_Indep_Vars]][[other_model]][[3]]))
 #                             
 #                             Complete_atIndep_Var[MatrixLocation_Complete].append( #at the correct location in the complete dominance matrix, append...
 #                                 Model_List[number_of_Indep_Vars][other_model][2] < Model_List[number_of_Indep_Vars][model][2] ) # ...whether the other model's increment is bigger than the focal
+                        Complete_atIndep_Var[MatrixLocation_Complete] <- as.integer( #at the correct location in the complete dominance matrix, append...
+                            all(Model_List[[number_of_Indep_Vars]][[model]][[3]] > Model_List[[number_of_Indep_Vars]][[other_model]][[3]],  
+                                as.logical(Complete_atIndep_Var[MatrixLocation_Complete]))) # ...whether the other model's increment is bigger than the focal
+                    }
+                
+                }
+
+            }
 #                             
 #                         
 #         Conditional_atIndep_Var.append(stat.mean(Relevant_Increments)) # compute conditional dominance at number of IVs for specific IV and append
-            Conditional_Dominance[Indep_Var, number_of_Indep_Vars] <- mean(Relevant_Increments) # compute conditional dominance at number of IVs for specific IV and append
+
         }
+        
+        print(c("relev:", Relevant_Increments))
+        Conditional_Dominance[Indep_Var, number_of_Indep_Vars] <- mean(Relevant_Increments) # compute conditional dominance at number of IVs for specific IV and append
 #     
 #     Conditional_Dominance.append(Conditional_atIndep_Var) # append full row of IV's conditional dominance statistics
     }
 #     
 #     if Complete_Flag: Complete_Dominance.append(Complete_atIndep_Var) # append full row of IV's complete dominance logicals/designations
+    if (Complete_Flag) Complete_Dominance[Indep_Var,] <- as.integer(Complete_atIndep_Var) # append full row of IV's complete dominance logicals/designations
 }
 print(Conditional_Dominance)
+print(Complete_Dominance)
 # 
 # if Complete_Flag:
 #     Complete_Dominance = [list(map(all, Indep_Var)) for Indep_Var in Complete_Dominance] # for each focal IV, make list comprehension that flags whether at each comparison (i.e., other IV) are all entries (i.e., specific comarisons between similar models) in list True?
