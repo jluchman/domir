@@ -83,13 +83,15 @@ R_model_call <- function(Indep_Var_combination, Dep_Var, R_regression, fitstat_f
     
     #print(formula_to_use)
 
-    temp_result <- do.call(R_regression, list(formula_to_use, ...))  # build function that processes list then calls regression
+    temp_result <- list(do.call(R_regression, list(formula_to_use, ...)) )  # build function that processes list then calls regression
     
-    #print(temp_result)
+    if (length(fitstat_function) > 2) temp_result <- append(temp_result, fitstat_function[3:length(fitstat_function)]) # include additional arguments to fitstat_function
+    
+    str(temp_result)
     
     return( list( 
         Indep_Var_combination,
-        get(fitstat_function[[2]], do.call(fitstat_function[[1]], list(temp_result))) 
+        get( fitstat_function[[2]], do.call(fitstat_function[[1]], temp_result) )  
     ))
 
 }
