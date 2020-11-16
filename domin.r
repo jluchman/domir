@@ -4,11 +4,18 @@
 # import statistics as stat
 # from math import factorial as fctl
 
-domin <- function(formula_overall, R_regression, fitstat_function, ...) {
+domin <- function(formula_overall, R_regression, fitstat_function, sets=NULL, ...) {
 
 Indep_Var_List <- attr(terms(as.formula(formula_overall)), "term.labels")
 
 print(Indep_Var_List)
+if (length(sets) > 0) {
+    set_aggregated <- sapply(sets, paste0, collapse=" + ")
+    print(set_aggregated)
+    Indep_Var_List <- append(Indep_Var_List, set_aggregated)
+}
+
+
 Dep_Var <- all.vars(as.formula(formula_overall))[[1]]
 print(Dep_Var)
 
@@ -49,7 +56,7 @@ print(Dep_Var)
 Combination_List <- lapply( (1:length(Indep_Var_List)), # use lapply() function to apply each distinct number of combination to ...
 							function(Comb_Num) {combn(Indep_Var_List, Comb_Num)} ) # ... combn() function using the the IV list to obtain all combinations
 
-str(Combination_List)
+#str(Combination_List)
 # Total_Indep_Vars = len(Combination_List) # number of IVs in model
 Total_Indep_Vars <- length(Indep_Var_List) # number of IVs in model
 
