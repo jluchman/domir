@@ -4,12 +4,13 @@
 # import statistics as stat
 # from math import factorial as fctl
 
-domin <- function(formula_overall, R_regression, fitstat_function, sets=NULL, ...) {
+domin <- function(formula_overall, R_regression, fitstat_function, sets=NULL, all=NULL, ...) {
 
 Indep_Var_List <- attr(terms(as.formula(formula_overall)), "term.labels")
 
 print(Indep_Var_List)
-if (length(sets) > 0) {
+
+if (length(sets) > 0) { # if there are sets...
     set_aggregated <- sapply(sets, paste0, collapse=" + ")
     print(set_aggregated)
     Indep_Var_List <- append(Indep_Var_List, set_aggregated)
@@ -84,9 +85,9 @@ Total_Models_to_Estimate <- 2**Total_Indep_Vars - 1 # total number of models to 
 #                           "," + Regress_Options ) 
 #     
 #     if report: print(".", end="")
-R_model_call <- function(Indep_Var_combination, Dep_Var, R_regression, fitstat_function, ...) {
+R_model_call <- function(Indep_Var_combination, Dep_Var, R_regression, fitstat_function, all=NULL, ...) {
 
-    formula_to_use <- paste0(Dep_Var, " ~ ", paste0(Indep_Var_combination, collapse = " + " ))
+    formula_to_use <- paste0(Dep_Var, " ~ ", paste0(c(Indep_Var_combination, all), collapse = " + " ))
     
     #print(formula_to_use)
 
@@ -94,7 +95,7 @@ R_model_call <- function(Indep_Var_combination, Dep_Var, R_regression, fitstat_f
     
     if (length(fitstat_function) > 2) temp_result <- append(temp_result, fitstat_function[3:length(fitstat_function)]) # include additional arguments to fitstat_function
     
-    str(temp_result)
+    #str(temp_result)
     
     return( list( 
         Indep_Var_combination,
@@ -102,6 +103,12 @@ R_model_call <- function(Indep_Var_combination, Dep_Var, R_regression, fitstat_f
     ))
 
 }
+
+if (length(all) > 0) {
+    All_Result <- R_model_call(all, Dep_Var, R_regression, fitstat_function, ...)
+    print(All_Result)
+}
+
 #     
 #     return( (Indep_Var_combination,
 #              sfi.Scalar.getValue(Fit_Statistic)) ) 
@@ -170,7 +177,7 @@ for (number_of_Indep_Vars in 1:Total_Indep_Vars) { # applying the modeling funct
 #     else: # ... otherwise normal function
 #         Models_at_Indep_Var_number = list( map(st_model_call, 
 #                                    list(Combination_List[number_of_Indep_Vars]), report_model_list ) )
-    Models_at_Indep_Var_number <- lapply(as.data.frame(Combination_List[[number_of_Indep_Vars]]), R_model_call, Dep_Var, R_regression, fitstat_function, ...)
+    Models_at_Indep_Var_number <- lapply(as.data.frame(Combination_List[[number_of_Indep_Vars]]), R_model_call, Dep_Var, R_regression, fitstat_function, all=all, ...)
 #     
 #     Ensemble_of_Models.append(Models_at_Indep_Var_number) 
     Ensemble_of_Models <- append(Ensemble_of_Models, list(Models_at_Indep_Var_number) )
@@ -179,20 +186,21 @@ for (number_of_Indep_Vars in 1:Total_Indep_Vars) { # applying the modeling funct
 # 
 # 
 }
-print("Ensemble_of_Models")
-str(Ensemble_of_Models)
+#print("Ensemble_of_Models")
+#str(Ensemble_of_Models)
 #     ~~ Process all subsets - find the increments  ~~ #
 #     
 # Model_List = [[list(model) for model in Ensemble_of_Models[0]]]  # evaluate the map-ped models and record them - start with the single IV models...
 Model_List <- list(Ensemble_of_Models[[1]])  # evaluate the lapply-ed models and record them - start with the single IV models...
 
-str(Model_List)
+#str(Model_List)
 
-FitStat_Adjustment <- 0 # ~~ temporary ~~ #
+if (length(all) > 0) FitStat_Adjustment <- All_Result[[2]]
+else FitStat_Adjustment <- 0
 # 
 # for model in range(len(Model_List[0])): # ...for the single IV models...
 #     Model_List[0][model][1] = Model_List[0][model][1]-FitStat_Adjustment #... have to remove constant model results as well as all subets results
-for (model in 1:length(Model_List)) { # ...for the single IV models...
+for (model in 1:length(Model_List[[1]])) { # ...for the single IV models...
      
      Model_List[[1]][[model]][[2]] <- Model_List[[1]][[model]][[2]] - FitStat_Adjustment #... have to remove constant model results as well as all subets results
      
@@ -210,20 +218,20 @@ for (number_of_Indep_Vars in 2:length(Ensemble_of_Models)) { # when >1 IV in the
 #     
 #     Indep_Var_Set_at_1lessIndep_Var = [set(Candidate_Indep_Var_Set[0]) for Candidate_Indep_Var_Set in Ensemble_of_Models[number_of_Indep_Vars-1]] # collect all sets IVs (coerced to be a set object), specifically all sets at one less IV in the model than the current number of IVs
     Indep_Var_Set_at_1lessIndep_Var <- lapply(Ensemble_of_Models[[number_of_Indep_Vars-1]], function(Candidate_Indep_Var_Set) { Candidate_Indep_Var_Set[[1]] }) # collect all sets IVs (coerced to be a set object), specifically all sets at one less IV in the model than the current number of IVs
-    print(Indep_Var_Set_at_1lessIndep_Var)
+    #print(Indep_Var_Set_at_1lessIndep_Var)
 #     
 #     for model in range(0, len(Ensemble_of_Models[number_of_Indep_Vars])): # loop through all models at a specific number of IVs in the model...
     for (model in 1:length(Ensemble_of_Models[[number_of_Indep_Vars]])) { # loop through all models at a specific number of IVs in the model...
 # 
 #         Indep_Var_Set = set(Ensemble_of_Models[number_of_Indep_Vars][model][0]) # IV set for a focal model; coerced to be set object
         Indep_Var_Set <- Ensemble_of_Models[[number_of_Indep_Vars]][[model]][[1]] # IV set for a focal model; coerced to be set object
-        print(Indep_Var_Set)
+        #print(Indep_Var_Set)
 #         
 #         for at1less_model in range(0, len(Indep_Var_Set_at_1lessIndep_Var)): # loop through all models at one less than the specific number of IVs in the model...
         for (at1less_model in 1:length(Indep_Var_Set_at_1lessIndep_Var)) { # loop through all models at one less than the specific number of IVs in the model...
 # 
 #             if Indep_Var_Set_at_1lessIndep_Var[at1less_model].issubset(Indep_Var_Set): # if IV set at one less is a subset of the predictors in the focal model...
-            print(length(intersect(Indep_Var_Set_at_1lessIndep_Var[[at1less_model]], Indep_Var_Set)) == length(Indep_Var_Set_at_1lessIndep_Var[[at1less_model]]))
+            #print(length(intersect(Indep_Var_Set_at_1lessIndep_Var[[at1less_model]], Indep_Var_Set)) == length(Indep_Var_Set_at_1lessIndep_Var[[at1less_model]]))
             if (length(intersect(Indep_Var_Set_at_1lessIndep_Var[[at1less_model]], Indep_Var_Set)) == length(Indep_Var_Set_at_1lessIndep_Var[[at1less_model]])) { # if IV set at one less is a subset of the predictors in the focal model...
 #                 
 #                 Model_Incremented.append( 
@@ -242,15 +250,15 @@ for (number_of_Indep_Vars in 2:length(Ensemble_of_Models)) { # when >1 IV in the
             }
         }
         
-    str(Model_Incremented)
+    #str(Model_Incremented)
 #                 
     }
 #     Model_List.append(Model_Incremented) 
     Model_List <- append(Model_List, list(Model_Incremented))
 #         
 }
-print("model list")
-str(Model_List)
+#print("model list")
+#str(Model_List)
 # 
 # """
 # 'Model_List' is structured such that:
@@ -288,7 +296,7 @@ for (Indep_Var in 1:Total_Indep_Vars) { # for each IV in the model...
 #           for Other_Indep_Var in Model_List[0][0:len(Model_List[0])] ] #... for other IVs alone (will compare to self also)
     if (Complete_Flag) #Complete_atIndep_Var <- 
         Complete_atIndep_Var <- (Model_List[[1]][[Indep_Var]][[2]] > sapply(Model_List[[1]], function(specific_fit_stat) {specific_fit_stat[[2]]} ))   # ~ ... redo documentation ... ~ # the idea is to compare all vars at 1 IV
-        print(c("cmplt at indep", Complete_atIndep_Var, Indep_Var_List[Indep_Var]))
+        #print(c("cmplt at indep", Complete_atIndep_Var, Indep_Var_List[Indep_Var]))
 # 
 #     for number_of_Indep_Vars in range(1, len(Model_List)): # for all numbers of IVs greater than 1...
     for (number_of_Indep_Vars in 2:Total_Indep_Vars) { # for all numbers of IVs greater than 1...
@@ -324,9 +332,9 @@ for (Indep_Var in 1:Total_Indep_Vars) { # for each IV in the model...
                             setequal(Model_List[[number_of_Indep_Vars]][[model]][[2]], Model_List[[number_of_Indep_Vars]][[other_model]][[2]]) & # ...the focal full model and the full other model have the same IV set (the only way they can be a 'subset' here) ...
                             (length(setdiff(Model_List[[number_of_Indep_Vars]][[model]][[1]], Model_List[[number_of_Indep_Vars]][[other_model]][[1]])) == 1) ) #... but their reduced IV set differs by one IV (this ensures it is not trying to compare the subset to itself)
 
-                        print(c("focal full", paste(Model_List[[number_of_Indep_Vars]][[model]][[1]], collapse=" "), "red foc", paste(Model_List[[number_of_Indep_Vars]][[model]][[2]], collapse=" "),
-                            "oth full", paste(Model_List[[number_of_Indep_Vars]][[other_model]][[1]], collapse=" "), "red oth", paste(Model_List[[number_of_Indep_Vars]][[other_model]][[2]], collapse=" "),
-                            relevant_complete, Model_List[[number_of_Indep_Vars]][[model]][[3]], Model_List[[number_of_Indep_Vars]][[other_model]][[3]]))
+#                         print(c("focal full", paste(Model_List[[number_of_Indep_Vars]][[model]][[1]], collapse=" "), "red foc", paste(Model_List[[number_of_Indep_Vars]][[model]][[2]], collapse=" "),
+#                             "oth full", paste(Model_List[[number_of_Indep_Vars]][[other_model]][[1]], collapse=" "), "red oth", paste(Model_List[[number_of_Indep_Vars]][[other_model]][[2]], collapse=" "),
+#                             relevant_complete, Model_List[[number_of_Indep_Vars]][[model]][[3]], Model_List[[number_of_Indep_Vars]][[other_model]][[3]]))
 
 #                        if relevant_complete: 
 #                             MatrixLocation_Complete = [Position_IV[0] for Position_IV in Model_List[0]].index(( # when a relevant comparison, obtain the index value for ...
@@ -336,7 +344,7 @@ for (Indep_Var in 1:Total_Indep_Vars) { # for each IV in the model...
                         MatrixLocation_Complete <- (1:Total_Indep_Vars)[ Indep_Var_List %in% 
                         setdiff(Model_List[[number_of_Indep_Vars]][[other_model]][[1]], Model_List[[number_of_Indep_Vars]][[model]][[1]]) ] #... the different element in the reduced model (to place it in the correct "row" for the dominance matrix/list)
                         
-                        print(c(MatrixLocation_Complete, Complete_atIndep_Var[MatrixLocation_Complete], Model_List[[number_of_Indep_Vars]][[model]][[3]] > Model_List[[number_of_Indep_Vars]][[other_model]][[3]]))
+                        #print(c(MatrixLocation_Complete, Complete_atIndep_Var[MatrixLocation_Complete], Model_List[[number_of_Indep_Vars]][[model]][[3]] > Model_List[[number_of_Indep_Vars]][[other_model]][[3]]))
 #                             
 #                             Complete_atIndep_Var[MatrixLocation_Complete].append( #at the correct location in the complete dominance matrix, append...
 #                                 Model_List[number_of_Indep_Vars][other_model][2] < Model_List[number_of_Indep_Vars][model][2] ) # ...whether the other model's increment is bigger than the focal
@@ -363,6 +371,7 @@ for (Indep_Var in 1:Total_Indep_Vars) { # for each IV in the model...
 #     if Complete_Flag: Complete_Dominance.append(Complete_atIndep_Var) # append full row of IV's complete dominance logicals/designations
     if (Complete_Flag) Complete_Dominance[Indep_Var,] <- as.integer(Complete_atIndep_Var) # append full row of IV's complete dominance logicals/designations
 }
+
 print(Conditional_Dominance)
 print(Complete_Dominance)
 # 
