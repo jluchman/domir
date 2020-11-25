@@ -1,8 +1,15 @@
-# from sys import argv as use_stata_arguments
-# import itertools as it
-# import sfi
-# import statistics as stat
-# from math import factorial as fctl
+#' User-Definable Dominance Analysis
+#'
+#' Dominance analysis procedure accepting user-defined models and fit statistics.  An R port of Stata's -domin- module.
+#' @param formula_overall R formula for use in R_regression.
+#' @param R_regression The R regression model called.
+#' @param fitstat_function The fit statistic used for dominance analysis.
+#' @param sets List of vectors of names; each list element's vector is a set.
+#' @param all Vector of names in all subsets.
+#' @keywords relative importance
+#' @export
+#' @examples
+#' domin()
 
 domin <- function(formula_overall, R_regression, fitstat_function, sets=NULL, all=NULL, ...) {
 
