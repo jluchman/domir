@@ -24,9 +24,11 @@ if (!is.function(match.fun(reg))) stop(paste(reg, "function cannot be found."))
 Indep_Var_List <- attr(terms(formula_overall), "term.labels") # obtain IV list
 
 if (length(sets) > 0) { # if there are sets...
+    
     set_aggregated <- sapply(sets, paste0, collapse=" + ") # ...paste together elements of set...
-    print(set_aggregated)
+    
     Indep_Var_List <- append(Indep_Var_List, set_aggregated) # ... append to IV list
+    
 }
 
 Dep_Var <- all.vars(formula_overall)[[1]] # pull out DV
@@ -198,7 +200,6 @@ for (Indep_Var in 1:Total_Indep_Vars) { # for each IV in the model...
 
         }
         
-        print(c("relev:", Relevant_Increments))
         Conditional_Dominance[Indep_Var, number_of_Indep_Vars] <- mean(Relevant_Increments) # compute conditional dominance at number of IVs for specific IV and append
     }
     
@@ -207,37 +208,20 @@ for (Indep_Var in 1:Total_Indep_Vars) { # for each IV in the model...
 }
 
 print(Conditional_Dominance)
+
+
+if (Complete_Flag) Complete_Dominance <- Complete_Dominance + t(-Complete_Dominance)
+
 print(Complete_Dominance)
-# 
-# if Complete_Flag:
-#     Complete_Dominance = [list(map(all, Indep_Var)) for Indep_Var in Complete_Dominance] # for each focal IV, make list comprehension that flags whether at each comparison (i.e., other IV) are all entries (i.e., specific comarisons between similar models) in list True?
-# 
-#     Complete_Dominance = [[int(IV_Other_Compare) for IV_Other_Compare in Indep_Var] for Indep_Var in Complete_Dominance] # for each IV and other comparison, change boolean to integer for use in Stata
-# 
-# 
-# if Conditional_Flag:
-#     sfi.Matrix.create('r(cdldom)', len(Ensemble_of_Models), len(Ensemble_of_Models), 0) # create conditional dominance matrix container in Stata
-#     sfi.Matrix.store('r(cdldom)', Conditional_Dominance) # post conditional dominance matrix
-# 
-# if Complete_Flag:
-#     sfi.Matrix.create('r(cptdom)', len(Ensemble_of_Models), len(Ensemble_of_Models), 0) # create complete dominance matrix container in Stata
-#     sfi.Matrix.store('r(cptdom)', Complete_Dominance) # post complete dominance matrix
-# 
-# 
+
 #     ~~ Compute general dominance and fit statistic  ~~ ##
-#     
-# General_Dominance = list(map(stat.mean, Conditional_Dominance)) # average conditional dominance statistics to produce general dominance
-# 
-# FitStat = stat.fsum(General_Dominance) + FitStat_Adjustment # adjust overall fit statistic by replacing all subsets component and constant model component
-# sfi.Scalar.setValue('r(fs)', FitStat) # post overall fitstat
-# 
-# sfi.Matrix.create('r(domwgts)', 1, len(Ensemble_of_Models), 0) # create general dominance matrix container in Stata
-# sfi.Matrix.store('r(domwgts)', General_Dominance) # post general dominance statistics
-# 
-# sfi.Matrix.create('r(sdomwgts)', 1, len(Ensemble_of_Models), 0) # create standardized general dominance matrix container in Stata
-# sfi.Matrix.store('r(sdomwgts)', list(map(lambda Gen_Dom_Stat: Gen_Dom_Stat/FitStat, General_Dominance)) ) # produce standardized general dominance
-# 
-# General_Dominance_Ranks = [sorted(General_Dominance, reverse = True).index(Indep_Var)+1 for Indep_Var in General_Dominance] # rank general dominance statistics
-# sfi.Matrix.create('r(ranks)', 1, len(Ensemble_of_Models), 0) # create general dominance ranking matrix container in Stata
-# sfi.Matrix.store('r(ranks)', General_Dominance_Ranks) # post general dominance statistic rankings
+
+General_Dominance <- apply(Conditional_Dominance, 1, mean) # average conditional dominance statistics to produce general dominance
+
+FitStat <- sum(General_Dominance) + FitStat_Adjustment # adjust overall fit statistic by replacing all subsets component and constant model component
+
+General_Dominance_Ranks <- rank(-General_Dominance) # rank general dominance statistics
+
+print(cbind(General_Dominance, General_Dominance_Ranks))
+
 }
