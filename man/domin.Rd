@@ -4,21 +4,14 @@
 \alias{domin}
 \title{User-Definable Dominance Analysis}
 \usage{
-domin(
-  formula_overall,
-  R_regression,
-  fitstat_function,
-  sets = NULL,
-  all = NULL,
-  ...
-)
+domin(formula_overall, reg, fitstat, sets = NULL, all = NULL, ...)
 }
 \arguments{
-\item{formula_overall}{R formula for use in R_regression.}
+\item{formula_overall}{R formula for use in reg.}
 
-\item{R_regression}{The R regression model called.}
+\item{reg}{The R regression model called.}
 
-\item{fitstat_function}{The fit statistic used for dominance analysis.}
+\item{fitstat}{The fit statistic used for dominance analysis.}
 
 \item{sets}{List of vectors of names; each list element's vector is a set.}
 

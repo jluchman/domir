@@ -1,9 +1,9 @@
 #' User-Definable Dominance Analysis
 #'
 #' Dominance analysis procedure accepting user-defined models and fit statistics.  An R port of Stata's -domin- module.
-#' @param formula_overall R formula for use in R_regression.
-#' @param R_regression The R regression model called.
-#' @param fitstat_function The fit statistic used for dominance analysis.
+#' @param formula_overall Formula for use in reg.
+#' @param reg The function implementing the regression model called.
+#' @param fitstat List indicating function implemeting fit statistic and list element used for dominance analysis.
 #' @param sets List of vectors of names; each list element's vector is a set.
 #' @param all Vector of names in all subsets.
 #' @keywords relative importance
@@ -11,108 +11,60 @@
 #' @examples
 #' domin()
 
-domin <- function(formula_overall, R_regression, fitstat_function, sets=NULL, all=NULL, ...) {
-
-Indep_Var_List <- attr(terms(as.formula(formula_overall)), "term.labels")
-
-print(Indep_Var_List)
-
-if (length(sets) > 0) { # if there are sets...
-    set_aggregated <- sapply(sets, paste0, collapse=" + ")
-    print(set_aggregated)
-    Indep_Var_List <- append(Indep_Var_List, set_aggregated)
-}
-
-
-Dep_Var <- all.vars(as.formula(formula_overall))[[1]]
-print(Dep_Var)
-
-    # ~~ Process arguments passed from stata ~~ #
-
-# Stata_Regression = use_stata_arguments[1]
-# Dep_Var = use_stata_arguments[2]
-# Indep_Vars_Unprocessed = use_stata_arguments[3]
-# AllSubsets_Indep_Vars = use_stata_arguments[4]
-# If_Conditions = use_stata_arguments[5]
-# Regress_Options = use_stata_arguments[6]
-# Fit_Statistic = use_stata_arguments[7]
-# Mult_Impute_Flag = use_stata_arguments[8]
-# Mult_Impute_Opts = use_stata_arguments[9]
-# FitStat_Adjustment = float(use_stata_arguments[10])
-# Conditional_Flag = not bool(len(use_stata_arguments[11]))
-# Complete_Flag = not bool(len(use_stata_arguments[12]))
-# Mult_Impute_File = use_stata_arguments[13]
-# Mult_Imputes_toUse = use_stata_arguments[14]
-
+domin <- function(formula_overall, reg, fitstat, sets=NULL, 
+    all=NULL, ...) {
+    
+    # ~~ Exit conditions ~~ #
+    
+if (!is(formula_overall, "formula")) stop(paste(formula_overall, "is not a formula object.  Coerce it to formula before use in domin."))
+if (!is.function(match.fun(reg))) stop(paste(reg, "function cannot be found."))
 
     # ~~ Create independent variable list ~~ #
     
-# Indep_Var_List = Indep_Vars_Unprocessed.strip().split("<") # parses IV sets, if any (individual IVs unprocessed)
-# 
-# if len(Indep_Var_List[0]) > 0:
-#     Indep_Var_List = ( Indep_Var_List[0].strip().split(" ") + 
-#         Indep_Var_List[1:len(Indep_Var_List)] ) # if there are only individual IVs, or if there are invidual IVs and IV sets, parse individual IVs (and include IV sets if any)
-# else:
-#     Indep_Var_List = Indep_Var_List[1:len(Indep_Var_List)] # otherwise, remove the "empty" space that's produced by the missing individual IVs
+Indep_Var_List <- attr(terms(formula_overall), "term.labels") # obtain IV list
 
+if (length(sets) > 0) { # if there are sets...
+    set_aggregated <- sapply(sets, paste0, collapse=" + ") # ...paste together elements of set...
+    print(set_aggregated)
+    Indep_Var_List <- append(Indep_Var_List, set_aggregated) # ... append to IV list
+}
+
+Dep_Var <- all.vars(formula_overall)[[1]] # pull out DV
+
+Total_Indep_Vars <- length(Indep_Var_List) # number of IVs in model
+
+if (Total_Indep_Vars < 3) stop(paste("Total of", Total_Indep_Vars,"independent variables or sets. At least 3 needed for useful dominance analysis."))
 
     # ~~ Create independent variable combination list ~~ #
     
-# Combination_List = list(map(it.combinations, # use map() function to apply combinations function to ...
-#                             list(it.repeat(Indep_Var_List, len(Indep_Var_List))), #... the IV list - which is repeated so that...
-#                             range(1, len(Indep_Var_List)+1))) # ... each number of combinations of a specific number of elements can be applied to get all possible combinations (note: saved as a combination object to be evaluated later and not as the list of combinations)
 Combination_List <- lapply( (1:length(Indep_Var_List)), # use lapply() function to apply each distinct number of combination to ...
 							function(Comb_Num) {combn(Indep_Var_List, Comb_Num)} ) # ... combn() function using the the IV list to obtain all combinations
 
-#str(Combination_List)
-# Total_Indep_Vars = len(Combination_List) # number of IVs in model
-Total_Indep_Vars <- length(Indep_Var_List) # number of IVs in model
-
-# Total_Models_to_Estimate = 2**Total_Indep_Vars - 1 # total number of models to estimate
 Total_Models_to_Estimate <- 2**Total_Indep_Vars - 1 # total number of models to estimate
 
-# sfi.SFIToolkit.stata("display _newline \"{txt}Total of {res}" + str(2**len(Indep_Var_List)-1) + " {txt}regressions\"")
-# 
-# if Total_Indep_Vars > 4:
-#     sfi.SFIToolkit.stata("display _newline \"{txt}Progress in running all regression subsets\" _newline " + 
-#         "\"{res}0%{txt}{hline 6}{res}50%{txt}{hline 6}{res}100%\"")
-#     
-#     print(".", end="")
-# 
-# 
-#     ~~ Define function to call regression model in Stata ~~ #
-#      
-# def st_model_call(Indep_Var_combination, report): # standard function to call and catch stata model
-#     sfi.SFIToolkit.stata( "quietly " +
-#                          Stata_Regression + " " + 
-#                          Dep_Var + " " +   
-#                          " ".join(Indep_Var_combination) + " " +
-#                          AllSubsets_Indep_Vars +
-#                          " if " + If_Conditions +
-#                           "," + Regress_Options ) 
-#     
-#     if report: print(".", end="")
-R_model_call <- function(Indep_Var_combination, Dep_Var, R_regression, fitstat_function, all=NULL, ...) {
+#     ~~ Define function to call regression models ~~ #
+
+R_model_call <- function(Indep_Var_combination, Dep_Var, reg, fitstat, all=NULL, ...) {
 
     formula_to_use <- paste0(Dep_Var, " ~ ", paste0(c(Indep_Var_combination, all), collapse = " + " ))
     
     #print(formula_to_use)
 
-    temp_result <- list(do.call(R_regression, list(formula_to_use, ...)) )  # build function that processes list then calls regression
+    temp_result <- list(do.call(reg, list(formula_to_use, ...)) )  # build function that processes list then calls regression
     
-    if (length(fitstat_function) > 2) temp_result <- append(temp_result, fitstat_function[3:length(fitstat_function)]) # include additional arguments to fitstat_function
+    if (length(fitstat) > 2) temp_result <- append(temp_result, fitstat[3:length(fitstat)]) # include additional arguments to fitstat
     
     #str(temp_result)
     
     return( list( 
         Indep_Var_combination,
-        get( fitstat_function[[2]], do.call(fitstat_function[[1]], temp_result) )  
+        get( fitstat[[2]], do.call(fitstat[[1]], temp_result) )  
     ))
 
 }
 
 if (length(all) > 0) {
-    All_Result <- R_model_call(all, Dep_Var, R_regression, fitstat_function, ...)
+    All_Result <- R_model_call(all, Dep_Var, reg, fitstat, ...)
     print(All_Result)
 }
 
@@ -184,7 +136,7 @@ for (number_of_Indep_Vars in 1:Total_Indep_Vars) { # applying the modeling funct
 #     else: # ... otherwise normal function
 #         Models_at_Indep_Var_number = list( map(st_model_call, 
 #                                    list(Combination_List[number_of_Indep_Vars]), report_model_list ) )
-    Models_at_Indep_Var_number <- lapply(as.data.frame(Combination_List[[number_of_Indep_Vars]]), R_model_call, Dep_Var, R_regression, fitstat_function, all=all, ...)
+    Models_at_Indep_Var_number <- lapply(as.data.frame(Combination_List[[number_of_Indep_Vars]]), R_model_call, Dep_Var, reg, fitstat, all=all, ...)
 #     
 #     Ensemble_of_Models.append(Models_at_Indep_Var_number) 
     Ensemble_of_Models <- append(Ensemble_of_Models, list(Models_at_Indep_Var_number) )
