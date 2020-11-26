@@ -224,4 +224,13 @@ General_Dominance_Ranks <- rank(-General_Dominance) # rank general dominance sta
 
 print(cbind(General_Dominance, General_Dominance_Ranks))
 
+return(
+    list(
+        "General Dominance" = General_Dominance,
+        "Conditional Dominance" = Conditional_Dominance,
+        "Complete Dominance" = Complete_Dominance,
+        "Fit Statistic Overall" = FitStat
+    )
+)
+
 }
