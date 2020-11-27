@@ -4,7 +4,15 @@
 \alias{domin}
 \title{User-Definable Dominance Analysis}
 \usage{
-domin(formula_overall, reg, fitstat, sets = NULL, all = NULL, ...)
+domin(
+  formula_overall,
+  reg,
+  fitstat,
+  sets = NULL,
+  all = NULL,
+  complete = TRUE,
+  ...
+)
 }
 \arguments{
 \item{formula_overall}{Formula for use in reg.}

@@ -7,7 +7,7 @@
 \method{print}{domin}(domin_obj)
 }
 \description{
-Dominance analysis procedure accepting user-defined models and fit statistics.  An R port of Stata's -domin- module.
+Reports basic results from \code{domin} run
 }
 \keyword{importance}
 \keyword{relative}

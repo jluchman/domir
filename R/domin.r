@@ -12,7 +12,7 @@
 #' domin()
 
 domin <- function(formula_overall, reg, fitstat, sets=NULL, 
-    all=NULL, ...) {
+    all=NULL, complete=TRUE, ...) {
     
     # ~~ Exit conditions ~~ #
     
@@ -150,9 +150,8 @@ for (number_of_Indep_Vars in 2:length(Ensemble_of_Models)) { # when >1 IV in the
 
 Conditional_Dominance <- matrix(nrow=Total_Indep_Vars, ncol=Total_Indep_Vars) # conditional dominance container
 
-Complete_Flag <- TRUE # ~~ temporary ~~ #
-
-if (Complete_Flag) Complete_Dominance <- matrix(data=0, nrow=Total_Indep_Vars, ncol=Total_Indep_Vars) # complete dominance container
+if (complete) Complete_Dominance <- matrix(data=0, nrow=Total_Indep_Vars, ncol=Total_Indep_Vars) # complete dominance container
+else Complete_Dominance <- NULL
 
 for (Indep_Var in 1:Total_Indep_Vars) { # for each IV in the model...
 
@@ -162,7 +161,7 @@ for (Indep_Var in 1:Total_Indep_Vars) { # for each IV in the model...
 
     Indep_Varname <- Model_List[[1]][[Indep_Var]][[1]] # record name of focal IV
 
-    if (Complete_Flag) 
+    if (complete) 
         Complete_atIndep_Var <- (Model_List[[1]][[Indep_Var]][[2]] > sapply(Model_List[[1]], function(specific_fit_stat) {specific_fit_stat[[2]]} ))   # ~ ... redo documentation ... ~ # the idea is to compare all vars at 1 IV
 
     for (number_of_Indep_Vars in 2:Total_Indep_Vars) { # for all numbers of IVs greater than 1...
@@ -177,7 +176,7 @@ for (Indep_Var in 1:Total_Indep_Vars) { # for each IV in the model...
             if (proceed_to_record)
                 Relevant_Increments <- append(Relevant_Increments, Model_List[[number_of_Indep_Vars]][[model]][[3]]) # always collect the fit statistic for conditional dominance computations
 
-            if (Complete_Flag) {
+            if (complete) {
                 for (other_model in 1:length(Model_List[number_of_Indep_Vars])) { # also proceed to collect complete dominance data using this loop comparing to all other models within this number of IVs to find relevant comparisons
 
                        relevant_complete <- ( # a relevant complete dominance comparsion is found when ...
@@ -204,11 +203,11 @@ for (Indep_Var in 1:Total_Indep_Vars) { # for each IV in the model...
     
     }
     
-    if (Complete_Flag) Complete_Dominance[Indep_Var,] <- as.integer(Complete_atIndep_Var) # append full row of IV's complete dominance logicals/designations
+    if (complete) Complete_Dominance[Indep_Var,] <- as.integer(Complete_atIndep_Var) # append full row of IV's complete dominance logicals/designations
 
 }
 
-if (Complete_Flag) Complete_Dominance <- Complete_Dominance + t(-Complete_Dominance) # ensure symmetry of complete dominance matrix
+if (complete) Complete_Dominance <- Complete_Dominance + t(-Complete_Dominance) # ensure symmetry of complete dominance matrix
 
 #     ~~ Compute general dominance and fit statistic  ~~ ##
 
