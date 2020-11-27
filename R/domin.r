@@ -62,6 +62,7 @@ Ensemble_Coordinator <- function(Indep_Var_combination, Dep_Var, reg, fitstat, a
 }
 
 if (length(all) > 0) All_Result <- Ensemble_Coordinator(all, Dep_Var, reg, fitstat, ...)
+else All_Result <- NULL
 
 #     ~~ Obtain all subsets regression results ~~ #
 
@@ -173,21 +174,20 @@ for (Indep_Var in 1:Total_Indep_Vars) { # for each IV in the model...
             proceed_to_record <- any(intersect(Indep_Varname, Model_List[[number_of_Indep_Vars]][[model]][[1]])==Indep_Varname) &  # flag this entry for recording if the focal IV name is in the IV set...
                !any(intersect(Indep_Varname, Model_List[[number_of_Indep_Vars]][[model]][[2]])==Indep_Varname) # ...but is _not_ in the IV set less one - thus, the fit statistic here is a valid "increment" for the focal IV
 
-                if (proceed_to_record)
-                    Relevant_Increments <- append(Relevant_Increments, Model_List[[number_of_Indep_Vars]][[model]][[3]]) # always collect the fit statistic for conditional dominance computations
+            if (proceed_to_record)
+                Relevant_Increments <- append(Relevant_Increments, Model_List[[number_of_Indep_Vars]][[model]][[3]]) # always collect the fit statistic for conditional dominance computations
 
-                if (Complete_Flag) {
-                    for (other_model in 1:length(Model_List[number_of_Indep_Vars])) { # also proceed to collect complete dominance data using this loop comparing to all other models within this number of IVs to find relevant comparisons
-
+            if (Complete_Flag) {
+                for (other_model in 1:length(Model_List[number_of_Indep_Vars])) { # also proceed to collect complete dominance data using this loop comparing to all other models within this number of IVs to find relevant comparisons
 
                        relevant_complete <- ( # a relevant complete dominance comparsion is found when ...
                             setequal(Model_List[[number_of_Indep_Vars]][[model]][[2]], Model_List[[number_of_Indep_Vars]][[other_model]][[2]]) & # ...the focal full model and the full other model have the same IV set (the only way they can be a 'subset' here) ...
-                            (length(setdiff(Model_List[[number_of_Indep_Vars]][[model]][[1]], Model_List[[number_of_Indep_Vars]][[other_model]][[1]])) == 1) ) #... but their reduced IV set differs by one IV (this ensures it is not trying to compare the subset to itself)
+                                (length(setdiff(Model_List[[number_of_Indep_Vars]][[model]][[1]], Model_List[[number_of_Indep_Vars]][[other_model]][[1]])) == 1) ) #... but their reduced IV set differs by one IV (this ensures it is not trying to compare the subset to itself)
 
 
                     if (relevant_complete) {
                         MatrixLocation_Complete <- (1:Total_Indep_Vars)[ Indep_Var_List %in% 
-                        setdiff(Model_List[[number_of_Indep_Vars]][[other_model]][[1]], Model_List[[number_of_Indep_Vars]][[model]][[1]]) ] #... the different element in the reduced model (to place it in the correct "row" for the dominance matrix/list)
+                            setdiff(Model_List[[number_of_Indep_Vars]][[other_model]][[1]], Model_List[[number_of_Indep_Vars]][[model]][[1]]) ] #... the different element in the reduced model (to place it in the correct "row" for the dominance matrix/list)
                         
                         Complete_atIndep_Var[MatrixLocation_Complete] <- as.integer( #at the correct location in the complete dominance matrix, append...
                             all(Model_List[[number_of_Indep_Vars]][[model]][[3]] > Model_List[[number_of_Indep_Vars]][[other_model]][[3]],  
@@ -201,18 +201,14 @@ for (Indep_Var in 1:Total_Indep_Vars) { # for each IV in the model...
         }
         
         Conditional_Dominance[Indep_Var, number_of_Indep_Vars] <- mean(Relevant_Increments) # compute conditional dominance at number of IVs for specific IV and append
+    
     }
     
     if (Complete_Flag) Complete_Dominance[Indep_Var,] <- as.integer(Complete_atIndep_Var) # append full row of IV's complete dominance logicals/designations
 
 }
 
-print(Conditional_Dominance)
-
-
-if (Complete_Flag) Complete_Dominance <- Complete_Dominance + t(-Complete_Dominance)
-
-print(Complete_Dominance)
+if (Complete_Flag) Complete_Dominance <- Complete_Dominance + t(-Complete_Dominance) # ensure symmetry of complete dominance matrix
 
 #     ~~ Compute general dominance and fit statistic  ~~ ##
 
@@ -220,17 +216,38 @@ General_Dominance <- apply(Conditional_Dominance, 1, mean) # average conditional
 
 FitStat <- sum(General_Dominance) + FitStat_Adjustment # adjust overall fit statistic by replacing all subsets component and constant model component
 
-General_Dominance_Ranks <- rank(-General_Dominance) # rank general dominance statistics
+General_Dominance_Ranks <- rank(-General_Dominance) # rank general dominance statistic
 
-print(cbind(General_Dominance, General_Dominance_Ranks))
-
-return(
-    list(
-        "General Dominance" = General_Dominance,
-        "Conditional Dominance" = Conditional_Dominance,
-        "Complete Dominance" = Complete_Dominance,
-        "Fit Statistic Overall" = FitStat
-    )
+return_list <- list(
+    "General_Dominance" = General_Dominance,
+    "Standardized" = General_Dominance/FitStat,
+    "Ranks" = General_Dominance_Ranks,
+    "Conditional_Dominance" = Conditional_Dominance,
+    "Complete_Dominance" = Complete_Dominance,
+    "Fit_Statistic_Overall" = FitStat,
+    "Fit_Statistic_All_Subsets" = All_Result[[2]],
+    "Model_Details" = list("reg" = reg, "fitstat" = list("function" = fitstat[[1]], "element" = fitstat[[2]]))
 )
+    
+    class(return_list) <- c("domin","list")
+    
+    return(return_list)
 
 }
+
+#' Print method for \code{domin}
+#'
+#' Reports basic results from \code{domin} run
+#' @keywords relative importance
+#' @export
+
+print.domin <- function(domin_obj) {
+
+cat("Dominance Analysis with", domin_obj[["Model_Details"]][["reg"]], "and", 
+    domin_obj[["Model_Details"]][["fitstat"]][["function"]], "in element", 
+     domin_obj[["Model_Details"]][["fitstat"]][["element"]], "\n")
+
+str(domin_obj)
+
+}
+

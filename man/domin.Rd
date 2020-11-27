@@ -7,11 +7,11 @@
 domin(formula_overall, reg, fitstat, sets = NULL, all = NULL, ...)
 }
 \arguments{
-\item{formula_overall}{R formula for use in reg.}
+\item{formula_overall}{Formula for use in reg.}
 
-\item{reg}{The R regression model called.}
+\item{reg}{The function implementing the regression model called.}
 
-\item{fitstat}{The fit statistic used for dominance analysis.}
+\item{fitstat}{List indicating function implemeting fit statistic and list element used for dominance analysis.}
 
 \item{sets}{List of vectors of names; each list element's vector is a set.}
 
