@@ -48,7 +48,7 @@ Total_Models_to_Estimate <- 2**Total_Indep_Vars - 1 # total number of models to 
 
 Ensemble_Coordinator <- function(Indep_Var_combination, Dep_Var, reg, fitstat, all=NULL, ...) {
 
-    formula_to_use <- paste0(Dep_Var, " ~ ", paste0(c(Indep_Var_combination, all), collapse = " + " ))
+    formula_to_use <- formula(paste0(Dep_Var, " ~ ", paste0(c(Indep_Var_combination, all), collapse = " + " )))
 
     temp_result <- list(do.call(reg, list(formula_to_use, ...)) )  # build function that processes list then calls regression
     
