@@ -18,6 +18,7 @@ domin <- function(formula_overall, reg, fitstat, sets=NULL,
     
 if (!is(formula_overall, "formula")) stop(paste(formula_overall, "is not a formula object.  Coerce it to formula before use in domin."))
 if (!is.function(match.fun(reg))) stop(paste(reg, "function cannot be found."))
+if (!is.function(match.fun(fitstat[[1]]))) stop(paste(fitstat[[1]], "function cannot be found."))
 
     # ~~ Create independent variable list ~~ #
     
