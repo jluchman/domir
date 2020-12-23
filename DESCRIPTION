@@ -1,15 +1,23 @@
 Package: domir
-Title: User-Defined Dominance Analysis Support
+Title: Support for User-Definable Dominance Analysis
 Version: 0.0.0.9000
+Date: 2020-12-23
 Authors@R: 
     person(given = "Joseph",
            family = "Luchman",
            role = c("aut", "cre"),
            email = "jluchman@forsmarshgroup.com",
            comment = c(ORCID = "0000-0002-8886-9717"))
-Description: What the package does (one paragraph).
-License: `use_mit_license()`, `use_gpl3_license()` or friends to pick a
-    license
+Description: 'dom'inance analysis 'i'n 'r' provides support for dominance 
+    analysis that extends on methods in the 'relaimpo' and 
+    'dominanceanalysis' packages to, effectively, any statistical or 
+    machine learning function as defined or desired by the user. Dominance 
+    analysis is a methodology for determining the relative importance of 
+    predictors/features/independent variables as well as parameter estimates.
+Imports: utils, stats
+Suggests: relaimpo, dominanceanalysis, yhat
+License: GPL (>= 2)
+URL: <https://github.com/jluchman/domir>
 Encoding: UTF-8
 LazyData: true
 Roxygen: list(markdown = TRUE)
