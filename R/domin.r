@@ -54,9 +54,11 @@ Ensemble_Coordinator <- function(Indep_Var_combination, Dep_Var, reg, fitstat, a
     
     if (length(fitstat) > 2) temp_result <- append(temp_result, fitstat[3:length(fitstat)]) # include additional arguments to fitstat
     
+    fit_value <- do.call(fitstat[[1]], temp_result) 
+    
     return( list( 
         Indep_Var_combination,
-        get( fitstat[[2]], do.call(fitstat[[1]], temp_result) )  
+        get( fitstat[[2]], envir=as.environment(fit_value))
     ))
 
 }
