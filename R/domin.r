@@ -22,7 +22,7 @@ if (!is.function(match.fun(fitstat[[1]]))) stop(paste(fitstat[[1]], "function ca
 
     # ~~ Create independent variable list ~~ #
     
-Indep_Var_List <- attr(terms(formula_overall), "term.labels") # obtain IV list
+Indep_Var_List <- attr(stats::terms(formula_overall), "term.labels") # obtain IV list
 
 if (length(sets) > 0) { # if there are sets...
     
@@ -49,7 +49,7 @@ Total_Models_to_Estimate <- 2**Total_Indep_Vars - 1 # total number of models to 
 
 Ensemble_Coordinator <- function(Indep_Var_combination, Dep_Var, reg, fitstat, all=NULL, ...) {
 
-    formula_to_use <- formula(paste0(Dep_Var, " ~ ", paste0(c(Indep_Var_combination, all), collapse = " + " )))
+    formula_to_use <- stats::formula(paste0(Dep_Var, " ~ ", paste0(c(Indep_Var_combination, all), collapse = " + " )))
 
     temp_result <- list(do.call(reg, list(formula_to_use, ...)) )  # build function that processes list then calls regression
     
