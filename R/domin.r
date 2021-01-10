@@ -1,12 +1,14 @@
-#' User-Definable Dominance Analysis
+#' User-definable \code{formula} class object-based dominance analysis
 #'
-#' Dominance analysis procedure accepting user-defined models and fit statistics.  An R port of Stata's -domin- module.
-#' @param formula_overall Formula for use in reg.
+#' Uses \code{formula} class objects to build all model subsets
+#' @param formula_overall an object of class \link{formula} for use in the functon in \code{reg}.
 #' @param reg The function implementing the regression model called.
-#' @param fitstat List indicating function implemeting fit statistic and list element used for dominance analysis.
-#' @param sets List of vectors of names; each list element's vector is a set.
-#' @param all Vector of names in all subsets.
-#' @keywords relative importance
+#' @param fitstat List indicating function implemeting fit statistic and list element used for dominance analysis (see details).
+#' @param sets an optional \link{list} containing individual vectors of variable or factor names.  Each \link{vector} in the list is used as a set and always included together in the \code{formula}.
+#' @param all an optional vector of variable or factor names to be built into the \code{formula} and included in all model subsets.
+#' @param complete logical.  If \code{FALSE} then complete dominance matrix is not computed.
+#' @param ... additional arguments passed to \code{reg} function.
+#' @keywords relative importance dominance analysis shapley value
 #' @export
 #' @examples
 #' domin()
@@ -16,7 +18,7 @@ domin <- function(formula_overall, reg, fitstat, sets=NULL,
     
     # ~~ Exit conditions ~~ #
     
-if (!is(formula_overall, "formula")) stop(paste(formula_overall, "is not a formula object.  Coerce it to formula before use in domin."))
+if (!methods::is(formula_overall, "formula")) stop(paste(formula_overall, "is not a formula object.  Coerce it to formula before use in domin."))
 if (!is.function(match.fun(reg))) stop(paste(reg, "function cannot be found."))
 if (!is.function(match.fun(fitstat[[1]]))) stop(paste(fitstat[[1]], "function cannot be found."))
 
@@ -243,13 +245,13 @@ return_list <- list(
 #' @keywords relative importance
 #' @export
 
-print.domin <- function(domin_obj) {
+print.domin <- function(x, ...) {
 
 cat("Dominance Analysis with", domin_obj[["Model_Details"]][["reg"]], "and", 
     domin_obj[["Model_Details"]][["fitstat"]][["function"]], "in element", 
      domin_obj[["Model_Details"]][["fitstat"]][["element"]], "\n")
 
-str(domin_obj)
+utils::str(x)
 
 }
 
