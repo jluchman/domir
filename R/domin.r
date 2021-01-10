@@ -11,7 +11,7 @@
 #' @keywords relative importance dominance analysis shapley value
 #' @export
 #' @examples
-#' domin()
+#' domin(mpg ~ am + vs + cyl, "lm", list("summary", "r.squared"), data=mtcars)
 
 domin <- function(formula_overall, reg, fitstat, sets=NULL, 
     all=NULL, complete=TRUE, ...) {
@@ -242,14 +242,16 @@ return_list <- list(
 #' Print method for \code{domin}
 #'
 #' Reports basic results from \code{domin} run
+#' x an object of class "domin".
+#' ... further arguments passed to or from other methods.
 #' @keywords relative importance
 #' @export
 
 print.domin <- function(x, ...) {
 
-cat("Dominance Analysis with", domin_obj[["Model_Details"]][["reg"]], "and", 
-    domin_obj[["Model_Details"]][["fitstat"]][["function"]], "in element", 
-     domin_obj[["Model_Details"]][["fitstat"]][["element"]], "\n")
+cat("Dominance Analysis with", x[["Model_Details"]][["reg"]], "and", 
+    x[["Model_Details"]][["fitstat"]][["function"]], "in element", 
+     x[["Model_Details"]][["fitstat"]][["element"]], "\n")
 
 utils::str(x)
 
