@@ -222,6 +222,13 @@ FitStat <- sum(General_Dominance) + FitStat_Adjustment # adjust overall fit stat
 
 General_Dominance_Ranks <- rank(-General_Dominance) # rank general dominance statistic
 
+IV_Labels <- c(attr(stats::terms(formula_overall), "term.labels"), paste0("set", 1:length(sets))) # names for returned values
+
+names(General_Dominance) <- IV_Labels
+names(General_Dominance_Ranks) <- IV_Labels 
+dimnames(Conditional_Dominance) <- list(IV_Labels, paste("IVs:", 1:length(Indep_Var_List)))
+dimnames(Complete_Dominance) <- list(paste0("Dmate?", IV_Labels),  paste0("Dmned?", IV_Labels))
+
 return_list <- list(
     "General_Dominance" = General_Dominance,
     "Standardized" = General_Dominance/FitStat,
@@ -230,7 +237,9 @@ return_list <- list(
     "Complete_Dominance" = Complete_Dominance,
     "Fit_Statistic_Overall" = FitStat,
     "Fit_Statistic_All_Subsets" = All_Result[[2]],
-    "Model_Details" = list("reg" = reg, "fitstat" = list("function" = fitstat[[1]], "element" = fitstat[[2]]))
+    "Call" = match.call(),
+    "all" = all,
+    "sets" = sets
 )
     
     class(return_list) <- c("domin","list")
