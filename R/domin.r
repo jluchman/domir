@@ -222,7 +222,8 @@ FitStat <- sum(General_Dominance) + FitStat_Adjustment # adjust overall fit stat
 
 General_Dominance_Ranks <- rank(-General_Dominance) # rank general dominance statistic
 
-IV_Labels <- c(attr(stats::terms(formula_overall), "term.labels"), paste0("set", 1:length(sets))) # names for returned values
+if (length(sets) == 0 ) IV_Labels <- attr(stats::terms(formula_overall), "term.labels")
+else IV_Labels <- c(attr(stats::terms(formula_overall), "term.labels"), paste0("set", 1:length(sets))) # names for returned values
 
 names(General_Dominance) <- IV_Labels
 names(General_Dominance_Ranks) <- IV_Labels 
@@ -238,8 +239,8 @@ return_list <- list(
     "Fit_Statistic_Overall" = FitStat,
     "Fit_Statistic_All_Subsets" = All_Result[[2]],
     "Call" = match.call(),
-    "all" = all,
-    "sets" = sets
+    "All" = all,
+    "Sets" = sets
 )
     
     class(return_list) <- c("domin","list")
@@ -258,11 +259,31 @@ return_list <- list(
 
 print.domin <- function(x, ...) {
 
-cat("Dominance Analysis with", x[["Model_Details"]][["reg"]], "and", 
-    x[["Model_Details"]][["fitstat"]][["function"]], "in element", 
-     x[["Model_Details"]][["fitstat"]][["element"]], "\n")
-
-utils::str(x)
-
+cat("Overall Fit Statistic:     ", x[["Fit_Statistic_Overall"]], "\n")
+if (length(x[["Fit_Statistic_All_Subsets"]]) > 0) cat("All Subsets Fit Statistic: ", x[["Fit_Statistic_All_Subsets"]],"\n")
+cat("\n")
+cat("General Dominance Statistics:\n")
+Display_Std <- t(rbind(x[["General_Dominance"]], x[["Standardized"]], x[["Ranks"]]))
+dimnames(Display_Std) <- list(names(x[["Ranks"]]), c("General_Dominance", "Standardized", "Ranks"))
+print(Display_Std)
+cat("\n")
+cat("Conditional Dominance Statistics:\n")
+print(x[["Conditional_Dominance"]])
+cat("\n")
+if (length(x[["Complete_Dominance"]]>0)) {
+    cat("Complete Dominance Statistics:\n")
+    print(x[["Complete_Dominance"]])
+    cat("\n")
+}
+if (length(x[["Sets"]])>0) {
+    cat("Components of sets:\n")
+    for (set in 1:length(x[["Sets"]])) {
+        cat(paste0("set", set),":", x[["Sets"]][[set]], "\n")
+    }
+    cat("\n")
+}
+if (length(x[["All"]])>0) {
+    cat("All subsets variables:", x[["All"]])
+}
 }
 
