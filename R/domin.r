@@ -57,11 +57,11 @@ Ensemble_Coordinator <- function(Indep_Var_combination, Dep_Var, reg, fitstat, a
     
     if (length(fitstat) > 2) temp_result <- append(temp_result, fitstat[3:length(fitstat)]) # include additional arguments to fitstat
     
-    fit_value <- do.call(fitstat[[1]], temp_result) 
+    fit_value <- do.call(fitstat[[1]], temp_result) # apply fitstat function
     
-    return( list( 
+    return( list( # return fistat value as associated with IV combination
         Indep_Var_combination,
-        get( fitstat[[2]], envir=as.environment(fit_value))
+        fit_value[[ fitstat[[2]] ]]
     ))
 
 }
@@ -89,7 +89,9 @@ Ensemble_of_Models <- list() # initialize ensemble list container
 
 for (number_of_Indep_Vars in 1:Total_Indep_Vars) { # applying the modeling function across all IV combinations at a distinct number of IVs
 
-    Models_at_Indep_Var_number <- lapply(as.data.frame(Combination_List[[number_of_Indep_Vars]]), Ensemble_Coordinator, Dep_Var, reg, fitstat, all=all, ...)
+    capture.output( 
+        Models_at_Indep_Var_number <- lapply(as.data.frame(Combination_List[[number_of_Indep_Vars]]), Ensemble_Coordinator, Dep_Var, reg, fitstat, all=all, ...) 
+    )
 
     Ensemble_of_Models <- append(Ensemble_of_Models, list(Models_at_Indep_Var_number) )
  
