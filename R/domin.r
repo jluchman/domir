@@ -34,7 +34,7 @@ if (length(sets) > 0) { # if there are sets...
     
 }
 
-Dep_Var <- rownames(attr(terms(formula_overall),"factors"))[[1]] # pull out DV
+Dep_Var <- rownames(attr(stats::terms(formula_overall),"factors"))[[1]] # pull out DV
 
 Total_Indep_Vars <- length(Indep_Var_List) # number of IVs in model
 
@@ -89,7 +89,7 @@ Ensemble_of_Models <- list() # initialize ensemble list container
 
 for (number_of_Indep_Vars in 1:Total_Indep_Vars) { # applying the modeling function across all IV combinations at a distinct number of IVs
 
-    capture.output( 
+    utils::capture.output( 
         Models_at_Indep_Var_number <- lapply(as.data.frame(Combination_List[[number_of_Indep_Vars]]), Ensemble_Coordinator, Dep_Var, reg, fitstat, all=all, ...) 
     )
 
