@@ -14,8 +14,13 @@ Description: 'dom'inance analysis 'i'n 'r' provides support for dominance
     machine learning function as defined or desired by the user. Dominance 
     analysis is a methodology for determining the relative importance of 
     predictors/features/independent variables as well as parameter estimates.
-Imports: utils, stats
-Suggests: relaimpo, dominanceanalysis, yhat
+Imports:
+    methods,
+    datasets
+Suggests: 
+    dominanceanalysis, 
+    relaimpo, 
+    yhat
 License: GPL (>= 2)
 URL: <https://github.com/jluchman/domir>
 Encoding: UTF-8

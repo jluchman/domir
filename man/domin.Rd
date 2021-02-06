@@ -2,7 +2,7 @@
 % Please edit documentation in R/domin.r
 \name{domin}
 \alias{domin}
-\title{User-Definable Dominance Analysis}
+\title{Dominance analysis support for \code{formula}-based functions}
 \usage{
 domin(
   formula_overall,
@@ -15,21 +15,39 @@ domin(
 )
 }
 \arguments{
-\item{formula_overall}{Formula for use in reg.}
+\item{formula_overall}{An object of class \code{\link{formula}} or that can be coerced to class \code{formula} for use in the functon in \code{reg}.}
 
-\item{reg}{The function implementing the regression model called.}
+\item{reg}{The function implementing the predictive(or "reg"ression) model called. Uses \code{\link{do.call}} and accepts any function call \code{do.call} would accept.}
 
-\item{fitstat}{List indicating function implemeting fit statistic and list element used for dominance analysis.}
+\item{fitstat}{List of specifications to call a fit statistic extracting function (see details). Like \code{reg}, uses \code{do.call} and accepts any function call \code{do.call} would accept.}
 
-\item{sets}{List of vectors of names; each list element's vector is a set.}
+\item{sets}{An optional list containing vectors of variable or factor names.  Each \link{vector} in the list is used as a set and always included together in the \code{formula}.}
 
-\item{all}{Vector of names in all subsets.}
+\item{all}{An optional vector of variable or factor names to be built into the \code{formula} and included in all model subsets.}
+
+\item{complete}{logical.  If \code{FALSE} then complete dominance matrix is not computed.}
+
+\item{...}{additional arguments passed to \code{reg} function.}
+}
+\value{
+Returns an object of \code{\link{class}} "domin"
+
+General_Dominance Vector of general dominance statistics.
 }
 \description{
-Dominance analysis procedure accepting user-defined models and fit statistics.  An R port of Stata's -domin- module.
+Computes dominance statistics for predictive modeling functions that accept a \code{formula}.
+}
+\details{
+The entries in \code{formula_overall}, \code{sets}, and \code{all} are processed
 }
 \examples{
-domin()
+## Basic linear model with r-square
+domin(mpg ~ am + vs + cyl, "lm", list("summary", "r.squared"), data=mtcars)
+## Including sets
+domin(mpg ~ am + vs + cyl, "lm", list("summary", "r.squared"), data=mtcars, sets=list(c("carb", "gear"), c("disp", "wt")))
+## Multivariate linear model with custom multivariate r-square function and all subsets variable
+Rxy <- function(obj, names, data) {return(list("r2" = cancor(predict(obj), as.data.frame(mget(names,as.environment(data))))[["cor"]][1]^2))}
+domin(cbind(wt, mpg) ~ vs + cyl + am, "lm", list("Rxy", "r2", c("mpg", "wt"), mtcars), data = mtcars, all=c("carb"))
 }
-\keyword{importance}
-\keyword{relative}
+\keyword{multivariate}
+\keyword{utilities}

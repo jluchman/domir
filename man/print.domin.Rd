@@ -4,10 +4,14 @@
 \alias{print.domin}
 \title{Print method for \code{domin}}
 \usage{
-\method{print}{domin}(domin_obj)
+\method{print}{domin}(x, ...)
+}
+\arguments{
+\item{x}{an object of class "domin".}
+
+\item{...}{further arguments passed to or from other methods.}
 }
 \description{
 Reports basic results from \code{domin} run
 }
-\keyword{importance}
-\keyword{relative}
+\keyword{print}

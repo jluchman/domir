@@ -1,17 +1,26 @@
-#' User-definable \code{formula} class object-based dominance analysis
+#' Dominance analysis support for \code{formula}-based functions
 #'
-#' Uses \code{formula} class objects to build all model subsets
-#' @param formula_overall an object of class \link{formula} for use in the functon in \code{reg}.
-#' @param reg The function implementing the regression model called.
-#' @param fitstat List indicating function implemeting fit statistic and list element used for dominance analysis (see details).
-#' @param sets an optional \link{list} containing individual vectors of variable or factor names.  Each \link{vector} in the list is used as a set and always included together in the \code{formula}.
-#' @param all an optional vector of variable or factor names to be built into the \code{formula} and included in all model subsets.
-#' @param complete logical.  If \code{FALSE} then complete dominance matrix is not computed.
-#' @param ... additional arguments passed to \code{reg} function.
-#' @keywords relative importance dominance analysis shapley value
+#' Computes dominance statistics for predictive modeling functions that accept a \code{formula}.
+#' @param formula_overall An object of class \code{\link{formula}} or that can be coerced to class \code{formula} for use in the functon in \code{reg}.
+#' @param reg The function implementing the predictive(or "reg"ression) model called. Uses \code{\link{do.call}} and accepts any function call \code{do.call} would accept.
+#' @param fitstat List of specifications to call a fit statistic extracting function (see details). Like \code{reg}, uses \code{do.call} and accepts any function call \code{do.call} would accept.
+#' @param sets An optional list containing vectors of variable or factor names.  Each \link{vector} in the list is used as a set and always included together in the \code{formula}.
+#' @param all An optional vector of variable or factor names to be built into the \code{formula} and included in all model subsets.
+#' @param complete Logical.  If \code{FALSE} then complete dominance matrix is not computed.
+#' @param ... Additional arguments passed to the function in \code{reg}.
+#' @return Returns an object of \code{\link{class}} "domin"
+#' @return General_Dominance Vector of general dominance statistics.
+#' @details The function in \code{reg} must accept a formula object.
+#' @keywords multivariate utilities
 #' @export
 #' @examples
+#' ## Basic linear model with r-square
 #' domin(mpg ~ am + vs + cyl, "lm", list("summary", "r.squared"), data=mtcars)
+#' ## Including sets
+#' domin(mpg ~ am + vs + cyl, "lm", list("summary", "r.squared"), data=mtcars, sets=list(c("carb", "gear"), c("disp", "wt")))
+#' ## Multivariate linear model with custom multivariate r-square function and all subsets variable
+#' Rxy <- function(obj, names, data) {return(list("r2" = cancor(predict(obj), as.data.frame(mget(names,as.environment(data))))[["cor"]][1]^2))}
+#' domin(cbind(wt, mpg) ~ vs + cyl + am, "lm", list("Rxy", "r2", c("mpg", "wt"), mtcars), data = mtcars, all=c("carb"))
 
 domin <- function(formula_overall, reg, fitstat, sets=NULL, 
     all=NULL, complete=TRUE, ...) {
@@ -252,9 +261,9 @@ return_list <- list(
 #' Print method for \code{domin}
 #'
 #' Reports basic results from \code{domin} run
-#' x an object of class "domin".
-#' ... further arguments passed to or from other methods.
-#' @keywords relative importance
+#' @param x an object of class "domin".
+#' @param ... further arguments passed to or from other methods.
+#' @keywords print
 #' @export
 
 print.domin <- function(x, ...) {
