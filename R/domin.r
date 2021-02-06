@@ -41,7 +41,7 @@ if (length(sets) > 0) { # if there are sets...
     
 }
 
-Dep_Var <- rownames(attr(stats::terms(formula_overall),"factors"))[[1]] # pull out DV
+Dep_Var <- attr(stats::terms(formula_overall),"variables")[[2]] # pull out DV
 
 Total_Indep_Vars <- length(Indep_Var_List) # number of IVs in model
 
