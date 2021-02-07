@@ -292,8 +292,12 @@ return_list <- list(
     "Fit_Statistic_Overall" = FitStat,
     "Fit_Statistic_All_Subsets" = All_Result[[2]],
     "Call" = match.call(),
-    "All" = all,
-    "Sets" = sets
+    "Subset_Details" = list(
+        "Full_Model" = paste0(Dep_Var, " ~ ", (paste0(Combination_List[[Total_Indep_Vars]], collapse=" + "))),
+        "Formula" = attr(stats::terms(formula_overall), "term.labels"), 
+        "All" = all,
+        "Sets" = sets
+    )
 )
     
     class(return_list) <- c("domin","list")
@@ -328,15 +332,15 @@ if (length(x[["Complete_Dominance"]]>0)) {
     print(x[["Complete_Dominance"]])
     cat("\n")
 }
-if (length(x[["Sets"]])>0) {
+if (length(x[["Subset_Details"]][["Sets"]])>0) {
     cat("Components of sets:\n")
-    for (set in 1:length(x[["Sets"]])) {
-        cat(paste0("set", set),":", x[["Sets"]][[set]], "\n")
+    for (set in 1:length(x[["Subset_Details"]][["Sets"]])) {
+        cat(paste0("set", set),":", x[["Subset_Details"]][["Sets"]][[set]], "\n")
     }
     cat("\n")
 }
-if (length(x[["All"]])>0) {
-    cat("All subsets variables:", x[["All"]])
+if (length(x[["Subset_Details"]][["All"]])>0) {
+    cat("All subsets variables:", x[["Subset_Details"]][["All"]])
 }
 }
 
