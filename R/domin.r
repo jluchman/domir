@@ -23,8 +23,7 @@
 #'  \item{\code{Fit_Statistic_Overall}}{Value of fit statistic across all IVs.}
 #'  \item{\code{Fit_Statistic_All_Subsets}}{Value of fit statistic associated with IVs in \code{all}.}
 #'  \item{\code{Call}}{The matched call.}
-#'  \item{\code{All}}{Vector of IVs in \code{all}.}
-#'  \item{\code{Sets}}{List of vectors of IVs in \code{sets}.}
+#'  \item{\code{Subset_Details}}{List containing full model and descriptions of IVs in model by source.}
 #' }
 #'
 #' @details Dominance analysis focuses on computing the contribution of independent variables/IVs or \code{terms} to a predictive model's fit to the data.
