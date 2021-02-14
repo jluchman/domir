@@ -59,7 +59,8 @@
 #' domin(mpg ~ am + vs + cyl, "lm", list("summary", "r.squared"), data=mtcars, sets=list(c("carb", "gear"), c("disp", "wt")))
 #'
 #' ## Multivariate linear model with custom multivariate r-square function and all subsets variable
-#' Rxy <- function(obj, names, data) {return(list("r2" = cancor(predict(obj), as.data.frame(mget(names,as.environment(data))))[["cor"]][1]^2))}
+#' Rxy <- function(obj, names, data) {
+#'    return(list("r2" = cancor(predict(obj), as.data.frame(mget(names,as.environment(data))))[["cor"]][1]^2))}
 #' domin(cbind(wt, mpg) ~ vs + cyl + am, "lm", list("Rxy", "r2", c("mpg", "wt"), mtcars), data = mtcars, all=c("carb"))
 #'
 #' ## Sets only
@@ -71,6 +72,7 @@ domin <- function(formula_overall, reg, fitstat, sets=NULL,
     # ~~ Exit conditions ~~ #
     
 if (!methods::is(formula_overall, "formula")) stop(paste(formula_overall, "is not a formula object.  Coerce it to formula before use in domin."))
+# add in checks for ~all, ~sets, ~fitstat
 
     # ~~ Create independent variable list ~~ #
     
@@ -101,7 +103,7 @@ Total_Models_to_Estimate <- 2**Total_Indep_Vars - 1 # total number of models to 
 
 Ensemble_Coordinator <- function(Indep_Var_combination, Dep_Var, reg, fitstat, all=NULL, ...) {
 
-    formula_to_use <- stats::formula(paste0(Dep_Var, " ~ ", paste0(c(Indep_Var_combination, all), collapse = " + " )))
+    formula_to_use <- stats::formula(paste0(deparse(Dep_Var), " ~ ", paste0(c(Indep_Var_combination, all), collapse = " + " )))
 
     temp_result <- list(do.call(reg, list(formula_to_use, ...)) )  # build function that processes list then calls regression
     
@@ -292,7 +294,7 @@ return_list <- list(
     "Fit_Statistic_All_Subsets" = All_Result[[2]],
     "Call" = match.call(),
     "Subset_Details" = list(
-        "Full_Model" = paste0(Dep_Var, " ~ ", (paste0(Combination_List[[Total_Indep_Vars]], collapse=" + "))),
+        "Full_Model" = paste0(deparse(Dep_Var), " ~ ", (paste0(Combination_List[[Total_Indep_Vars]], collapse=" + "))),
         "Formula" = attr(stats::terms(formula_overall), "term.labels"), 
         "All" = all,
         "Sets" = sets
