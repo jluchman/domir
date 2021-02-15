@@ -56,15 +56,19 @@
 #' domin(mpg ~ am + vs + cyl, "lm", list("summary", "r.squared"), data=mtcars)
 #' 
 #' ## Including sets
-#' domin(mpg ~ am + vs + cyl, "lm", list("summary", "r.squared"), data=mtcars, sets=list(c("carb", "gear"), c("disp", "wt")))
+#' domin(mpg ~ am + vs + cyl, "lm", list("summary", "r.squared"), 
+#'  data=mtcars, sets=list(c("carb", "gear"), c("disp", "wt")))
 #'
 #' ## Multivariate linear model with custom multivariate r-square function and all subsets variable
 #' Rxy <- function(obj, names, data) {
-#'    return(list("r2" = cancor(predict(obj), as.data.frame(mget(names,as.environment(data))))[["cor"]][1]^2))}
-#' domin(cbind(wt, mpg) ~ vs + cyl + am, "lm", list("Rxy", "r2", c("mpg", "wt"), mtcars), data = mtcars, all=c("carb"))
+#'    return(list("r2" = cancor(predict(obj), 
+#'        as.data.frame(mget(names,as.environment(data))))[["cor"]][1]^2)) }
+#' domin(cbind(wt, mpg) ~ vs + cyl + am, "lm", list("Rxy", "r2", c("mpg", "wt"), mtcars), 
+#'  data = mtcars, all=c("carb"))
 #'
 #' ## Sets only
-#' domin(mpg ~ 1, "lm", list("summary", "r.squared"), data=mtcars, sets=list(c("am", "vs"), c("cyl", "disp"), c("qsec", "carb")))
+#' domin(mpg ~ 1, "lm", list("summary", "r.squared"), 
+#'  data=mtcars, sets=list(c("am", "vs"), c("cyl", "disp"), c("qsec", "carb")))
 
 domin <- function(formula_overall, reg, fitstat, sets=NULL, 
     all=NULL, complete=TRUE, ...) {
