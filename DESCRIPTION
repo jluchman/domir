@@ -10,8 +10,8 @@ Authors@R:
            comment = c(ORCID = "0000-0002-8886-9717"))
 Description: Provides tools that support relative importance analysis focusing 
     on dominance analysis.  Dominance analysis is a methodology for 
-    determining the relative importance of predictors/features/independent v
-    ariables as well as parameter estimates.  These tools are intended to  
+    determining the relative importance of predictors/features/independent
+    variables as well as parameter estimates.  These tools are intended to  
     extend relative importance analysis to, effectively, any statistical or 
     machine learning function as defined or desired by the user-especially
     those where the user wants to use custom importance metric or modeling 
