@@ -1,19 +1,21 @@
 Package: domir
-Title: Support for User-Defined Dominance Analysis
+Title: Tools to Support Relative Importance Analysis
 Version: 0.0.0
-Date: 2021-2-15
+Date: 2021-2-21
 Authors@R: 
     person(given = "Joseph",
            family = "Luchman",
            role = c("aut", "cre"),
            email = "jluchman@gmail.com",
            comment = c(ORCID = "0000-0002-8886-9717"))
-Description: 'dom'inance analysis 'i'n 'r' provides support for dominance 
-    analysis that extends on methods in the 'relaimpo' and 
-    'dominanceanalysis' packages to, effectively, any statistical or 
-    machine learning function as defined or desired by the user. Dominance 
-    analysis is a methodology for determining the relative importance of 
-    predictors/features/independent variables as well as parameter estimates.
+Description: Provides tools that support relative importance analysis focusing 
+    on dominance analysis.  Dominance analysis is a methodology for 
+    determining the relative importance of predictors/features/independent v
+    ariables as well as parameter estimates.  These tools are intended to  
+    extend relative importance analysis to, effectively, any statistical or 
+    machine learning function as defined or desired by the user-especially
+    those where the user wants to use custom importance metric or modeling 
+    function.
 Imports:
     methods,
     datasets

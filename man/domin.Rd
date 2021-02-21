@@ -15,7 +15,8 @@ domin(
 )
 }
 \arguments{
-\item{formula_overall}{An object of class \code{\link{formula}} or that can be coerced to class \code{formula} for use in the function in \code{reg}.}
+\item{formula_overall}{An object of class \code{\link{formula}} or that can be coerced to class \code{formula} for use in the function in \code{reg}.
+The \code{formula} object must have the form \code{response ~ terms} with the \code{terms} separated by \code{+}-es.}
 
 \item{reg}{The function implementing the predictive (or "reg"ression) model called. Uses \code{\link{do.call}} and accepts any function call
 \code{do.call} would accept.}
@@ -48,7 +49,7 @@ An object of class "domin" is a list composed of the following elements:
 }
 }
 \description{
-Computes dominance statistics for predictive modeling functions that accept a \code{formula}.
+Computes dominance statistics for predictive modeling functions that accept a "standard" \code{formula}.
 }
 \details{
 Dominance analysis focuses on computing the contribution of independent variables/IVs or \code{terms} to a predictive model's fit to the data.
@@ -66,13 +67,12 @@ It is possible to use a \code{domin} with only sets (i.e., no IVs in \code{formu
 The IV's in \code{all} must also be submitted as a vector, are concatenated with \code{+} automaically, and are also included in the model.
 These "all subsets" IVs are removed from the fit statistic and all subsequent dominance statistics.
 
-The entry to \code{fitstat} can be either a vector or list but must follow a specific structure: (\code{fit_function}, \code{element_name}, \code{...})
+The entry to \code{fitstat} must be list and follow a specific structure: (\code{fit_function}, \code{element_name}, \code{...})
 \describe{
 \item{\code{fit_function}}{First element and function to be applied to \code{reg}}
 \item{\code{element_name}}{Second element and name of the element from the object returned by \code{fit_function}}
 \item{\code{...}}{Subsequnt elements and are additional arguments passed to \code{fit_function}}
 }
-It is generally recommended to submit entries to \code{fitstat} as a list if there are additional arguments to \code{fit_function}.
 }
 \examples{
 ## Basic linear model with r-square
