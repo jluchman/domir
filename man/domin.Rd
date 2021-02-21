@@ -16,7 +16,7 @@ domin(
 }
 \arguments{
 \item{formula_overall}{An object of class \code{\link{formula}} or that can be coerced to class \code{formula} for use in the function in \code{reg}.
-The \code{formula} object must have the form \code{response ~ terms} with the \code{terms} separated by \code{+}-es.}
+The \code{formula} object must have the form \code{response ~ terms} with the \code{terms} separated by \code{+}.}
 
 \item{reg}{The function implementing the predictive (or "reg"ression) model called. Uses \code{\link{do.call}} and accepts any function call
 \code{do.call} would accept.}
