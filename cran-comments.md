@@ -1,4 +1,5 @@
 ## Resubmission
+This is a resubmisson to CRAN.
 
 Fixed .Rd tags on print.domin function to describe output to expect from 
 the "domin" class as well as note that the function returns nothing.

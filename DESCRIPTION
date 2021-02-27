@@ -1,7 +1,7 @@
 Package: domir
 Title: Tools to Support Relative Importance Analysis
 Version: 0.0.0
-Date: 2021-2-21
+Date: 2021-2-27
 Authors@R: 
     person(given = "Joseph",
            family = "Luchman",
@@ -11,11 +11,14 @@ Authors@R:
 Description: Provides tools that support relative importance analysis focusing 
     on dominance analysis.  Dominance analysis is a methodology for 
     determining the relative importance of predictors/features/independent
-    variables as well as parameter estimates.  These tools are intended to  
-    extend relative importance analysis to, effectively, any statistical or 
-    machine learning function as defined or desired by the user-especially
-    those where the user wants to use custom importance metric or modeling 
-    function.
+    variables (Azen, R., & Budescu, D. V. (2003) <doi:10.1037/1082-989X.8.2.129>; 
+    Groemping, U. (2007) <doi:10.1198/000313007X188252>) 
+    as well as parameter estimates (Luchman, J. N, Lei, X., & Kaplan, S. 
+    (2020) <doi:10.47263/JASEM.4(2)02>). 
+    These tools are intended to extend relative importance analysis to, 
+    effectively, any statistical or machine learning function as defined or 
+    desired by the user-especially those where the user wants to use custom 
+    importance/fit metric or modeling function.
 Imports:
     methods,
     datasets
