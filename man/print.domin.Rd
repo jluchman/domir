@@ -11,7 +11,25 @@
 
 \item{...}{further arguments passed to or from other methods.}
 }
+\value{
+No returned value.  This method is called for compact display of
+results in the console.
+}
 \description{
-Reports basic results from \code{domin} run
+Reports basic results from \code{domin} class object.
+}
+\details{
+The print method for class \code{domin} objects reports out the
+following results:
+\itemize{
+\item{Fit statistic for the full model as well as the fit statistic for the
+all subsets model if any entries in \code{all}.}
+\item{Matrix describing general dominance statistics, standardized
+general dominance statisics, and the ranking of the general dominance
+statistics.}
+\item{Matrix describing the conditional dominance statistics.}
+\item{If \code{conditional} is \code{TRUE}, matrix describing the complete
+dominance statistics.}
+}
 }
 \keyword{print}
