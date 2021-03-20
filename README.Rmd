@@ -1,0 +1,144 @@
+---
+title: Tools to Support Relative Importance Analysis
+output: github_document
+---
+
+
+
+# Overview
+
+The `domir` package provides a set of flexible wrapper and helper functions for 
+conducting relative importance analysis with a focus on dominance analysis. 
+The intention of this package is to provide tools that allow relative 
+importance analysis across a wide varitey of practical data analytic situations.
+
+This documentation (for the time being) assumes some knowledge of the 
+dominance analysis methodology and does not describe it extensively.
+
+# Installation
+
+To install the most recent stable version of `domir` from CRAN use:
+
+`install.packages("domir")`
+
+To install the working development version of `domir` using the `devtools` 
+package use:
+
+`devtools::install_github("https://github.com/jluchman/domir")`
+
+# Details
+
+The `domir` package is aimed at offering users tools for applying relative 
+importnce/RI analysis to a wide variety of statistical or machine learning 
+functions.  In addition, this package aims to allow users to apply new 
+fit statistics or metrics to statistical or machine learning 
+functions that already have RI analysis implementations such as `lm`.
+
+Currently, the only RI tool implemented in `domir` is a dominance analysis 
+method `domin`. `domin` is a flexible wrapper function that can be used with 
+many modeling functions that accept a formula that follow the 
+standard `response ~ terms` format. The format used by domin can be extended 
+to other functions focused on indepedent variabe/predictor/feature-based RI 
+can be accommodated with a additional wrapper functions based 
+on the formula it creates and submits to modeling functions.  Some examples are
+offered below.
+
+# Examples
+
+In this section, several examples of the `domin` function are outlined to 
+illustrate how the function can accommodate a wide variety of different 
+models--in some cases with a custom wrapper function.
+
+## Linear Models with $R^2$
+
+Fundamentally, `domir` is an extension of the `lmg` method in the 
+`relaimpo` package and the example below is intended to illustrate how the 
+differences between the packages by way of displayed information.
+
+```{r replicate_relaimpo}
+library(domir)
+
+domin(mpg ~ am + vs + cyl, "lm", list("summary", "r.squared"), data=mtcars)
+
+relaimpo::calc.relimp(lm(mpg ~ am + vs + cyl, data=mtcars))
+```
+
+## Linear Model with Alternative Fit Statstic
+
+One, fairly basic, way that `domir` differs from other relative importance 
+analysis modeling functions is in that it allows for different fit statistics 
+other than the standard error variance $R^2$.  In this case, the McFadden 
+pseudo-$R^2$ is used from the `pscl` package.
+
+```{r lm_w_mcf}
+domin(mpg ~ am + vs + cyl, "lm", list(function (model) 
+    {pscl::pR2(model)},
+        "McFadden"), data=mtcars)
+```
+
+## Ordered Logistic Regression
+
+One analysis, to this point not supported in relative importance analysis 
+software in R are models such as `polr` from the `MASS` package.
+
+```{r da_polr}
+mtcars2 <- data.frame(mtcars, carb2=as.factor(mtcars$carb))
+
+domin(carb2 ~ am + vs + mpg, MASS::polr, 
+    list(function(model) {pscl::pR2(model)}, "McFadden"), data=mtcars2)
+```
+
+## Multinomial Logistic (softmax) Regression
+
+Another analysis, to this point not supported in relative importance analysis 
+software in R are models such as `multinom` from the `nnet` package.
+
+```{r da_multinom}
+domin(carb2 ~ am + vs + mpg, nnet::multinom, 
+    list(function(model) {pscl::pR2(model)}, "McFadden"), data=mtcars2)
+```
+
+## Decision Trees
+
+`domir` can also accept models that have traditionally never been dominance 
+analyzed such as `rpart` models.
+
+Note that the function accepted by `domin`s `fitstat` argument can be 
+quite complex as it is a wrapper to `do.call`.  Note that anonymous 
+functions defined in the first element of `fitstat` must return a named 
+list with a name that is callable in the second entry of `fitstat`.
+
+```{r da_rpart}
+mtcars2 <- data.frame(mtcars, carb2=as.factor(mtcars$carb))
+
+domin(mpg ~ am + vs + cyl, rpart::rpart, 
+    list(function(model) {list(R2=1-model$cptable[nrow(model$cptable),3])}, 
+        "R2"), data=mtcars)
+```
+
+## Zero-Inflated Poisson
+
+Complex models such as `zeroinfl` models from the package `pscl` can also 
+be accommodated and as anonymous functions as well in `domin`s `reg` argument.
+
+The below anonymous function in `reg` uses the entries in the formula to 
+create a symmetric count and zero-inflation formulas.
+
+The full model as submitted to `zeroinfl` looks like:
+
+`art ~ fem + mar + kid5 + phd + ment | fem + mar + kid5 + phd + ment`
+
+```{r da_zip}
+domin(art ~ fem + mar + kid5 + phd + ment, 
+        function(model, ...) {
+            zip_terms <- paste(attr(terms(model), "term.labels"), collapse=" + ")
+            zip_form <- paste(c(zip_terms, zip_terms), collapse=" | ")
+            zip_form <- as.formula(paste(c(row.names(attr(terms(model), "factors"))[1], 
+                zip_form), collapse=" ~ "))
+            pscl::zeroinfl(zip_form, ...)
+        },
+    list(pscl::pR2, "McFadden"), data=pscl::bioChemists)
+
+```
+
+(more examples to come...)

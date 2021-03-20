@@ -116,7 +116,7 @@ Ensemble_Coordinator <- function(Indep_Var_combination, Dep_Var, reg, fitstat, a
     
     fit_value <- do.call(fitstat[[1]], temp_result) # apply fitstat function
     
-    return( list( # return fistat value as associated with IV combination
+    return( list( # return fitstat value as associated with IV combination
         Indep_Var_combination,
         fit_value[[ fitstat[[2]] ]]
     ))
@@ -146,8 +146,14 @@ Ensemble_of_Models <- list() # initialize ensemble list container
 
 for (number_of_Indep_Vars in 1:Total_Indep_Vars) { # applying the modeling function across all IV combinations at a distinct number of IVs
 
-    utils::capture.output( 
-        Models_at_Indep_Var_number <- lapply(as.data.frame(Combination_List[[number_of_Indep_Vars]]), Ensemble_Coordinator, Dep_Var, reg, fitstat, all=all, ...) 
+    utils::capture.output(
+        Models_at_Indep_Var_number <- 
+            lapply((1:ncol(Combination_List[[number_of_Indep_Vars]])), # for all columns of `Combination_List`...
+                function (indep_vars) { 
+                    Ensemble_Coordinator(Combination_List[[number_of_Indep_Vars]][,indep_vars], # ... submit column as independent variables to `Ensemble_Coordinator`
+                                         Dep_Var, reg, fitstat, all=all, ...) 
+                }
+            ) 
     )
 
     Ensemble_of_Models <- append(Ensemble_of_Models, list(Models_at_Indep_Var_number) )
