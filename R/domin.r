@@ -150,7 +150,7 @@ for (number_of_Indep_Vars in 1:Total_Indep_Vars) { # applying the modeling funct
         Models_at_Indep_Var_number <- 
             lapply((1:ncol(Combination_List[[number_of_Indep_Vars]])), # for all columns of `Combination_List`...
                 function (indep_vars) { 
-                    Ensemble_Coordinator(Combination_List[[number_of_Indep_Vars]][,indep_vars], # ... submit column as independent variables to `Ensemble_Coordinator`
+                    Ensemble_Coordinator(Combination_List[[number_of_Indep_Vars]][, indep_vars], # ... submit column as independent variables to `Ensemble_Coordinator`
                                          Dep_Var, reg, fitstat, all=all, ...) 
                 }
             ) 

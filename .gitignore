@@ -1,2 +1,5 @@
 ^\.Rproj\.user$
 ^.*\.Rproj$
+.Rhistory
+.Rproj.user
+domir.Rproj
