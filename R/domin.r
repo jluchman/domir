@@ -128,7 +128,7 @@ else All_Result <- NULL
 
 #     ~~ Obtain all subsets regression results ~~ #
 
-Ensemble_of_Models <- list() # initialize ensemble list container
+Ensemble_of_Models <- vector(mode="list", length=Total_Indep_Vars) # initialize ensemble list container of approprate size
 
 # 'Ensemble_of_Models' is structured such that:
 # 1. Top level is results by number of IVs in the model
@@ -147,7 +147,7 @@ Ensemble_of_Models <- list() # initialize ensemble list container
 for (number_of_Indep_Vars in 1:Total_Indep_Vars) { # applying the modeling function across all IV combinations at a distinct number of IVs
 
     utils::capture.output(
-        Models_at_Indep_Var_number <- 
+        Ensemble_of_Models[[number_of_Indep_Vars]] <-
             lapply((1:ncol(Combination_List[[number_of_Indep_Vars]])), # for all columns of `Combination_List`...
                 function (indep_vars) { 
                     Ensemble_Coordinator(Combination_List[[number_of_Indep_Vars]][, indep_vars], # ... submit column as independent variables to `Ensemble_Coordinator`
@@ -155,8 +155,6 @@ for (number_of_Indep_Vars in 1:Total_Indep_Vars) { # applying the modeling funct
                 }
             ) 
     )
-
-    Ensemble_of_Models <- append(Ensemble_of_Models, list(Models_at_Indep_Var_number) )
  
 #     ensemble_begin = ensemble_end # update where the ensemble tracker will begin for next round
 
