@@ -162,7 +162,9 @@ for (number_of_Indep_Vars in 1:Total_Indep_Vars) { # applying the modeling funct
 
     # ~~ Process all subsets - find the increments  ~~ #
 
-Model_List <- list(Ensemble_of_Models[[1]])  # evaluate the lapply-ed models and record them - start with the single IV models...
+Model_List <- vector(mode="list", length=Total_Indep_Vars) # evaluate the lapply-ed models and record them ...
+Model_List[[1]] <- Ensemble_of_Models[[1]] #... start with the single IV models...
+#Model_List <- list(Ensemble_of_Models[[1]])  # evaluate the lapply-ed models and record them - start with the single IV models...
 
 if (length(all) > 0) FitStat_Adjustment <- All_Result[[2]]
 else FitStat_Adjustment <- 0
@@ -203,7 +205,8 @@ for (number_of_Indep_Vars in 2:length(Ensemble_of_Models)) { # when >1 IV in the
                 
     }
     
-    Model_List <- append(Model_List, list(Model_Incremented))
+    #Model_List <- append(Model_List, list(Model_Incremented))
+    Model_List[[number_of_Indep_Vars]] <- as.list(Model_Incremented)
     
 }
 
