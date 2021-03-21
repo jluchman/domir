@@ -164,7 +164,6 @@ for (number_of_Indep_Vars in 1:Total_Indep_Vars) { # applying the modeling funct
 
 Model_List <- vector(mode="list", length=Total_Indep_Vars) # evaluate the lapply-ed models and record them ...
 Model_List[[1]] <- Ensemble_of_Models[[1]] #... start with the single IV models...
-#Model_List <- list(Ensemble_of_Models[[1]])  # evaluate the lapply-ed models and record them - start with the single IV models...
 
 if (length(all) > 0) FitStat_Adjustment <- All_Result[[2]]
 else FitStat_Adjustment <- 0
@@ -177,7 +176,7 @@ for (model in 1:length(Model_List[[1]])) { # ...for the single IV models...
 
 for (number_of_Indep_Vars in 2:length(Ensemble_of_Models)) { # when >1 IV in the model, processing needed...
 
-    Model_Incremented <- list()  # initialize/reset container for finding subset
+    Model_Incremented <- vector(mode="list", length=length(Ensemble_of_Models[[number_of_Indep_Vars]]))  # initialize/reset container for finding subset (of appropriate length)
     Location_in_Model_Incremented <- 1 # ... useful for R...
 
     Indep_Var_Set_at_1lessIndep_Var <- 
@@ -205,7 +204,6 @@ for (number_of_Indep_Vars in 2:length(Ensemble_of_Models)) { # when >1 IV in the
                 
     }
     
-    #Model_List <- append(Model_List, list(Model_Incremented))
     Model_List[[number_of_Indep_Vars]] <- as.list(Model_Incremented)
     
 }
