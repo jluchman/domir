@@ -224,8 +224,6 @@ else Complete_Dominance <- NULL
 
 for (Indep_Var in 1:Total_Indep_Vars) { # for each IV in the model...
 
-    Conditional_atIndep_Var <- list() # initialize/reset container for conditional dominance
-
     Conditional_Dominance[Indep_Var, 1] <- Model_List[[1]][[Indep_Var]][[2]] # for IV alone - copy fit statistic
 
     Indep_Varname <- Model_List[[1]][[Indep_Var]][[1]] # record name of focal IV
@@ -235,15 +233,18 @@ for (Indep_Var in 1:Total_Indep_Vars) { # for each IV in the model...
 
     for (number_of_Indep_Vars in 2:Total_Indep_Vars) { # for all numbers of IVs greater than 1...
 
-        Relevant_Increments <- c() # initialize/reset container for collecting specific/relevant conditional dominance increments
+        Relevant_Increments <- vector(mode="numeric", length=choose(Total_Indep_Vars-1, number_of_Indep_Vars-1)) # initialize/reset container for collecting specific/relevant conditional dominance increments
+        place = 1
 
         for (model in 1:length(Model_List[[number_of_Indep_Vars]])) { # for each individual model within a specific number of IVs...
 
             proceed_to_record <- any(intersect(Indep_Varname, Model_List[[number_of_Indep_Vars]][[model]][[1]])==Indep_Varname) &  # flag this entry for recording if the focal IV name is in the IV set...
                !any(intersect(Indep_Varname, Model_List[[number_of_Indep_Vars]][[model]][[2]])==Indep_Varname) # ...but is _not_ in the IV set less one - thus, the fit statistic here is a valid "increment" for the focal IV
 
-            if (proceed_to_record)
-                Relevant_Increments <- append(Relevant_Increments, Model_List[[number_of_Indep_Vars]][[model]][[3]]) # always collect the fit statistic for conditional dominance computations
+            if (proceed_to_record) {
+                Relevant_Increments[[place]] <- Model_List[[number_of_Indep_Vars]][[model]][[3]] # always collect the fit statistic for conditional dominance computations
+                place <- place +1 
+            }
 
             if (complete) {
                 for (other_model in 1:length(Model_List[number_of_Indep_Vars])) { # also proceed to collect complete dominance data using this loop comparing to all other models within this number of IVs to find relevant comparisons
