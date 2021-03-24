@@ -6,17 +6,17 @@ additional documentation.  Changes from version 0.0.0 include:
 to `data.frame` and assuming it will be a `character` variable. Produced 
 errors in R versions < 4.
 ** fix to version 0.0.0 ERROR on CRAN checks: 
-***r-oldrel-macos-x86_64
-***r-oldrel-windows-ix86+x86_64
+*** r-oldrel-macos-x86_64
+*** r-oldrel-windows-ix86+x86_64
 * README.[R]md included and updated with multiple examples.
 * NEWS.md included with updates.
 * Updated DESCRIPTION file.
 ** fix to version 0.0.0 NOTE related to `datasets` import on for CRAN checks: 
-***r-devel-linux-x86_64-fedora-clang
-***r-devel-linux-x86_64-fedora-gcc
-***r-devel-windows-x86_64-gcc10-UCRT
-***r-patched-solaris-x86
-***r-release-macos-x86_64
+*** r-devel-linux-x86_64-fedora-clang
+*** r-devel-linux-x86_64-fedora-gcc
+*** r-devel-windows-x86_64-gcc10-UCRT
+*** r-patched-solaris-x86
+*** r-release-macos-x86_64
 
 ## Test environments
 * local pop!OS/ubuntu 20.10, R 4.0.4
