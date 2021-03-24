@@ -64,14 +64,14 @@ The elements of the list entries in \code{sets} are each considered a separate I
 Each entry in \code{sets} must be a vector of IVs.  Individual vector elements within a single set are concatenated using \code{+} automatically.
 It is possible to use a \code{domin} with only sets (i.e., no IVs in \code{formula_overall}; see examples below).
 
-The IV's in \code{all} must also be submitted as a vector, are concatenated with \code{+} automaically, and are also included in the model.
+The IV's in \code{all} must also be submitted as a vector, are concatenated with \code{+} automatically, and are also included in the model.
 These "all subsets" IVs are removed from the fit statistic and all subsequent dominance statistics.
 
 The entry to \code{fitstat} must be list and follow a specific structure: (\code{fit_function}, \code{element_name}, \code{...})
 \describe{
 \item{\code{fit_function}}{First element and function to be applied to \code{reg}}
 \item{\code{element_name}}{Second element and name of the element from the object returned by \code{fit_function}}
-\item{\code{...}}{Subsequnt elements and are additional arguments passed to \code{fit_function}}
+\item{\code{...}}{Subsequent elements and are additional arguments passed to \code{fit_function}}
 }
 }
 \examples{

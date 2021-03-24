@@ -6,7 +6,7 @@ Tools to Support Relative Importance Analysis
 The `domir` package provides a set of flexible wrapper and helper
 functions for conducting relative importance analysis with a focus on
 dominance analysis. The intention of this package is to provide tools
-that allow relative importance analysis across a wide varitey of
+that allow relative importance analysis across a wide variety of
 practical data analytic situations.
 
 This documentation (for the time being) assumes some knowledge of the

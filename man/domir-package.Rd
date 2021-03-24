@@ -9,7 +9,7 @@
 The \code{domir} package provides a set of flexible wrapper and helper functions
 for conducting relative importance analysis with a focus on dominance
 analysis. The intention of this package is to provide tools that allow
-relative importance analysis across a wide varitey of practical
+relative importance analysis across a wide variety of practical
 data analytic situations.
 }
 \details{
@@ -31,7 +31,7 @@ been selected using model selection methods.
 
 The all possible combinations ensemble with \code{p} IV/PEs in the
 full model results in \code{2^p} models estimated. That is, each
-combiation of \code{p} IV/PEs alterating between included versus excluded
+combination of \code{p} IV/PEs alternating between included versus excluded
 (i.e., the base of 2 to the \code{p} exponent number of IV/PEs).
 
 Currently, the only tool implemented in \code{domir} is a DA method

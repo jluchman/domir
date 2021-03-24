@@ -331,7 +331,7 @@ return_list <- list(
 #'  \item{Fit statistic for the full model as well as the fit statistic for the
 #'  all subsets model if any entries in \code{all}.}
 #'  \item{Matrix describing general dominance statistics, standardized 
-#'  general dominance statisics, and the ranking of the general dominance 
+#'  general dominance statistics, and the ranking of the general dominance 
 #'  statistics.}
 #'  \item{Matrix describing the conditional dominance statistics.}
 #'  \item{If \code{conditional} is \code{TRUE}, matrix describing the complete 
