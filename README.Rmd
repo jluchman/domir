@@ -29,7 +29,7 @@ package use:
 # Details
 
 The `domir` package is aimed at offering users tools for applying relative 
-importnce/RI analysis to a wide variety of statistical or machine learning 
+importance/RI analysis to a wide variety of statistical or machine learning 
 functions.  In addition, this package aims to allow users to apply new 
 fit statistics or metrics to statistical or machine learning 
 functions that already have RI analysis implementations such as `lm`.
@@ -38,7 +38,7 @@ Currently, the only RI tool implemented in `domir` is a dominance analysis
 method `domin`. `domin` is a flexible wrapper function that can be used with 
 many modeling functions that accept a formula that follow the 
 standard `response ~ terms` format. The format used by domin can be extended 
-to other functions focused on indepedent variabe/predictor/feature-based RI 
+to other functions focused on independent variable/predictor/feature-based RI 
 can be accommodated with a additional wrapper functions based 
 on the formula it creates and submits to modeling functions.  Some examples are
 offered below.
@@ -63,7 +63,7 @@ domin(mpg ~ am + vs + cyl, "lm", list("summary", "r.squared"), data=mtcars)
 relaimpo::calc.relimp(lm(mpg ~ am + vs + cyl, data=mtcars))
 ```
 
-## Linear Model with Alternative Fit Statstic
+## Linear Model with Alternative Fit Statistic
 
 One, fairly basic, way that `domir` differs from other relative importance 
 analysis modeling functions is in that it allows for different fit statistics 
