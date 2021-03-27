@@ -1,3 +1,11 @@
+## Resubmission of atched version: 0.0.1
+
+* `LazyData` removed from DESCRIPTION file.
+  * fix to 0.0.0 NOTE on CRAN checks:
+    * r-devel-linux-x86_64-fedora-clang
+    * r-devel-linux-x86_64-fedora-gcc
+    * r-devel-windows-x86_64-gcc10-UCRT
+
 ## Patched version: 0.0.1
 This patched version has a major bug fix and 
 additional documentation.  Changes from version 0.0.0 include:

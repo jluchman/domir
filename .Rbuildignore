@@ -4,3 +4,4 @@ README.Rmd
 NEWS.md
 ^.*\.Rproj$
 ^\.Rproj\.user$
+^CRAN-RELEASE$
