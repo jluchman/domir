@@ -77,65 +77,88 @@ domin <- function(formula_overall, reg, fitstat, sets=NULL,
     
 if (!methods::is(formula_overall, "formula")) 
     stop(paste(formula_overall, "is not a formula object.  Coerce it to formula before use in domin."))
+    
 if (!is.list(fitstat)) 
     stop("fitstat is not a list.  Please submit it as a list object.")
+    
 if (length(sets)>0 & !is.list(sets)) 
     stop("sets is not a list.  Please submit it as a list object.")
 
 # Process variable lists ----
     
-Indep_Var_List <- attr(stats::terms(formula_overall), "term.labels") # obtain IV list from `formula`
+Indep_Vars <- 
+    attr(stats::terms(formula_overall), "term.labels") # obtain IV name vector from `formula_overall`
 
 if (length(sets) > 0) { # if there are sets...
     
-    set_aggregated <- sapply(sets, paste0, collapse=" + ") # ...paste together elements of set...
+    set_aggregated <- 
+        sapply(sets, paste0, collapse=" + ") # ...paste together IV names from each set in `formula` format as a vector...
     
-    Indep_Var_List <- append(Indep_Var_List, set_aggregated) # ... append to IV list
+    Indep_Vars <- 
+        append(Indep_Vars, set_aggregated) # ...append sets vector to end of IV name vector
     
 }
 
-Dep_Var <- attr(stats::terms(formula_overall),"variables")[[2]] # pull out DV
+Dep_Var <- 
+    attr(stats::terms(formula_overall),"variables")[[2]] # pull out DV name from `formula_overall`
 
-Total_Indep_Vars <- length(Indep_Var_List) # number of IVs in model
+Total_Indep_Vars <- length(Indep_Vars) # count number of IVs and sets in model
 
+    ## IV-based exit conditions ----
 if (Total_Indep_Vars < 3) 
     stop(paste("Total of", Total_Indep_Vars, "independent variables or sets. At least 3 needed for useful dominance analysis."))
 
-# Create independent variable combination list ----
+# Create independent variable/set combination list ----
     
-Combination_List <- lapply( (1:length(Indep_Var_List)), # use lapply() function to apply each distinct number of combination to ...
-							function(Comb_Num) {utils::combn(Indep_Var_List, Comb_Num)} ) # ... combn() function using the the IV list to obtain all combinations
+Combination_List <- 
+    lapply( (1:length(Indep_Vars)), # Repeating over different numbers of IVs chosen at once in the model...
+            function(Number_in_Combo) {
+                utils::combn(Indep_Vars, Number_in_Combo) # ...obtain all combinations choosing a considering a specific number of IVs chosen given the entire IV name vector
+            } 
+    )
 
 Total_Models_to_Estimate <- 2**Total_Indep_Vars - 1 # total number of models to estimate
 
-#     ~~ Define function to call regression models ~~ #
+# Define function to call regression models ----
 
-Ensemble_Coordinator <- function(Indep_Var_combination, Dep_Var, reg, fitstat, all=NULL, ...) {
+Model_Fit_Coordinator <- function(Indep_Var_Combination, Dep_Var, reg, fitstat, all=NULL, ...) {
 
-    formula_to_use <- stats::formula(paste0(deparse(Dep_Var), " ~ ", paste0(c(Indep_Var_combination, all), collapse = " + " )))
+    formula_to_use <- 
+        stats::formula( # build formula to submit to modeling function by...
+            paste0(deparse(Dep_Var), " ~ ", # ...combining the DV with...
+                   paste0(c(Indep_Var_Combination, all), collapse = " + " )) #...the set of IVs submitted 
+        )
 
-    temp_result <- list(do.call(reg, list(formula_to_use, ...)) )  # build function that processes list then calls regression
+    Model_Result <- 
+        list( # capture data from the called model as a list...
+            do.call(reg, list(formula_to_use, ...) ) # ...`do.call` modeling function with formula and all other arguments
+        ) 
     
-    if (length(fitstat) > 2) temp_result <- append(temp_result, fitstat[3:length(fitstat)]) # include additional arguments to fitstat
+    if (length(fitstat) > 2) # if there are additional arguments to pass to the fitstat function, indicated by having length of > 2 for this list...
+        Model_Result <- 
+            append(Model_Result, fitstat[3:length(fitstat)]) # ...append these additional arguments to `temp_result`
     
-    fit_value <- do.call(fitstat[[1]], temp_result) # apply fitstat function
+    Fit_Value <- do.call(fitstat[[1]], Model_Result) # use first entry of `fitstat` as fitstat function name, use `Model_Result` as results to submit to it
     
-    return( list( # return fitstat value as associated with IV combination
-        Indep_Var_combination,
-        fit_value[[ fitstat[[2]] ]]
-    ))
+    return( 
+        list( # `Model_Fit_Coordinator` then returns (as list)...
+            Indep_Var_Combination, # ... the combo of IVs used ...
+            Fit_Value[[ fitstat[[2]] ]] # ... and uses second, necessarily named, argument of `fitstat` to select the result of `Fit_Value` to return
+        )
+    )
 
 }
 
-if (length(all) > 0) All_Result <- Ensemble_Coordinator(all, Dep_Var, reg, fitstat, ...)
-else All_Result <- NULL
+if (length(all) > 0) All_Result <- # if there are entries in all...
+    Model_Fit_Coordinator(all, Dep_Var, reg, fitstat, ...) # ...obtain their `fitstat` value as well...
+else All_Result <- NULL # ...otherwise return a null
 
-#     ~~ Obtain all subsets regression results ~~ #
+# Obtain all subsets regression results ----
 
 # 'Ensemble_of_Models' is structured such that:
 # 1. Top level is results by number of IVs in the model
 # 2. Middle level is model within a number of IVs
-# 3. Bottom level is a specific result from 'st_model_call'
+# 3. Bottom level is a specific result from `do.call`
 
 # ensemble_begin = 0 # note where the ensemble of models has begun for this set of IVs (relevant for tracking progress only)
 # ensemble_end = 0 # note where the ensemble of models has ended for this set of IVs (relevant for tracking progress only)
@@ -144,35 +167,23 @@ else All_Result <- NULL
 #     flag_list = [int(twentieth/20*Total_Models_to_Estimate) for twentieth in range(1,21)]
 # else: flag_list = [] # if not at least 20 models, do not track  progress
 
-utils::capture.output(suppressWarnings( # for models that are "verbose" suppress model fitting information
+utils::capture.output( suppressWarnings( # ensure that "verbose" models are quieted - no fitting information or warnings
     
-    Ensemble_of_Models <- # applying the modeling function across all IV combinations at a distinct number of IVs
-        
-        lapply(1:Total_Indep_Vars, 
-               
-               function(number_of_Indep_Vars) {
-                   
-                   lapply(1:ncol(Combination_List[[number_of_Indep_Vars]]), # for all columns of `Combination_List`...
-                          
-                          function (indep_vars) { 
-                              
-                              Ensemble_Coordinator(
-                                  
-                                  Combination_List[[number_of_Indep_Vars]][, indep_vars], # ... submit column as independent variables to `Ensemble_Coordinator`
-                                  
-                                  Dep_Var, reg, fitstat, all=all, ...) 
-                              
+    Ensemble_of_Models <-
+        lapply(1:Total_Indep_Vars, # At the "top level" of Ensemble_of_Models which repeats over different numbers of IVs chosen at once in the model...
+               function(Number_of_Indep_Vars) { 
+                   lapply(1:ncol(Combination_List[[Number_of_Indep_Vars]]), # ... select the combinations associated with that number of IVs chosen and repeat for each specific model...
+                          function (Indep_Vars_Chosen) { 
+                              Model_Fit_Coordinator(
+                                  Combination_List[[Number_of_Indep_Vars]][, Indep_Vars_Chosen], # ... submit a specific combination of IVs to `Model_Fit_Coordinator`...
+                                  Dep_Var, reg, fitstat, all=all, ...) # ...along with other pertinent information for model fitting
                               # ensemble_begin = ensemble_end # update where the ensemble tracker will begin for next round
-                              
                           }
-                          
                    ) 
-                   
                }
-               
         )
     
-))
+) )
 
     # ~~ Process all subsets - find the increments  ~~ #
 
@@ -269,7 +280,7 @@ for (Indep_Var in 1:Total_Indep_Vars) { # for each IV in the model...
 
 
                     if (relevant_complete) {
-                        MatrixLocation_Complete <- (1:Total_Indep_Vars)[ Indep_Var_List %in% 
+                        MatrixLocation_Complete <- (1:Total_Indep_Vars)[ Indep_Vars %in% 
                             setdiff(Model_List[[number_of_Indep_Vars]][[other_model]][[1]], Model_List[[number_of_Indep_Vars]][[model]][[1]]) ] #... the different element in the reduced model (to place it in the correct "row" for the dominance matrix/list)
                         
                         Complete_atIndep_Var[MatrixLocation_Complete] <- as.integer( #at the correct location in the complete dominance matrix, append...
@@ -306,7 +317,7 @@ else IV_Labels <- c(attr(stats::terms(formula_overall), "term.labels"), paste0("
 
 names(General_Dominance) <- IV_Labels
 names(General_Dominance_Ranks) <- IV_Labels 
-dimnames(Conditional_Dominance) <- list(IV_Labels, paste("IVs:", 1:length(Indep_Var_List)))
+dimnames(Conditional_Dominance) <- list(IV_Labels, paste("IVs:", 1:length(Indep_Vars)))
 dimnames(Complete_Dominance) <- list(paste0("Dmate?", IV_Labels),  paste0("Dmned?", IV_Labels))
 
 return_list <- list(
