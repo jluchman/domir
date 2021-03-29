@@ -121,7 +121,7 @@ Total_Models_to_Estimate <- 2**Total_Indep_Vars - 1 # total number of models to 
 
 # Define function to call regression models ----
 
-Model_Fit_Coordinator <- function(Indep_Var_Combination, Dep_Var, reg, fitstat, all=NULL, ...) {
+doModel_Fit_Coordinator <- function(Indep_Var_Combination, Dep_Var, reg, fitstat, all=NULL, ...) {
 
     formula_to_use <- 
         stats::formula( # build formula to submit to modeling function by...
@@ -141,17 +141,25 @@ Model_Fit_Coordinator <- function(Indep_Var_Combination, Dep_Var, reg, fitstat, 
     Fit_Value <- do.call(fitstat[[1]], Model_Result) # use first entry of `fitstat` as fitstat function name, use `Model_Result` as results to submit to it
     
     return( 
-        list( # `Model_Fit_Coordinator` then returns (as list)...
-            Indep_Var_Combination, # ... the combo of IVs used ...
-            Fit_Value[[ fitstat[[2]] ]] # ... and uses second, necessarily named, argument of `fitstat` to select the result of `Fit_Value` to return
+        list( # `doModel_Fit_Coordinator` then returns (as list)...
+            "names" = Indep_Var_Combination, # ... the combo of IVs used ...
+            "value" = Fit_Value[[ fitstat[[2]] ]] # ... and uses second, necessarily named, argument of `fitstat` to select the result of `Fit_Value` to return
         )
     )
 
 }
 
-if (length(all) > 0) All_Result <- # if there are entries in all...
-    Model_Fit_Coordinator(all, Dep_Var, reg, fitstat, ...) # ...obtain their `fitstat` value as well...
-else All_Result <- NULL # ...otherwise return a null
+if (length(all) > 0) { # if there are entries in all...
+    All_Result <- 
+        doModel_Fit_Coordinator(all, Dep_Var, reg, fitstat, ...) # ...obtain their `fitstat` value as well...
+    FitStat_Adjustment <- 
+        All_Result[[2]] # ...and log the value as the adjustment to the fitstat
+}
+
+else {
+    All_Result <- NULL # ...otherwise return a null
+    FitStat_Adjustment <- 0 # ...and a 0 for fitstat adjustment
+}
 
 # Obtain all subsets regression results ----
 
@@ -174,9 +182,9 @@ utils::capture.output( suppressWarnings( # ensure that "verbose" models are quie
                function(Number_of_Indep_Vars) { 
                    lapply(1:ncol(Combination_List[[Number_of_Indep_Vars]]), # ... select the combinations associated with that number of IVs chosen and repeat for each specific model...
                           function (Indep_Vars_Chosen) { 
-                              Model_Fit_Coordinator(
-                                  Combination_List[[Number_of_Indep_Vars]][, Indep_Vars_Chosen], # ... submit a specific combination of IVs to `Model_Fit_Coordinator`...
-                                  Dep_Var, reg, fitstat, all=all, ...) # ...along with other pertinent information for model fitting
+                              doModel_Fit_Coordinator(
+                                  Combination_List[[Number_of_Indep_Vars]][, Indep_Vars_Chosen], # ... at the "mid-level" submits a specific combination of IVs to `doModel_Fit_Coordinator`...
+                                  Dep_Var, reg, fitstat, all=all, ...) # ...along with other pertinent information for model fitting - then at "bottom level" returns model results
                               # ensemble_begin = ensemble_end # update where the ensemble tracker will begin for next round
                           }
                    ) 
@@ -185,17 +193,15 @@ utils::capture.output( suppressWarnings( # ensure that "verbose" models are quie
     
 ) )
 
-    # ~~ Process all subsets - find the increments  ~~ #
+# Process all subsets - find the increments ----
 
-Model_List <- vector(mode="list", length=Total_Indep_Vars) # evaluate the lapply-ed models and record them ...
-Model_List[[1]] <- Ensemble_of_Models[[1]] #... start with the single IV models...
+Model_List <- vector(mode="list", length=Total_Indep_Vars) # evaluate the lapply-ed models and record them...
+Model_List[[1]] <- Ensemble_of_Models[[1]] # ...start with the single IV models...
 
-if (length(all) > 0) FitStat_Adjustment <- All_Result[[2]]
-else FitStat_Adjustment <- 0
 
 for (model in 1:length(Model_List[[1]])) { # ...for the single IV models...
      
-     Model_List[[1]][[model]][[2]] <- Model_List[[1]][[model]][[2]] - FitStat_Adjustment #... have to remove constant model results as well as all subets results
+     Model_List[[1]][[model]][[2]] <- Model_List[[1]][[model]][[2]] - FitStat_Adjustment # ...have to remove constant model results as well as all subets results
      
 }
 
@@ -221,7 +227,8 @@ for (number_of_Indep_Vars in 2:length(Ensemble_of_Models)) { # when >1 IV in the
                         Ensemble_of_Models[[number_of_Indep_Vars-1]][[at1less_model]][[1]], # ...IV names at one less...
                         Ensemble_of_Models[[number_of_Indep_Vars]][[model]][[2]] - Ensemble_of_Models[[number_of_Indep_Vars-1]][[at1less_model]][[2]] ) # ...and the increment to the fit metric
                  
-                Location_in_Model_Incremented <- Location_in_Model_Incremented + 1
+                Location_in_Model_Incremented <- 
+                    Location_in_Model_Incremented + 1
                  
             }
             
@@ -233,6 +240,64 @@ for (number_of_Indep_Vars in 2:length(Ensemble_of_Models)) { # when >1 IV in the
     
 }
 
+# new begin ----
+
+Ensemble_Fitstat_domIncrementor <- function(List_of_Models, List_of_Models_Previous) {
+
+    domIncrement_Lists <- 
+        lapply(List_of_Models, function(Submitted_Model) 
+            lapply(List_of_Models_Previous, function(Candidate_domIncrement) 
+                Identify_domIncrement(Submitted_Model, Candidate_domIncrement) ))
+    
+    return( #Filter(is.null, 
+        domIncrement_Lists) #)
+
+}
+
+Identify_domIncrement <- function (IVs, IVs_previous) {
+    
+    print(is.null(IVs_previous))
+    
+    if ( length(intersect(IVs[["names"]], IVs_previous[["names"]])) ==
+         length(IVs_previous[["names"]]) ) 
+        
+        value <- list(IVs[["names"]], # append IV names at focal ...
+             IVs_previous[["names"]], # ...IV names at one less...
+             IVs[["value"]] - IVs_previous[["value"]]) # ...and the increment to the fit metric
+    
+    else if (is.null(IVs_previous))
+        value <- list(IVs[["names"]], # append IV names at focal ...
+                      "", # ...IV names at one less...
+                      IVs[["value"]] - FitStat_Adjustment) # ...and the increment to the fit metric
+    
+    else value <- NULL
+    
+    return(value)
+    
+}
+
+
+Model_List2 <-
+    lapply(1:length(Ensemble_of_Models),
+           function(Number_of_Indep_Vars) {
+               
+               if (Number_of_Indep_Vars > 1) Previous_Models <- 
+                       Ensemble_of_Models[[Number_of_Indep_Vars-1]]
+               else Previous_Models <- NULL
+               
+               print(str(Previous_Models))
+               
+               Ensemble_Fitstat_domIncrementor(
+                   Ensemble_of_Models[[Number_of_Indep_Vars]],
+                   Previous_Models
+               )
+               
+           }
+    )
+
+str(Model_List2)
+
+# new end ----
 
 # 'Model_List' is structured such that:
 # 1. Top level is results by number of IVs in the model
