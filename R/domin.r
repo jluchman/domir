@@ -195,57 +195,11 @@ utils::capture.output( suppressWarnings( # ensure that "verbose" models are quie
 
 # Process all subsets - find the increments ----
 
-Model_List <- vector(mode="list", length=Total_Indep_Vars) # evaluate the lapply-ed models and record them...
-Model_List[[1]] <- Ensemble_of_Models[[1]] # ...start with the single IV models...
-
-
-for (model in 1:length(Model_List[[1]])) { # ...for the single IV models...
-     
-     Model_List[[1]][[model]][[2]] <- Model_List[[1]][[model]][[2]] - FitStat_Adjustment # ...have to remove constant model results as well as all subets results
-     
-}
-
-for (number_of_Indep_Vars in 2:length(Ensemble_of_Models)) { # when >1 IV in the model, processing needed...
-
-    Model_Incremented <- vector(mode="list", length=length(Ensemble_of_Models[[number_of_Indep_Vars]]))  # initialize/reset container for finding subset (of appropriate length)
-    Location_in_Model_Incremented <- 1 # ... useful for R...
-
-    Indep_Var_Set_at_1lessIndep_Var <- 
-        lapply(Ensemble_of_Models[[number_of_Indep_Vars-1]], 
-            function(Candidate_Indep_Var_Set) { Candidate_Indep_Var_Set[[1]] }) # collect all sets IVs (coerced to be a set object), specifically all sets at one less IV in the model than the current number of IVs
-    
-    for (model in 1:length(Ensemble_of_Models[[number_of_Indep_Vars]])) { # loop through all models at a specific number of IVs in the model...
-#
-        Indep_Var_Set <- Ensemble_of_Models[[number_of_Indep_Vars]][[model]][[1]] # IV set for a focal model; coerced to be set object
-
-        for (at1less_model in 1:length(Indep_Var_Set_at_1lessIndep_Var)) { # loop through all models at one less than the specific number of IVs in the model...
-# 
-            if (length(intersect(Indep_Var_Set_at_1lessIndep_Var[[at1less_model]], Indep_Var_Set)) == length(Indep_Var_Set_at_1lessIndep_Var[[at1less_model]])) { # if IV set at one less is a subset of the predictors in the focal model...
-
-                Model_Incremented[[Location_in_Model_Incremented]] <- 
-                    list(Ensemble_of_Models[[number_of_Indep_Vars]][[model]][[1]], # append IV names at focal ...
-                        Ensemble_of_Models[[number_of_Indep_Vars-1]][[at1less_model]][[1]], # ...IV names at one less...
-                        Ensemble_of_Models[[number_of_Indep_Vars]][[model]][[2]] - Ensemble_of_Models[[number_of_Indep_Vars-1]][[at1less_model]][[2]] ) # ...and the increment to the fit metric
-                 
-                Location_in_Model_Incremented <- 
-                    Location_in_Model_Incremented + 1
-                 
-            }
-            
-        }
-                
-    }
-    
-    Model_List[[number_of_Indep_Vars]] <- as.list(Model_Incremented)
-    
-}
-
-# new begin ----
 # low-level function to compute model fit increments related to IVs 
     #called by Ensemble_Fitstat_domIncrementor below
 Identify_domIncrement <- function (IVs, IVs_previous) { 
     
-    if (is.na(IVs_previous)) # if there is no previous IVs (i.e., models with 1 IV)...
+    if (all(is.na(unlist(IVs_previous)))) # if there is are all NAs in the previous IVs (i.e., by design in models with 1 IV)... 
         
         value <- list(names_curr = IVs[["names"]], # include IV names at focal ...
                       names_prev = "", # ...IV names at one less (which are an empty string...
@@ -270,7 +224,7 @@ Ensemble_Fitstat_domIncrementor <-
     
     domIncrement_Lists <-
         mapply(Identify_domIncrement,  # call Identify_domIncrement ...
-               List_of_Models, List_of_Models_Previous, #... submit candidate models
+               List_of_Models, List_of_Models_Previous, #... submit candidate models for current IV and one less IV
                SIMPLIFY = FALSE) # do not simplify object to non-list/retain list type
     
     Null_Elements <- which(sapply(domIncrement_Lists, is.null)) # identfy NULL list elements
@@ -286,31 +240,29 @@ Ensemble_Fitstat_domIncrementor <-
 # top-level function to prepare model lists for finding increments
 Prepare_domList <- function(Number_of_Indep_Vars) {
     
-    if (Number_of_Indep_Vars > 1) Previous_Models <- 
-            Ensemble_of_Models[[Number_of_Indep_Vars-1]]
-    else Previous_Models <- NA
+    if (Number_of_Indep_Vars > 1) Previous_Models <- # if a list of multi_IV models ...
+            Ensemble_of_Models[[Number_of_Indep_Vars-1]] #... obtain the list of models at one less IV
+    else Previous_Models <- NA #... otherwise this is the 1 IV list - there are no models at one less.
     
-    Current_Models <- Ensemble_of_Models[[Number_of_Indep_Vars]]
+    Current_Models <- Ensemble_of_Models[[Number_of_Indep_Vars]] # collect models at current numbers of IVs
     
-    Current_Models_Length <- length(Current_Models)
-    Previous_Models_Length <- length(Previous_Models)
+    Current_Models_Length <- length(Current_Models) # record number of models at current IVs
+    Previous_Models_Length <- length(Previous_Models) # record number of models at one less IVs
     
-    Current_Models <- 
+    Current_Models <- # "spread" current models at number of previous models to find combinations
         rep(Current_Models, each=Previous_Models_Length)
     
-    Previous_Models <- 
+    Previous_Models <- # repeat one less IV models at number of current models to find combinations
         rep(Previous_Models, times=Current_Models_Length)
     
-    return( Ensemble_Fitstat_domIncrementor(
+    return( Ensemble_Fitstat_domIncrementor( # submit all combinations to Ensemble_Fitstat_domIncrementor
         Current_Models, Previous_Models) )
 }
 
 
-Model_List2 <- lapply(1:length(Ensemble_of_Models), Prepare_domList) # for all numbers of IVs in model
+Model_List <- lapply(1:length(Ensemble_of_Models), Prepare_domList) # for all numbers of IVs in model
 
-str(Model_List2)
-
-# new end ----
+str(Model_List)
 
 # 'Model_List' is structured such that:
 # 1. Top level is results by number of IVs in the model
@@ -318,7 +270,7 @@ str(Model_List2)
 # 3. Bottom level is a specific increment's information (full_model, reduced_model, fit metric difference)
 
 
-#     ~~ Obtain complete and conditional dominance statistics  ~~ #
+# Obtain complete and conditional dominance statistics ----
 
 Conditional_Dominance <- matrix(nrow=Total_Indep_Vars, ncol=Total_Indep_Vars) # conditional dominance container
 
@@ -327,12 +279,12 @@ else Complete_Dominance <- NULL
 
 for (Indep_Var in 1:Total_Indep_Vars) { # for each IV in the model...
 
-    Conditional_Dominance[Indep_Var, 1] <- Model_List[[1]][[Indep_Var]][[2]] # for IV alone - copy fit statistic
+    Conditional_Dominance[Indep_Var, 1] <- Model_List[[1]][[Indep_Var]][[3]] # for IV alone - copy fit statistic
 
     Indep_Varname <- Model_List[[1]][[Indep_Var]][[1]] # record name of focal IV
 
     if (complete) 
-        Complete_atIndep_Var <- (Model_List[[1]][[Indep_Var]][[2]] > sapply(Model_List[[1]], function(specific_fit_stat) {specific_fit_stat[[2]]} ))   # ~ ... redo documentation ... ~ # the idea is to compare all vars at 1 IV
+        Complete_atIndep_Var <- (Model_List[[1]][[Indep_Var]][[3]] > sapply(Model_List[[1]], function(specific_fit_stat) {specific_fit_stat[[3]]} ))   # ~ ... redo documentation ... ~ # the idea is to compare all vars at 1 IV
 
     for (number_of_Indep_Vars in 2:Total_Indep_Vars) { # for all numbers of IVs greater than 1...
 
