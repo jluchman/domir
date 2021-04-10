@@ -241,59 +241,72 @@ for (number_of_Indep_Vars in 2:length(Ensemble_of_Models)) { # when >1 IV in the
 }
 
 # new begin ----
-
-Ensemble_Fitstat_domIncrementor <- function(List_of_Models, List_of_Models_Previous) {
-
-    domIncrement_Lists <- 
-        lapply(List_of_Models, function(Submitted_Model) 
-            lapply(List_of_Models_Previous, function(Candidate_domIncrement) 
-                Identify_domIncrement(Submitted_Model, Candidate_domIncrement) ))
+# low-level function to compute model fit increments related to IVs 
+    #called by Ensemble_Fitstat_domIncrementor below
+Identify_domIncrement <- function (IVs, IVs_previous) { 
     
-    return( #Filter(is.null, 
-        domIncrement_Lists) #)
-
-}
-
-Identify_domIncrement <- function (IVs, IVs_previous) {
-    
-    print(is.null(IVs_previous))
-    
-    if ( length(intersect(IVs[["names"]], IVs_previous[["names"]])) ==
-         length(IVs_previous[["names"]]) ) 
+    if (is.na(IVs_previous)) # if there is no previous IVs (i.e., models with 1 IV)...
         
-        value <- list(IVs[["names"]], # append IV names at focal ...
-             IVs_previous[["names"]], # ...IV names at one less...
-             IVs[["value"]] - IVs_previous[["value"]]) # ...and the increment to the fit metric
+        value <- list(names_curr = IVs[["names"]], # include IV names at focal ...
+                      names_prev = "", # ...IV names at one less (which are an empty string...
+                      increment = IVs[["value"]] - FitStat_Adjustment) # ...and the increment to the fit metric
     
-    else if (is.null(IVs_previous))
-        value <- list(IVs[["names"]], # append IV names at focal ...
-                      "", # ...IV names at one less...
-                      IVs[["value"]] - FitStat_Adjustment) # ...and the increment to the fit metric
+    else if ( length(intersect(IVs[["names"]], IVs_previous[["names"]])) == #... models in previous are all in current - valid increment ...
+              length(IVs_previous[["names"]]) ) 
+        
+        value <- list(names_curr = IVs[["names"]], # include IV names at focal ...
+                      names_prev = IVs_previous[["names"]], # ...IV names at one less...
+                      increment = IVs[["value"]] - IVs_previous[["value"]]) # ...and the increment to the fit metric
     
-    else value <- NULL
+    else value <- NULL # ... otherwise the models in previous are not all in current - invalid increment; return a NULL
     
     return(value)
     
 }
+# mid-level function to coordinate finding all valid fitstat increments 
+    # called by Prepare_domList below
+Ensemble_Fitstat_domIncrementor <- 
+    function(List_of_Models, List_of_Models_Previous) {
+    
+    domIncrement_Lists <-
+        mapply(Identify_domIncrement,  # call Identify_domIncrement ...
+               List_of_Models, List_of_Models_Previous, #... submit candidate models
+               SIMPLIFY = FALSE) # do not simplify object to non-list/retain list type
+    
+    Null_Elements <- which(sapply(domIncrement_Lists, is.null)) # identfy NULL list elements
+    
+    if (length(Null_Elements) > 0) # if there are NULL elements...
+        domIncrement_Lists <- 
+            domIncrement_Lists[ -Null_Elements ] # ... remove them before returning
+
+    return( domIncrement_Lists )
+
+}
+
+# top-level function to prepare model lists for finding increments
+Prepare_domList <- function(Number_of_Indep_Vars) {
+    
+    if (Number_of_Indep_Vars > 1) Previous_Models <- 
+            Ensemble_of_Models[[Number_of_Indep_Vars-1]]
+    else Previous_Models <- NA
+    
+    Current_Models <- Ensemble_of_Models[[Number_of_Indep_Vars]]
+    
+    Current_Models_Length <- length(Current_Models)
+    Previous_Models_Length <- length(Previous_Models)
+    
+    Current_Models <- 
+        rep(Current_Models, each=Previous_Models_Length)
+    
+    Previous_Models <- 
+        rep(Previous_Models, times=Current_Models_Length)
+    
+    return( Ensemble_Fitstat_domIncrementor(
+        Current_Models, Previous_Models) )
+}
 
 
-Model_List2 <-
-    lapply(1:length(Ensemble_of_Models),
-           function(Number_of_Indep_Vars) {
-               
-               if (Number_of_Indep_Vars > 1) Previous_Models <- 
-                       Ensemble_of_Models[[Number_of_Indep_Vars-1]]
-               else Previous_Models <- NULL
-               
-               print(str(Previous_Models))
-               
-               Ensemble_Fitstat_domIncrementor(
-                   Ensemble_of_Models[[Number_of_Indep_Vars]],
-                   Previous_Models
-               )
-               
-           }
-    )
+Model_List2 <- lapply(1:length(Ensemble_of_Models), Prepare_domList) # for all numbers of IVs in model
 
 str(Model_List2)
 
