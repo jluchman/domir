@@ -121,7 +121,8 @@ Total_Models_to_Estimate <- 2**Total_Indep_Vars - 1 # total number of models to 
 
 # Define function to call regression models ----
 
-doModel_Fit_Coordinator <- function(Indep_Var_Combination, Dep_Var, reg, fitstat, all=NULL, ...) {
+# low-level function to call regression models
+doModel_Fit <- function(Indep_Var_Combination, Dep_Var, reg, fitstat, all=NULL, ...) {
 
     formula_to_use <- 
         stats::formula( # build formula to submit to modeling function by...
@@ -149,6 +150,8 @@ doModel_Fit_Coordinator <- function(Indep_Var_Combination, Dep_Var, reg, fitstat
 
 }
 
+# All subsets adjustment ----
+
 if (length(all) > 0) { # if there are entries in all...
     All_Result <- 
         doModel_Fit_Coordinator(all, Dep_Var, reg, fitstat, ...) # ...obtain their `fitstat` value as well...
@@ -175,21 +178,28 @@ else {
 #     flag_list = [int(twentieth/20*Total_Models_to_Estimate) for twentieth in range(1,21)]
 # else: flag_list = [] # if not at least 20 models, do not track  progress
 
+# begin new ----
+
+doModel_ListSelector <- function(Indep_Vars_Chosen, Number_of_Indep_Vars) { 
+    
+    doModel_Fit(
+        Combination_List[[Number_of_Indep_Vars]][, Indep_Vars_Chosen], # ... at the "mid-level" submits a specific combination of IVs to `doModel_Fit_Coordinator`...
+        Dep_Var, reg, fitstat, all=all, ...) # ...along with other pertinent information for model fitting - then at "bottom level" returns model results
+    # ensemble_begin = ensemble_end # update where the ensemble tracker will begin for next round
+    
+}
+
+doModel_Coordinator <- function(Number_of_Indep_Vars) { 
+    
+    lapply(1:ncol(Combination_List[[Number_of_Indep_Vars]]), # ... select the combinations associated with that number of IVs chosen and repeat for each specific model...
+           doModel_ListSelector, Number_of_Indep_Vars) 
+    
+}
+
 utils::capture.output( suppressWarnings( # ensure that "verbose" models are quieted - no fitting information or warnings
     
-    Ensemble_of_Models <-
-        lapply(1:Total_Indep_Vars, # At the "top level" of Ensemble_of_Models which repeats over different numbers of IVs chosen at once in the model...
-               function(Number_of_Indep_Vars) { 
-                   lapply(1:ncol(Combination_List[[Number_of_Indep_Vars]]), # ... select the combinations associated with that number of IVs chosen and repeat for each specific model...
-                          function (Indep_Vars_Chosen) { 
-                              doModel_Fit_Coordinator(
-                                  Combination_List[[Number_of_Indep_Vars]][, Indep_Vars_Chosen], # ... at the "mid-level" submits a specific combination of IVs to `doModel_Fit_Coordinator`...
-                                  Dep_Var, reg, fitstat, all=all, ...) # ...along with other pertinent information for model fitting - then at "bottom level" returns model results
-                              # ensemble_begin = ensemble_end # update where the ensemble tracker will begin for next round
-                          }
-                   ) 
-               }
-        )
+    Ensemble_of_Models <- # At the "top level" of Ensemble_of_Models which repeats over different numbers of IVs chosen at once in the model...
+        lapply(1:Total_Indep_Vars, doModel_Coordinator)
     
 ) )
 
