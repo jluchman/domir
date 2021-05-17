@@ -54,7 +54,7 @@ Fundamentally, `domir` is an extension of the `lmg` method in the
 the differences between the packages by way of displayed information.
 
 ``` r
-library(domir)
+library(domin)
 
 domin(mpg ~ am + vs + cyl, "lm", list("summary", "r.squared"), data=mtcars)
 ```
@@ -75,9 +75,9 @@ domin(mpg ~ am + vs + cyl, "lm", list("summary", "r.squared"), data=mtcars)
     ## 
     ## Complete Dominance Statistics:
     ##           Dmned?am Dmned?vs Dmned?cyl
-    ## Dmate?am         0       -1        -1
-    ## Dmate?vs         1        0        -1
-    ## Dmate?cyl        1        1         0
+    ## Dmate?am        NA       NA     FALSE
+    ## Dmate?vs        NA       NA     FALSE
+    ## Dmate?cyl     TRUE     TRUE        NA
 
 ``` r
 relaimpo::calc.relimp(lm(mpg ~ am + vs + cyl, data=mtcars))
@@ -136,9 +136,9 @@ domin(mpg ~ am + vs + cyl, "lm", list(function (model)
     ## 
     ## Complete Dominance Statistics:
     ##           Dmned?am Dmned?vs Dmned?cyl
-    ## Dmate?am         0       -1        -1
-    ## Dmate?vs         1        0        -1
-    ## Dmate?cyl        1        1         0
+    ## Dmate?am        NA       NA     FALSE
+    ## Dmate?vs        NA       NA     FALSE
+    ## Dmate?cyl     TRUE     TRUE        NA
 
 ## Ordered Logistic Regression
 
@@ -169,9 +169,9 @@ domin(carb2 ~ am + vs + mpg, MASS::polr,
     ## 
     ## Complete Dominance Statistics:
     ##           Dmned?am Dmned?vs Dmned?mpg
-    ## Dmate?am         0       -1        -1
-    ## Dmate?vs         1        0         1
-    ## Dmate?mpg        1       -1         0
+    ## Dmate?am        NA       NA     FALSE
+    ## Dmate?vs        NA       NA        NA
+    ## Dmate?mpg     TRUE       NA        NA
 
 ## Multinomial Logistic (softmax) Regression
 
@@ -200,9 +200,9 @@ domin(carb2 ~ am + vs + mpg, nnet::multinom,
     ## 
     ## Complete Dominance Statistics:
     ##           Dmned?am Dmned?vs Dmned?mpg
-    ## Dmate?am         0       -1        -1
-    ## Dmate?vs         1        0         1
-    ## Dmate?mpg        1       -1         0
+    ## Dmate?am        NA       NA     FALSE
+    ## Dmate?vs        NA       NA        NA
+    ## Dmate?mpg     TRUE       NA        NA
 
 ## Decision Trees
 
@@ -238,9 +238,9 @@ domin(mpg ~ am + vs + cyl, rpart::rpart,
     ## 
     ## Complete Dominance Statistics:
     ##           Dmned?am Dmned?vs Dmned?cyl
-    ## Dmate?am         0       -1        -1
-    ## Dmate?vs         1        0        -1
-    ## Dmate?cyl        1        1         0
+    ## Dmate?am        NA       NA     FALSE
+    ## Dmate?vs        NA       NA     FALSE
+    ## Dmate?cyl     TRUE     TRUE        NA
 
 ## Zero-Inflated Poisson
 
@@ -287,10 +287,10 @@ domin(art ~ fem + mar + kid5 + phd + ment,
     ## 
     ## Complete Dominance Statistics:
     ##            Dmned?fem Dmned?mar Dmned?kid5 Dmned?phd Dmned?ment
-    ## Dmate?fem          0         1          0         1         -1
-    ## Dmate?mar         -1         0         -1        -1         -1
-    ## Dmate?kid5         0         1          0         0          0
-    ## Dmate?phd         -1         1          0         0         -1
-    ## Dmate?ment         1         1          0         1          0
+    ## Dmate?fem         NA      TRUE         NA      TRUE      FALSE
+    ## Dmate?mar      FALSE        NA      FALSE        NA      FALSE
+    ## Dmate?kid5        NA      TRUE         NA        NA      FALSE
+    ## Dmate?phd      FALSE        NA         NA        NA      FALSE
+    ## Dmate?ment      TRUE      TRUE       TRUE      TRUE         NA
 
 (more examples to come…)

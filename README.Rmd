@@ -56,7 +56,7 @@ Fundamentally, `domir` is an extension of the `lmg` method in the
 differences between the packages by way of displayed information.
 
 ```{r replicate_relaimpo}
-library(domir)
+devtools::load_all()
 
 domin(mpg ~ am + vs + cyl, "lm", list("summary", "r.squared"), data=mtcars)
 
