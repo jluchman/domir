@@ -197,12 +197,9 @@ doModel_Coordinator <- function(Number_of_Indep_Vars) {
 }
 
 # list apply `doModel_Coordinator` across all numbers of IVs in the model
-utils::capture.output( suppressWarnings( # ensure that "verbose" models are quieted - no fitting information or warnings
-    
-    Ensemble_of_Models <- # as a list ...
-        lapply(1:Total_Indep_Vars, doModel_Coordinator) #... call `doModel_Coordinator` over all numbers of IVs in the model
-    
-) )
+Ensemble_of_Models <- # as a list ...
+  lapply(1:Total_Indep_Vars, doModel_Coordinator) #... call `doModel_Coordinator` over all numbers of IVs in the model
+
 
 # Process all subsets - find the increments ----
 
