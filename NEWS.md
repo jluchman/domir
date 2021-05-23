@@ -4,12 +4,17 @@ title: domir NEWS
 
 # domir 0.1.0
 
-- bug fix to `Complete_Dominance` matrix computation
+- bug fixes to `Complete_Dominance` matrix computation
   - Too many models considered for complete dominance - inconsistent with standard dominance analysis methodology
+  - Fixed error in suppressing complete dominance (i.e., `complete = FALSE`) resulted in error 
 - update to format of `Complete_Dominance` from integers to logicals
 - extensive re-write of computation methods
   - pre-allocates container objects to improve performance
   - increased functional-ization of subroutines and overall code readability
+- output and warnings no longer suppressed by default - user must silence noisy functions
+- names of entries in `domin` object changed to syntactic R names when not.  Affects entries in
+  - `Complete_Dominance` matrix
+  - `Conditional_Dominance` matrix
 
 # domir 0.0.1
 

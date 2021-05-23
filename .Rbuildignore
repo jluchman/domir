@@ -1,7 +1,5 @@
-README.md
 cran-comments.md
 README.Rmd
-NEWS.md
 ^.*\.Rproj$
 ^\.Rproj\.user$
 ^CRAN-RELEASE$
