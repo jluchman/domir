@@ -20,7 +20,7 @@
 #'  \item{\code{Standardized}}{Vector of general dominance statistics normalized to be out of 100.}
 #'  \item{\code{Ranks}}{Vector of ranks applied to the general dominance statistics.}
 #'  \item{\code{Conditional_Dominance}}{Matrix of conditional dominance statistics.}
-#'  \item{\code{Complete_Dominance}}{Matrix of complete dominance designations.}
+#'  \item{\code{Complete_Dominance}}{Logical matrix of complete dominance designations.}
 #'  \item{\code{Fit_Statistic_Overall}}{Value of fit statistic across all IVs.}
 #'  \item{\code{Fit_Statistic_All_Subsets}}{Value of fit statistic associated with IVs in \code{all}.}
 #'  \item{\code{Call}}{The matched call.}
@@ -530,9 +530,9 @@ else IV_Labels <-
 
 names(General_Dominance) <- IV_Labels
 names(General_Dominance_Ranks) <- IV_Labels 
-dimnames(Conditional_Dominance) <- list(IV_Labels, paste("IVs:", 1:length(Indep_Vars)))
+dimnames(Conditional_Dominance) <- list(IV_Labels, paste0("IVs_", 1:length(Indep_Vars)))
 if (complete) 
-  dimnames(Complete_Dominance) <- list(paste0("Dmate?", IV_Labels),  paste0("Dmned?", IV_Labels))
+  dimnames(Complete_Dominance) <- list(paste0("Dmnates_", IV_Labels),  paste0("Dmnated_", IV_Labels))
 
 return_list <- list(
     "General_Dominance" = General_Dominance,
@@ -562,8 +562,8 @@ return_list <- list(
 #' Reports basic results from \code{domin} class object.
 #' @param x an object of class "domin".
 #' @param ... further arguments passed to or from other methods.
-#' @return No returned value.  This method is called for compact display of 
-#' results in the console.
+#' @return None. This method is called only for side-effect of printing 
+#' to the console.
 #' @details The print method for class \code{domin} objects reports out the 
 #' following results:
 #' \itemize{
@@ -588,14 +588,20 @@ cat("General Dominance Statistics:\n")
 Display_Std <- 
     t(rbind(x[["General_Dominance"]], x[["Standardized"]], x[["Ranks"]]))
 dimnames(Display_Std) <- 
-    list(names(x[["Ranks"]]), c("General_Dominance", "Standardized", "Ranks"))
+    list(names(x[["Ranks"]]), c("General Dominance", "Standardized", "Ranks"))
 print(Display_Std)
 cat("\n")
 cat("Conditional Dominance Statistics:\n")
+colnames(x[["Conditional_Dominance"]]) <- 
+  paste("IVs:", 1:ncol(x[["Conditional_Dominance"]]))
 print(x[["Conditional_Dominance"]])
 cat("\n")
 if (length(x[["Complete_Dominance"]]>0)) {
-    cat("Complete Dominance Statistics:\n")
+    cat("Complete Dominance Designations:\n")
+    colnames(x[["Complete_Dominance"]]) <- 
+      gsub("^Dmnated_", "Dmnated?", colnames(x[["Complete_Dominance"]]))
+    rownames(x[["Complete_Dominance"]]) <- 
+      gsub("^Dmnates_", "Dmnates?", rownames(x[["Complete_Dominance"]]))
     print(x[["Complete_Dominance"]])
     cat("\n")
 }
