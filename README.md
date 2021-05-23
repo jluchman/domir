@@ -34,7 +34,7 @@ To install the working development version of `{domir}` using the
 
 # What `{domir}` Does
 
-Before discussing details of the `domir` package, I provide some
+Before discussing details of the `{domir}` package, I provide some
 examples of what `{domir}` can do.
 
 The focus of this section is on outlining how `domir::domin` extends
@@ -186,8 +186,8 @@ Because `domin` does not require the use of a specific fit metric, one
 important way in which it differs from the previous functions is in that
 it allows for different fit metrics than the standard error variance
 *R*<sup>2</sup> with models like `lm`. In the example below, the the
-`'m` discussed above is dominance analyzed with the McFadden
-pseudo-*R*<sup>2</sup> as implemented by the `pscl` package.
+`lm` discussed above is dominance analyzed with the McFadden
+pseudo-*R*<sup>2</sup> as implemented by the `{pscl}` package.
 
 Note the use of the `purrr::quietly` function to “mute” `pscl::pR2`.
 This is not strictly necessary but if not used will print far more
@@ -225,8 +225,9 @@ domin(mpg ~ am + vs + cyl,
 The ability to use any fit metric that is desired is one part of the
 utility of the `domin` function.
 
-Note that this fit metric produces effectively the same answer as that
-from the explained variance *R*<sup>2</sup>.
+Note that this fit metric produces effectively the same answers, in
+terms of qualitative dominance inferences, as that from the explained
+variance *R*<sup>2</sup>.
 
 ### Ordered Logistic Regression
 
