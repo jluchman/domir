@@ -17,7 +17,8 @@ function to obtain a fit metric, you can conduct a relative importance analysis.
 More specifically, `{domir}` is intended to implement a set of flexible wrapper 
 and helper functions for conducting relative importance analysis and the 
 current implementation of the package has a focus on dominance analysis with 
-the `domin` function as a relative importance analysis method.
+the `domin` function as a relative importance analysis method.  Currently, 
+`domin` is the only importance function that is implemented.
 
 For readers looking to familiarize themselves more with the dominance 
 analysis methodology, a more extensive conceptual discussion of dominance 
@@ -49,13 +50,20 @@ Fundamentally, `domir::domin` is an extension of the "lmg" type for the
 `calc.relimpo` function in the `{relaimpo}` package as well as the 
 `dominanceAnalysis` function in the `{dominanceanalysis}` package.
 
-`domir::domin` can provide the same results but is structured differently 
-and, as will be discussed, is designed for flexibility - which does come 
-at the expense of complexity.
+`domir::domin` can replicate the results produced by the above packages but, as 
+will be seen, requires a "deconstructed" the model to be submitted to it.  This 
+difference in structure does make `domin` more complex but also allows the 
+function a great deal more flexibility in terms of the kinds of models and 
+fit metrics that can be dominance analyzed.
 
-All three of the models to come are based on the following linear model:
+Before discussing some of the elements that make `domin` flexible, consider the 
+following example that shows how `domin` is similar to existing packages. All 
+three of the dominance analysis results to come are based on the following 
+linear model:
 
 `lm(mpg ~ am + vs + cyl, data = mtcars)`
+
+The variance explained $R^2$ will be the focal fit metric.
 
 ### `{domir}`'s `domin`
 
@@ -66,24 +74,25 @@ domin(mpg ~ am + vs + cyl,
       data = mtcars)
 ```
 
-Note that the `lm` model is submitted in pieces.  Specifically, the key inputs 
-were the formula (`mpg ~ am + vs + cyl`), the indication of the model to be 
-called (`lm`).  I recommend thinking of `domin` as a `Map`- or `apply`-like 
-function given this structure.
+In `domin`, the `lm` model is submitted in pieces.  Specifically, the key inputs 
+were the formula (`mpg ~ am + vs + cyl`) and the model to be called using 
+the formula (`lm`).  In this way, `domin` is a `Map`- or `apply`-like 
+function as it receives an object on which to operate (i.e., the formula) and 
+a function to which to apply to it.
 
-A key difference as you will see from other similar functions is that `domin` 
-must be supplied with a list outlining extractor function 
-information (i.e., `list(summary, "r.squared")`; described further in the
+In being like `apply`, `domin` is agnostic to the fit metric to use for the 
+model called and it must be supplied with a list outlining extractor function 
+information (`list(summary, "r.squared")`; described further in the
 [Details](#Details) section).
 
-Like `apply`, other arguments (i.e., `data = mtcars`) can also be passed to each 
+Like `apply`, other arguments (`data = mtcars`) can also be passed to each 
 call of `lm`.
 
 The focus of `domin`'s `print`-ed results focuses on the numerical results from 
-"General Dominance Statistics" and "Conditional Dominance Statistics" and, 
-optionally, a logical matrix of "Complete Dominance Designations".
+"General Dominance Statistics" and "Conditional Dominance Statistics" and, a 
+logical matrix of "Complete Dominance Designations".
 
-### `{relaimpo}`'s `calc.relimp`
+### `{relaimpo}`'s `calc.relimp` with "lmg"
 
 ``` {r init_relaimpo}
 relaimpo::calc.relimp(mpg ~ am + vs + cyl, 
@@ -91,28 +100,29 @@ relaimpo::calc.relimp(mpg ~ am + vs + cyl,
                       type = "lmg")
 ```
 
-`{relaimpo}`'s `calc.relimp` is similar in structure to `domin` but only allows 
-for `lm`s as well as the standard variance explained $R^2$ value.
+`{relaimpo}`'s `calc.relimp` accepts only `lm` models and the variance explained 
+$R^2$ as a fit metric.  As a result, the function does not ask for model
+or fit metric type.
 
-The function also focuses only on the analogous statistics to 
-"General Dominance Statistics".  In addition, it supplies, by default, average 
-`lm` coefficients across all models.
+The function's printed results provide the "lmg" relative importance statistics 
+(i.e., General Dominance Statistics) and, in addition, report the average `lm` 
+coefficients across all models.
 
 ### `{dominanceanalysis}`'s `dominanceAnalysis`
 
 ``` {r init_da}
 dominanceanalysis::dominanceAnalysis(lm(mpg ~ am + vs + cyl, 
-                         data = mtcars))
+                                        data = mtcars))
 ```
 
-`{dominanceanalysis}`'s `dominanceAnalysis` accepts a fitted `lm` object (as 
-does `calc.relimp`) and otherwise is similar in structure to both previous 
-functions.  `dominanceAnalysis` also has built-in methods for specific model 
-implementations like `lm` - which assumes the explained variance $R^2$ will be 
-used.
+`{dominanceanalysis}`'s `dominanceAnalysis` implements dominance analysis 
+for specific models, of which `lm` is a supported model. 
+`dominanceAnalysis` accepts a fitted `lm` object as input and uses the 
+explained variance $R^2$ as the fit metric.
 
-`dominanceAnalysis`'s output is focused on qualitative dominance designations 
-but also reports the "General Dominance Statistic" values.
+`dominanceAnalysis`'s printed output is focused on qualitative dominance 
+designations but also reports the, magnitude sorted, average contribution
+(i.e., General Dominance Statistic) values.
 
 ## How `{domir}` Extends on Previous Packages
 
@@ -125,50 +135,56 @@ The sections below outline some pertinent examples of specific models that the
 
 ### Linear Model Revisited
 
-Because `domin` does not require the use of a specific fit metric, one 
-important way in which it differs from the previous functions is in that 
-it allows for different fit metrics than the standard error 
-variance $R^2$ with models like `lm`.  In the example below, the 
-the `lm` discussed above is dominance analyzed with the McFadden pseudo-$R^2$ 
-as implemented by the `{pscl}` package.
+`domin` is fit metric agnostic and, as such, one component of its flexibility 
+is in allowing the user to apply any applicable fit metric for a model for
+the purposes of relative importance analysis.
 
-Note the use of the `purrr::quietly` function to "mute" `pscl::pR2`.  This 
-is not strictly necessary but if not used will print far more output than is 
-needed as it is a rather verbose function.
+In this example, the explained variance $R^2$ is swapped with an alternative, 
+but nonetheless applicable, fit metric: the McFadden pseudo-$R^2$ as 
+implemented by the `{pscl}` package.
+
+Note the use of the pipes to `capture.output` and `invisible`.  These are not
+not strictly necessary but if not used will print far more output than is 
+needed as `pscl::pR2` is a rather verbose function and will print a message for 
+each model fitted.
 
 ```{r lm_w_mcf}
-qui_pR2 <- function(model) purrr::quietly(pscl::pR2)(model)$result
+(mcf_da_lm <- 
+   domin(mpg ~ am + vs + cyl, 
+         lm, 
+         list(pscl::pR2, "McFadden"), 
+         data = mtcars)) |> 
+  capture.output() |> 
+  invisible()
 
-domin(mpg ~ am + vs + cyl, 
-      lm, 
-      list(qui_pR2, "McFadden"), 
-      data = mtcars)
+mcf_da_lm
 ```
 
-The ability to use any fit metric that is desired is one part of the utility of 
-the `domin` function.  
-
 Note that this fit metric produces effectively the same answers, in terms of 
-qualitative dominance inferences, as that from the explained variance $R^2$.
+qualitative importance inferences about the predictors, as that from the 
+explained variance $R^2$.
 
 ### Ordered Logistic Regression
 
-Additionally, because `domin` does not have built in methods, it can 
+`domin` acts like an `apply` function for models and does not have built in 
+methods. This is another component of its flexibility as it can  
 accommodate functions that, to this point, have not been supported in 
-relative importance analysis.  One pertient example is the `polr` function 
-from the `MASS` package.
+relative importance analysis.  One pertinent example is the `polr` function 
+from the `{MASS}` package.
 
 ```{r da_polr}
 mtcars2 <- data.frame(mtcars, carb2 = as.factor(mtcars$carb))
 
-domin(carb2 ~ am + vs + mpg, 
-      MASS::polr, 
-      list(qui_pR2, "McFadden"), 
-      data = mtcars2)
-```
+(da_polr <- 
+    domin(carb2 ~ am + vs + mpg, 
+          MASS::polr, 
+          list(pscl::pR2, "McFadden"), 
+          data = mtcars2)) |> 
+  capture.output() |> 
+  invisible()
 
-The ability to call any model with `domin` is another part of the function's 
-utility.  
+da_polr
+```
 
 One particularly useful side-effect of relative importance analysis with 
 non-linear models like `polr`is that the the log-odds transformed 
@@ -177,8 +193,8 @@ dominance statistics produced by `domin` are much simpler to compare.
 
 ### Decision Trees
 
-Given its flexibility, `domin` can also accept models that have 
-traditionally not been dominance analyzed such as those in `{rpart}`.
+`domin` can also accept models that do not produce model coefficients like 
+`rpart::rpart`. 
 
 ```{r da_rpart}
 domin(mpg ~ am + vs + cyl, 
@@ -189,57 +205,59 @@ domin(mpg ~ am + vs + cyl,
       data = mtcars)
 ```
 
-It is worth noting are that the `fitstat` argument in the above 
-`domin` call accepted an anonymous function (i.e., in R 4.1's `\()` 
-notation) that effectively just extracted the proportion of error 
-from the `rpart` object.  Hence, if the model object returns its own fit 
-statistic, it can be extracted using an anonymous function.
+Note that an anonymous function can be used as a valid submission to 
+the `fitstat` argument.  In this case, the anonymous function transforms and 
+extracts the proportion of error from the `rpart` object.  If the model 
+object returns its own fit statistic, it can be extracted using an 
+anonymous function.
 
 ### Multinomial Logistic (softmax) Regression with Extra Features
 
-`multinom` from the `{nnet}` package is another good example model 
-function that has not been accommodated in relative importance packages 
-and is the model function featured in this example.
+`domin`, similar to other packages, can combine multiple predictors into a 
+single set as well as use one or more predictors as covariate(s) in all model 
+subsets.
 
-In this model, several sets of predictors are used as well as a predictor as 
-covariate in all model subsets.
+This example outlines another model, `multinom` from the `{nnet}` package,  
+another function that has not been accommodated in relative importance 
+packages, that uses sets and all/covariate predictors.
 
 In addition, `complete = FALSE` which saves a little computation time and 
 suppresses reporting complete dominance designations.
 
-The `domin` automatically combines the entries in the `formula_overall`, 
-`sets`, and `all` arguments. The full model formula looks like:
-
-`carb2 ~ mpg + am + vs + cyl + disp + gear`
-
 ```{r da_multinom}
-domin(carb2 ~ mpg, 
+(da_mnl <- 
+  domin(carb2 ~ mpg, 
       nnet::multinom, 
-      list(qui_pR2, "McFadden"), 
+      list(pscl::pR2, "McFadden"), 
       sets = list(c("am", "vs"), c("cyl", "disp")),
       all = c("gear"),
       complete = FALSE,
-      data = mtcars2, 
-      trace = FALSE)
+      data = mtcars2)) |> 
+  capture.output() |> 
+  invisible()
+
+da_mnl
+
+da_mnl$Subset_Details$Full_Model
 ```
 
-The ability to use sets of variables or covariates in all subsets is not a 
-novel feature but nonetheless useful to illustrate as combined with `domin`'s 
-other features.
+The `domin` automatically combines the entries in the `formula_overall`, 
+`sets`, and `all` arguments. The full model formula can be obtained from the 
+`domin` object in the `.$Subset_Details$Full_Model` element.
 
 ### Zero-Inflated Poisson with Wrapper Function
 
 Although `domin` can work directly with modeling functions that accept 
 standard formula, more complex formulas such as those used by models such as 
-`zeroinfl` models from the package `pscl` can also be accommodated using 
+`zeroinfl` models from the package `{pscl}` can also be accommodated using 
 wrapper functions.
 
 The below wrapper function`zinfl_wrap` uses the entries in the formula to 
-create a symmetric count and zero-inflation formulas (with the new forward 
-pipe operator in R 4.1) that will be submitted to `zeroinfl` model.  
+create a symmetric count and zero-inflation formulas that will be submitted 
+to `zeroinfl` model.  
 
 In an effort to illustrate what each model submitted to `zeroinfl` looks like,
-the model formula for all 9 models is printed before each run.
+the model formula for all 7 models is printed before each run.
 
 ```{r da_zip}
 zinfl_wrap <- function(model, ...) {
@@ -253,7 +271,7 @@ zinfl_wrap <- function(model, ...) {
 
 domin(art ~ fem + mar + kid5, 
       zinfl_wrap,
-      list(qui_pR2, "McFadden"), 
+      list(\(model) {capture.output(result <- pscl::pR2(model)); result}, "McFadden"), 
       data=pscl::bioChemists)
 ```
 
