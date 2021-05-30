@@ -243,10 +243,10 @@ from the explained variance *R*<sup>2</sup>.
 ### Ordered Logistic Regression
 
 `domin` acts like an `apply` function for models and does not have built
-in methods. This is another component of its flexibility as it can  
+in methods. This is another component of its flexibility as it can
 accommodate functions that, to this point, have not been supported in
 relative importance analysis. One pertinent example is the `polr`
-function from the `{MASS}` package.
+function from the `{MASS}` package also using `pscl::pR2` as fit metric.
 
 ``` r
 mtcars2 <- data.frame(mtcars, carb2 = as.factor(mtcars$carb))
@@ -281,12 +281,6 @@ da_polr
     ## Dmnates?am          NA         NA       FALSE
     ## Dmnates?vs          NA         NA          NA
     ## Dmnates?mpg       TRUE         NA          NA
-
-One particularly useful side-effect of relative importance analysis with
-non-linear models like `polr`is that the the log-odds transformed
-coefficients it produces are difficult to compare to one another whereas
-the dominance statistics produced by `domin` are much simpler to
-compare.
 
 ### Decision Trees
 
