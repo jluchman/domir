@@ -105,8 +105,8 @@ Dep_Var <-
 Total_Indep_Vars <- length(Indep_Vars) # count number of IVs and sets in model
 
     ## IV-based exit conditions ----
-if (Total_Indep_Vars < 3) 
-    stop(paste("Total of", Total_Indep_Vars, "independent variables or sets. At least 3 needed for useful dominance analysis."))
+if (Total_Indep_Vars < 2) 
+    stop(paste("Total of", Total_Indep_Vars, "independent variables or sets. At least 2 needed for useful dominance analysis."))
 
 # Create independent variable/set combination list ----
     

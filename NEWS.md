@@ -11,7 +11,9 @@ title: domir NEWS
 - extensive re-write of computation methods
   - pre-allocates container objects to improve performance
   - increased functional-ization of subroutines and overall code readability
+  - many internal functions re-named
 - output and warnings no longer suppressed by default - user must silence noisy functions
+- minimum of two terms/sets to run `domin` (replicates behavior of Stata version)
 - names of entries in `domin` object changed to syntactic R names when not.  Affects entries in
   - `Complete_Dominance` matrix
   - `Conditional_Dominance` matrix
