@@ -86,6 +86,10 @@ if (length(sets)>0 & !is.list(sets))
   
 if (!attr(stats::terms(formula_overall), "response")) 
     stop(paste(deparse(formula_overall), "missing a response.  Please supply a valid response."))
+  
+if (any(attr(stats::terms(formula_overall), "order")>1))
+    warning(paste(deparse(formula_overall), "contains second or higher order terms. domin may not handle them correctly."))
+  
 
 # Process variable lists ----
     
