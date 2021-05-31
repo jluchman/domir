@@ -83,6 +83,9 @@ if (!is.list(fitstat))
     
 if (length(sets)>0 & !is.list(sets)) 
     stop("sets is not a list.  Please submit it as a list object.")
+  
+if (!attr(stats::terms(formula_overall), "response")) 
+    stop(paste(deparse(formula_overall), "missing a response.  Please supply a valid response."))
 
 # Process variable lists ----
     
