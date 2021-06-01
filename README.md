@@ -447,44 +447,51 @@ in the [Details](#Details) section.
 
 # Details
 
-Having provided some details of what `domin` is capable of, this section
-moves on to outline details of how `domin` works by way of the structure
-of the function.
+Having provided some examples of what `domin` can do, this section moves
+on to outline details of how `domin` works by way of the structure of
+the function.
 
-As is noted above, `domin` takes inspiration from the `apply` family of
-functions and works in a similar way, creating the dominance analysis
-from three ‘building block’ arguments:
+`domin` estimates models for all possible subsets of the terms submitted
+to it by repeatedly calling different models and collecting their
+results. `domin` takes inspiration from the `apply` family of functions
+and works in a similar way - invoking repeated function calls from three
+‘building block’ arguments:
 
-1.  a formula (`formula_overall`)
-2.  a modeling function (`reg`)
+1.  a formula
+2.  a modeling function
 3.  list of instructions to call an extractor function that obtains a
-    model fit metric (`fitstat`)
+    model fit metric
 
-The three arguments above effectively invoke the following process.
+You can think of `domin` as repeatedly invoking the following process:
 
-`reg(formula_overall) |> fitstat()`
+`modeling_function(formula) |> fit_metric()`
 
-Hence, the `reg` function is called using the `formula_overall` as
-argument and the results of the `reg` model are are ‘piped’ to `fitstat`
-to obtain the fit statitsic that is used for dominance statistic
-computation.
+Hence, the modeling function is called using the formula input (i.e., a
+subset of the formuala elements) as its argument and the results of the
+modeling function are are ‘piped’ to the fit metric function that is
+used for dominance statistic computation.
 
-In the sections below, each argument to `domin` is discussed in greater
-detail.
+In the sections below, each of the three arguments to `domin` is
+discussed in greater detail.
 
-## Formula
+## 1) Formula
 
 The first, and most important, argument for `domin` is the formula
-inputs and understanding how it is parsed is important for the effective
-use of `domin`.
+input. Understanding how the formula input is constructed and submitted
+to each call of the modeling function is important for the effective use
+of `domin`.
 
-The formula inputs are derived from three places in `domin`.
+The formula components are the most important pieces of `domin` as they
+directly define the terms used to dominance analyze the model and, thus,
+the scope of all subsets of models.
+
+The formula input is derived from three arguments in `domin`.
 
 1.  the `formula_overall` argument
 2.  the `sets` argument
 3.  the `all` argument
 
-\*\*\* section in progress \*\*\*
+***section in progress***
 
 ### `formula_overall`
 

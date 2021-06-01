@@ -270,56 +270,47 @@ domin(art ~ fem + mar + kid5,
       data=pscl::bioChemists)
 ```
 
-Further discussion of how to generate wrapper commands is outlined below in the 
-[Details](#Details) section.
+Further discussion of how to generate wrapper commands is outlined below in the [Details](#Details) section.
 
 ----
 
 # Details
 
-Having provided some details of what `domin` is capable of, this section moves 
-on to outline details of how `domin` works by way of the structure of the 
-function.
+Having provided some examples of what `domin` can do, this section moves on to outline details of how `domin` works by way of the structure of the function.
 
-As is noted above, `domin` takes inspiration from the `apply` family of 
-functions and works in a similar way, creating the dominance analysis from 
-three 'building block' arguments:
+`domin` estimates models for all possible subsets of the terms submitted to it by repeatedly calling different models and collecting their results.  `domin` takes inspiration from the `apply` family of functions and works in a similar way - invoking repeated function calls from three 'building block' arguments:
 
-1. a formula (`formula_overall`)
-2. a modeling function (`reg`)
-3. list of instructions to call an extractor function that obtains a model fit metric (`fitstat`)
+1. a formula
+2. a modeling function
+3. list of instructions to call an extractor function that obtains a model fit metric
 
-The three arguments above effectively invoke the following process.
+You can think of `domin` as repeatedly invoking the following process:
 
-`reg(formula_overall) |> fitstat()`
+`modeling_function(formula) |> fit_metric()`
 
-Hence, the `reg` function is called using the `formula_overall` as argument and 
-the results of the `reg` model are are 'piped' to `fitstat` to obtain the 
-fit statitsic that is used for dominance statistic computation.
+Hence, the modeling function is called using the formula input (i.e., a subset of the formuala elements) as its argument and the results of the modeling function are are 'piped' to the fit metric function that is used for dominance statistic computation.
 
-In the sections below, each argument to `domin` is discussed in greater detail.
+In the sections below, each of the three arguments to `domin` is discussed in greater detail.
 
-## Formula
+## 1) Formula
 
-The first, and most important, argument for `domin` is the formula inputs and 
-understanding how it is parsed is important for the effective use of `domin`.
+The first, and most important, argument for `domin` is the formula input.  Understanding how the formula input is constructed and submitted to each call of the modeling function is important for the effective use of `domin`.
 
-The formula inputs are derived from three places in `domin`.
+The formula components are the most important pieces of `domin` as they directly define the terms used to dominance analyze the model and, thus, the scope of all subsets of models.
 
-a. the `formula_overall` argument
-b. the `sets` argument
-c. the `all` argument
+The formula input is derived from three arguments in `domin`.
 
-*** section in progress ***
+1. the `formula_overall` argument
+2. the `sets` argument
+3. the `all` argument
+
+***section in progress***
 
 ### `formula_overall`
 
-The `formula_overall` argument must take the form of `response ~ terms` as 
-that is a standard format for many modeling functions such as `lm` and `glm`. 
+The `formula_overall` argument must take the form of `response ~ terms` as that is a standard format for many modeling functions such as `lm` and `glm`. 
 
-The entries on the right hand side of the formula are parsed using the `terms` 
-utilities in the `stats` library. The desired behavior is that variable names 
-separated by `+` are divided up and used as terms in computing all combinations.
+The entries on the right hand side of the formula are parsed using the `terms` utilities in the `stats` library. The desired behavior is that variable names separated by `+` are divided up and used as terms in computing all combinations.
 
 It is also important to note that all special formula processing is applied 
 to the formula including the use of `I()`, `:`, `*`, and `offset()`.  
