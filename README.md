@@ -6,8 +6,8 @@ Tools to Support Relative Importance Analysis
 The intention of the `{domir}` package is to provide tools that allow
 relative importance analysis across a wide variety of practical data
 analytic situations. With `{domir}`, if you have a statistical/machine
-learning model and an extractor function to obtain a fit metric, you can
-conduct a relative importance analysis.
+learning model and an extractor function to obtain a fit statistic, you
+can conduct a relative importance analysis.
 
 More specifically, `{domir}` is intended to implement a set of flexible
 wrapper and helper functions for conducting relative importance analysis
@@ -51,7 +51,7 @@ Fundamentally, `domir::domin` is an extension of the “lmg” type for the
 but, as will be seen, requires a “deconstructed” the model to be
 submitted to it. This difference in structure does make `domin` more
 complex but also allows the function a great deal more flexibility in
-terms of the kinds of models and fit metrics that can be dominance
+terms of the kinds of models and fit statistics that can be dominance
 analyzed.
 
 Before discussing some of the elements that make `domin` flexible,
@@ -61,7 +61,7 @@ are based on the following linear model:
 
 `lm(mpg ~ am + vs + cyl, data = mtcars)`
 
-The variance explained *R*<sup>2</sup> will be the focal fit metric.
+The variance explained *R*<sup>2</sup> will be the focal fit statistic.
 
 ### `{domir}`’s `domin`
 
@@ -98,10 +98,10 @@ called using the formula (`lm`). In this way, `domin` is a `Map`- or
 `apply`-like function as it receives an object on which to operate
 (i.e., the formula) and a function to which to apply to it.
 
-In being like `apply`, `domin` is agnostic to the fit metric to use for
-the model called and it must be supplied with a list outlining extractor
-function information (`list(summary, "r.squared")`; described further in
-the [Details](#Details) section).
+In being like `apply`, `domin` is agnostic to the fit statistic to use
+for the model called and it must be supplied with a list outlining
+extractor function information (`list(summary, "r.squared")`; described
+further in the [Details](#Details) section).
 
 Like `apply`, other arguments (`data = mtcars`) can also be passed to
 each call of `lm`.
@@ -142,8 +142,8 @@ relaimpo::calc.relimp(mpg ~ am + vs + cyl,
     ## cyl -2.875790 -2.795816 -2.137632
 
 `{relaimpo}`’s `calc.relimp` accepts only `lm` models and the variance
-explained *R*<sup>2</sup> as a fit metric. As a result, the function
-does not ask for model or fit metric type.
+explained *R*<sup>2</sup> as a fit statistic. As a result, the function
+does not ask for model or fit statistic type.
 
 The function’s printed results provide the “lmg” relative importance
 statistics (i.e., General Dominance Statistics) and, in addition, report
@@ -174,7 +174,7 @@ dominanceanalysis::dominanceAnalysis(lm(mpg ~ am + vs + cyl,
 `{dominanceanalysis}`’s `dominanceAnalysis` implements dominance
 analysis for specific models, of which `lm` is a supported model.
 `dominanceAnalysis` accepts a fitted `lm` object as input and uses the
-explained variance *R*<sup>2</sup> as the fit metric.
+explained variance *R*<sup>2</sup> as the fit statistic.
 
 `dominanceAnalysis`’s printed output is focused on qualitative dominance
 designations but also reports the, magnitude sorted, average
@@ -191,12 +191,12 @@ that the `domin` function can accommodate.
 
 ### Linear Model Revisited
 
-`domin` is fit metric agnostic and, as such, one component of its
-flexibility is in allowing the user to apply any applicable fit metric
-for a model for the purposes of relative importance analysis.
+`domin` is fit statistic agnostic and, as such, one component of its
+flexibility is in allowing the user to apply any applicable fit
+statistic for a model for the purposes of relative importance analysis.
 
 In this example, the explained variance *R*<sup>2</sup> is swapped with
-an alternative, but nonetheless applicable, fit metric: the McFadden
+an alternative, but nonetheless applicable, fit statistic: the McFadden
 pseudo-*R*<sup>2</sup> as implemented by the `{pscl}` package.
 
 Note the use of the pipes to `capture.output` and `invisible`. These are
@@ -236,7 +236,7 @@ mcf_da_lm
     ## Dmnates?vs          NA         NA       FALSE
     ## Dmnates?cyl       TRUE       TRUE          NA
 
-Note that this fit metric produces effectively the same answers, in
+Note that this fit statistic produces effectively the same answers, in
 terms of qualitative importance inferences about the terms, as that from
 the explained variance *R*<sup>2</sup>.
 
@@ -246,7 +246,8 @@ the explained variance *R*<sup>2</sup>.
 in methods. This is another component of its flexibility as it can
 accommodate functions that, to this point, have not been supported in
 relative importance analysis. One pertinent example is the `polr`
-function from the `{MASS}` package also using `pscl::pR2` as fit metric.
+function from the `{MASS}` package also using `pscl::pR2` as fit
+statistic.
 
 ``` r
 mtcars2 <- data.frame(mtcars, carb2 = as.factor(mtcars$carb))
@@ -452,26 +453,27 @@ on to outline details of how `domin` works by way of the structure of
 the function.
 
 `domin` estimates models for all possible subsets of the terms submitted
-to it by repeatedly calling different models and collecting their
-results. `domin` takes inspiration from the `apply` family of functions
-and works in a similar way - invoking repeated function calls from three
-‘building block’ arguments:
+to it by repeatedly calling different models using different subsets of
+terms and collecting their results for processing/averaging. `domin`
+takes inspiration from the `apply` family of functions and works in a
+similar way - invoking repeated function calls from three ‘building
+block’ arguments:
 
 1.  a formula
 2.  a modeling function
 3.  list of instructions to call an extractor function that obtains a
-    model fit metric
+    model fit statistic
 
 You can think of `domin` as repeatedly invoking the following process:
 
-`modeling_function(formula) |> fit_metric()`
+`modeling_function(formula) |> fit_statistic()`
 
-Hence, the modeling function is called using the formula input (i.e., a
-subset of the formuala elements) as its argument and the results of the
-modeling function are are ‘piped’ to the fit metric function that is
-used for dominance statistic computation.
+Hence, the modeling function is called using the formula input with a
+subset of terms and the results of the modeling function are are ‘piped’
+to the fit statistic function that is used for dominance statistic
+computation.
 
-In the sections below, each of the three arguments to `domin` is
+In the sections below, each of the three arguments to `domin` are
 discussed in greater detail.
 
 ## 1) Formula
@@ -483,7 +485,7 @@ of `domin`.
 
 The formula components are the most important pieces of `domin` as they
 directly define the terms used to dominance analyze the model and, thus,
-the scope of all subsets of models.
+the scope of all subsets of models used in the dominance statistics.
 
 The formula input is derived from three arguments in `domin`.
 
@@ -491,65 +493,126 @@ The formula input is derived from three arguments in `domin`.
 2.  the `sets` argument
 3.  the `all` argument
 
-***section in progress***
-
 ### `formula_overall`
 
-The `formula_overall` argument must take the form of `response ~ terms`
-as that is a standard format for many modeling functions such as `lm`
-and `glm`.
+The `formula_overall` argument must be a formula object and take the
+form of `response ~ terms` as that is a standard format for many
+modeling functions such as `lm` and `glm`.
 
 The entries on the right hand side of the formula are parsed using the
 `terms` utilities in the `stats` library. The desired behavior is that
-variable names separated by `+` are divided up and used as terms in
-computing all combinations.
+variable names separated by `+` are used as different terms in computing
+all combinations of variables in the dominance analysis.
 
 It is also important to note that all special formula processing is
 applied to the formula including the use of `I()`, `:`, `*`, and
-`offset()`.  
-The actual list of terms on which `domin` computes all combinations is
-obtained from `attr(,"term.labels")`. If the user wants to test to see
-what `domin` will do with the formula submitted use:
+`offset()`. The actual list of terms on which `domin` computes all
+combinations is obtained from `attr(,"term.labels")`. If the user wants
+to test to see what `domin` will do with the formula submitted use:
 `formula(.) |> terms() |> attr("term.labels")` to see which labels it
-will produce (note also that `domin` does not have a method to
-accommodate second or higher order terms like `{relaimpo}` and will
-issue a warning when second or higher order terms are used).
+will produce. Note that `domin` does not have a method to accommodate
+second or higher order terms like `{relaimpo}` and will issue a warning
+when second or higher order terms (i.e., any two variables are
+`*`/multiplied together) are used.
 
-### `sets`
+One important point of note is that, desite the use of some special
+formula processing, `formula_overall` is not ‘data frame aware’. That
+is, shorthand such as `~ .` will not work to select variables in a data
+frame even if a `data` argument is supplied to the `domin` function. To
+use `~ .` the user can still process the formula outside of `domin` as
+by supplying the data argument to terms with the desired formula:
 
-After processing, the formula object is combined with entries from the
-`sets` argument. The entries in the `sets` argument are minimally
-processed and are combined
-
-and is not ‘data frame aware’. That is, shorthand such as `~ .` will not
-work to select variables in a data frame even if a `data` argument is
-supplied to the `domin` function.
-
-``` r{formula_example}
+``` r
 formula(mpg ~ .) |> terms(data=mtcars) |> formula()
 ```
 
-…note all and sets go here as well
+    ## mpg ~ cyl + disp + hp + drat + wt + qsec + vs + am + gear + carb
 
-many modeling functions that accept a formula that follow the standard
-`response ~ terms` format.
+As can be seen, this produces a formula that can be used by `domin`.
 
-`domin` works closely with the `do.call` function and the structure of
-the `domin` function is similar as a result. Users are encouraged to
-read the documentation for the `do.call` function to understand how
-`domin` is implemented and for bug/error checking.
+A formula that includes only an intercept term is accepted and
+effectively ignores the right hand side of the formula in the case that
+there are only sets terms under consideration in the dominance analysis.
 
-wrapper function that can be used with The format used by domin can be
-extended to other functions focused on independent
-variable/predictor/feature-based RI can be accommodated with a
-additional wrapper functions based on the formula it creates and submits
-to modeling functions. Some examples are offered below.
+### `sets`
+
+Each list element submitted will be treated as another “term” in the
+dominance analysis and all the individual variables in the list element
+will be included and excluded together from the dominance analysis.
+
+Consequently, the `sets` argument must be submitted as a list. `sets`
+expects that the elements of the list will be formatted as a vector of
+string names (i.e., `c("a", "b")`) and/or formula-like string of text
+(i.e., `"a + b"`). In the case that the list element is a vector,
+`domin` will combine the vector’s elements to create a formula-like
+string by collapsing the elements with `+`’s. Individual names and
+formula-like strings can be combined in a vector.
+
+Special formula processing is not applied to the entries in `sets` and
+the elements in each set of terms will be passed to the modeling
+function as supplied by the user.
+
+### `all`
+
+This argument is used as a set of covariates. These variables are added
+to the formula but are not considered a part of the all subsets
+computations.
+
+The `all` argument is, similar to `sets` expected to be a vector of
+string names and/or formula-like string of text. Also similar to `sets`,
+the entries in the `all` argument will be combined
+
+After processing, the formula object is combined with entries from the
+`sets` argument. The entries in the `sets` argument are minimally
+processed and are combined to create a formula-like string by collapsing
+the elements with `+`’s.
+
+Special formula processing is also not applied to the entries in `all`
+and the elements in this argument will be passed to the modeling
+function as supplied by the user.
+
+### Combining
+
+All three pieces of the formula component of `domin` are combined and
+submitted as a formula object, to call models. This is important to note
+for users looking to create wrapper functions for use in `domin` and is
+used in the [Zero-Inflated Poisson with Wrapper
+Function](##Zero-Inflated%20Poisson%20with%20Wrapper%20Function) section
+above.
+
+Each of the different types of components of the formula contribute
+differently to the number of regressions run which total:
+2<sup>*p*</sup>, where *p* is the number of terms in the dominance
+analysis.
+
+The entries in `formula_overall` result in one term for each variable
+separated by `+`. These elements tend to increase *p* the fastest and
+result in much larger
+
+Each element in the list submitted to `sets` also results in another
+term. Given that multiple variables can be combined within a set, these
+can be used to reduce the size of
+
+The entries in `all` are covariates and do not contribute to the terms
+used in computing all subsets of models.
+
+One important note is that `factor()`s will also not be expanded into
+their coefficient form in the `formula_overall` at this stage and thus,
+irrespective of the number of levels, a factor variable is considered a
+single term for the all subsets computations.
+
+There must be at least two terms in the `formula_overall` or `sets`
+arguments for `domin` to proceed.
 
 ## Modeling Function
 
+***section in progress***
+
 ## Fit Statistic Extractor Function
 
-# Consideraions
+***section in progress***
+
+# Overall Consideraions
 
 This section outlines a few key considerations
 
@@ -562,5 +625,7 @@ vary. I recommend filtering the data to include *only* the sample that
 does not have any missing data on the variables included.
 
 In my view, `domin` is a decision tool for model explanation (i.e.,
-understanding a fit, selected model) and is not as useful for model
-selection or inference. Hence, if the user
+understanding a fitted, pre-selected model) and is not as useful for
+model selection (i.e., choosing a “final” model) or inference (i.e.,
+significance testing/bootstrapping). This perspective will guide
+development of this package’s functionality.
