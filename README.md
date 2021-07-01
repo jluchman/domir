@@ -377,7 +377,7 @@ da_mnl
 da_mnl$Subset_Details$Full_Model
 ```
 
-    ## [1] "carb2 ~ mpg + am + vs + cyl + disp"
+    ## [1] "carb2 ~ mpg + am + vs + cyl + disp + gear"
 
 The `domin` automatically combines the entries in the `formula_overall`,
 `sets`, and `all` arguments. The full model formula can be obtained from
