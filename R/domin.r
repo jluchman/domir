@@ -551,7 +551,7 @@ return_list <- list(
     "Fit_Statistic_All_Subsets" = All_Result[["value"]],
     "Call" = match.call(),
     "Subset_Details" = list(
-        "Full_Model" = paste0(deparse(Dep_Var), " ~ ", (paste0(Combination_List[[Total_Indep_Vars]], collapse=" + "))),
+        "Full_Model" = paste0(deparse(Dep_Var), " ~ ", (paste0(c(Combination_List[[Total_Indep_Vars]], all), collapse=" + "))), 
         "Formula" = attr(stats::terms(formula_overall), "term.labels"), 
         "All" = all,
         "Sets" = sets
