@@ -42,7 +42,8 @@
 #' The IV's in \code{all} must also be submitted as a vector, are concatenated with \code{+} automatically, and are also included in the model.
 #' These "all subsets" IVs are removed from the fit statistic and all subsequent dominance statistics.
 #' 
-#' The entry to \code{fitstat} must be list and follow a specific structure: (\code{fit_function}, \code{element_name}, \code{...})
+#' The entry to \code{fitstat} must be list and follow a specific structure: 
+#' list(\code{fit_function}, \code{element_name}, \code{...})
 #' \describe{
 #'  \item{\code{fit_function}}{First element and function to be applied to \code{reg}}
 #'  \item{\code{element_name}}{Second element and name of the element from the object returned by \code{fit_function}}
@@ -53,27 +54,41 @@
 #' @export
 #' @examples
 #' ## Basic linear model with r-square
-#' domin(mpg ~ am + vs + cyl, "lm", list("summary", "r.squared"), data=mtcars)
+#' domin(mpg ~ am + vs + cyl, 
+#'   lm, 
+#'   list("summary", "r.squared"), 
+#'   data = mtcars)
 #' 
-#' ## Including sets
-#' domin(mpg ~ am + vs + cyl, "lm", list("summary", "r.squared"), 
-#'  data=mtcars, sets=list(c("carb", "gear"), c("disp", "wt")))
+#' ## Linear model including sets
+#' domin(mpg ~ am + vs + cyl, 
+#'   lm, 
+#'   list("summary", "r.squared"), 
+#'   data = mtcars, 
+#'   sets = list(c("carb", "gear"), c("disp", "wt")))
 #'
 #' ## Multivariate linear model with custom multivariate r-square function and all subsets variable
 #' Rxy <- function(obj, names, data) {
 #'    return(list("r2" = cancor(predict(obj), 
-#'        as.data.frame(mget(names,as.environment(data))))[["cor"]][1]^2)) }
-#' domin(cbind(wt, mpg) ~ vs + cyl + am, "lm", list("Rxy", "r2", c("mpg", "wt"), mtcars), 
-#'  data = mtcars, all=c("carb"))
+#'        as.data.frame(mget(names, as.environment(data))))[["cor"]][1]^2)) 
+#'        }
+#' domin(cbind(wt, mpg) ~ vs + cyl + am, 
+#'   lm, 
+#'   list("Rxy", "r2", c("mpg", "wt"), mtcars), 
+#'   data = mtcars, 
+#'   all = c("carb"))
 #'
 #' ## Sets only
-#' domin(mpg ~ 1, "lm", list("summary", "r.squared"), 
-#'  data=mtcars, sets=list(c("am", "vs"), c("cyl", "disp"), c("qsec", "carb")))
+#' domin(mpg ~ 1, 
+#'   lm, 
+#'   list("summary", "r.squared"), 
+#'   data = mtcars, 
+#'   sets = list(c("am", "vs"), c("cyl", "disp"), c("qsec", "carb")))
 
-domin <- function(formula_overall, reg, fitstat, sets=NULL, 
-    all=NULL, complete=TRUE, ...) {
+domin <- 
+  function(formula_overall, reg, fitstat, sets = NULL, all = NULL, 
+           complete = TRUE, ...) {
     
-# Initial exit conditions ---- 
+# Initial exit/warning conditions ---- 
     
 if (!methods::is(formula_overall, "formula")) 
     stop(paste(formula_overall, "is not a formula object.  Coerce it to formula before use in domin."))
@@ -90,7 +105,6 @@ if (!attr(stats::terms(formula_overall), "response"))
 if (any(attr(stats::terms(formula_overall), "order")>1))
     warning(paste(deparse(formula_overall), "contains second or higher order terms. domin may not handle them correctly."))
   
-
 # Process variable lists ----
     
 Indep_Vars <- 

@@ -41,7 +41,7 @@ An object of class "domin" is a list composed of the following elements:
 \item{\code{Standardized}}{Vector of general dominance statistics normalized to be out of 100.}
 \item{\code{Ranks}}{Vector of ranks applied to the general dominance statistics.}
 \item{\code{Conditional_Dominance}}{Matrix of conditional dominance statistics.}
-\item{\code{Complete_Dominance}}{Matrix of complete dominance designations.}
+\item{\code{Complete_Dominance}}{Logical matrix of complete dominance designations.}
 \item{\code{Fit_Statistic_Overall}}{Value of fit statistic across all IVs.}
 \item{\code{Fit_Statistic_All_Subsets}}{Value of fit statistic associated with IVs in \code{all}.}
 \item{\code{Call}}{The matched call.}
@@ -76,22 +76,35 @@ The entry to \code{fitstat} must be list and follow a specific structure: (\code
 }
 \examples{
 ## Basic linear model with r-square
-domin(mpg ~ am + vs + cyl, "lm", list("summary", "r.squared"), data=mtcars)
+domin(mpg ~ am + vs + cyl, 
+  lm, 
+  list("summary", "r.squared"), 
+  data = mtcars)
 
-## Including sets
-domin(mpg ~ am + vs + cyl, "lm", list("summary", "r.squared"), 
- data=mtcars, sets=list(c("carb", "gear"), c("disp", "wt")))
+## Linear model including sets
+domin(mpg ~ am + vs + cyl, 
+  lm, 
+  list("summary", "r.squared"), 
+  data = mtcars, 
+  sets = list(c("carb", "gear"), c("disp", "wt")))
 
 ## Multivariate linear model with custom multivariate r-square function and all subsets variable
 Rxy <- function(obj, names, data) {
    return(list("r2" = cancor(predict(obj), 
-       as.data.frame(mget(names,as.environment(data))))[["cor"]][1]^2)) }
-domin(cbind(wt, mpg) ~ vs + cyl + am, "lm", list("Rxy", "r2", c("mpg", "wt"), mtcars), 
- data = mtcars, all=c("carb"))
+       as.data.frame(mget(names, as.environment(data))))[["cor"]][1]^2)) 
+       }
+domin(cbind(wt, mpg) ~ vs + cyl + am, 
+  lm, 
+  list("Rxy", "r2", c("mpg", "wt"), mtcars), 
+  data = mtcars, 
+  all = c("carb"))
 
 ## Sets only
-domin(mpg ~ 1, "lm", list("summary", "r.squared"), 
- data=mtcars, sets=list(c("am", "vs"), c("cyl", "disp"), c("qsec", "carb")))
+domin(mpg ~ 1, 
+  lm, 
+  list("summary", "r.squared"), 
+  data = mtcars, 
+  sets = list(c("am", "vs"), c("cyl", "disp"), c("qsec", "carb")))
 }
 \keyword{multivariate}
 \keyword{utilities}

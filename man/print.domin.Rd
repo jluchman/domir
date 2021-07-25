@@ -12,8 +12,8 @@
 \item{...}{further arguments passed to or from other methods.}
 }
 \value{
-No returned value.  This method is called for compact display of
-results in the console.
+None. This method is called only for side-effect of printing
+to the console.
 }
 \description{
 Reports basic results from \code{domin} class object.
