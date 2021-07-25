@@ -1,25 +1,30 @@
 Tools to Support Relative Importance Analysis
 ================
 
+[![Stable
+version](http://www.r-pkg.org/badges/version-last-release/domir)](https://cran.r-project.org/package=domir)
+[![downloads](http://cranlogs.r-pkg.org/badges/grand-total/domir)](https://cran.r-project.org/package=domir)
+
 # Overview
 
-The intention of the `{domir}` package is to provide tools that allow
-relative importance analysis across a wide variety of practical data
-analytic situations. With `{domir}`, if you have a statistical/machine
+The `{domir}` package provides tools that allow relative importance
+analysis across a wide variety of data analytic situations an analyst
+might encounter. With `{domir}`, if you have a statistical/machine
 learning model and an extractor function to obtain a fit statistic, you
-can conduct a relative importance analysis.
+can conduct a relative importance analysis to evaluate the importance of
+independent variables/features/predictors in the model.
 
-More specifically, `{domir}` is intended to implement a set of flexible
-wrapper and helper functions for conducting relative importance analysis
-and the current implementation of the package has a focus on dominance
-analysis with the `domin` function as a relative importance analysis
-method. Currently, `domin` is the only importance function that is
-implemented.
+More specifically, `{domir}` provides a flexible wrapper function for
+conducting relative importance analysis. The current implementation of
+the package focuses solely on dominance analysis with the `domin`
+function that can accommodate modeling functions that use R formulas (or
+that can be adapted to do so by the user; which effectively encompasses
+any model).
 
 For readers looking to familiarize themselves more with the dominance
 analysis methodology, a more extensive conceptual discussion of
-dominance analysis (which focuses on the Stata version of `domin`) as a
-method is available
+dominance analysis (which focuses on the Stata software’s version of
+`domin`) as a method is available
 [here](https://github.com/jluchman/domin/blob/master/README.md).
 
 # Installation
@@ -604,11 +609,34 @@ single term for the all subsets computations.
 There must be at least two terms in the `formula_overall` or `sets`
 arguments for `domin` to proceed.
 
-## Modeling Function
+## 2) Modeling Function
 
-***section in progress***
+The second input is the modeling function that is called repeatedly by
+`domin`. The only requirement for this modeling function is that it
+accepts a standard formula or can be adapted by the user to do so with a
+customized wrapper function (see
+[this](##Zero-Inflated%20Poisson%20with%20Wrapper%20Function) section
+for an example).
 
-## Fit Statistic Extractor Function
+The modeling function passes arguments to `do.call` and allows any
+function that `do.call` can accommodate. For example, `glm` can be
+called as a string (i.e., with quotes `"glm"`), a name (i.e., without
+quotes and with or without namespace; `glm`, `stats::glm`), or as an
+anonymous function (e.g., `function(x, ...) glm(x, ...)`,
+`\(x, ...) glm(x, ...)`).
+
+All function arguments that are not used by `domin` (e.g., a `data`
+argument) are passed (via `...`) to each call of this function/all
+models estimated.
+
+The modeling function that is called repeatedly by `domin` uses the
+formula as the first argument always followed by all other arguments.
+The modeling function must thus accept a formula as it’s first argument
+or must be adapted using a wrapper function to do so.
+
+## 3) Fit Statistic Extractor Function
+
+The third input is a list of arguments that
 
 ***section in progress***
 
@@ -624,8 +652,15 @@ missing observations, the sample included for each modeling run will
 vary. I recommend filtering the data to include *only* the sample that
 does not have any missing data on the variables included.
 
+## Author’s Opinions: Development Perspective
+
+I have a few opinions about relative importance that will likely guide
+development of this package’s functionality in the shorter term.
+
 In my view, `domin` is a decision tool for model explanation (i.e.,
 understanding a fitted, pre-selected model) and is not as useful for
 model selection (i.e., choosing a “final” model) or inference (i.e.,
-significance testing/bootstrapping). This perspective will guide
-development of this package’s functionality.
+significance testing/bootstrapping). Functions to obtain confidence
+intervals are unlikely to be offered and future developments are
+unlikely to incorporate “importance” metrics I view as primarily useful
+for model selection.

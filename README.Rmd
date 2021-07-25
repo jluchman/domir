@@ -3,27 +3,21 @@ title: Tools to Support Relative Importance Analysis
 output: github_document
 ---
 
+[![Stable
+version](http://www.r-pkg.org/badges/version-last-release/domir)](https://cran.r-project.org/package=domir)
+[![downloads](http://cranlogs.r-pkg.org/badges/grand-total/domir)](https://cran.r-project.org/package=domir)
+
 ```{r setup, echo=FALSE, message=FALSE}
 devtools::load_all()
 ```
 
 # Overview
 
-The intention of the `{domir}` package is to provide tools that allow relative 
-importance analysis across a wide variety of practical data analytic situations.
-With `{domir}`, if you have a statistical/machine learning model and an extractor 
-function to obtain a fit statistic, you can conduct a relative importance analysis.
+The `{domir}` package provides tools that allow relative importance analysis across a wide variety of data analytic situations an analyst might encounter. With `{domir}`, if you have a statistical/machine learning model and an extractor function to obtain a fit statistic, you can conduct a relative importance analysis to evaluate the importance of independent variables/features/predictors in the model.
 
-More specifically, `{domir}` is intended to implement a set of flexible wrapper 
-and helper functions for conducting relative importance analysis and the 
-current implementation of the package has a focus on dominance analysis with 
-the `domin` function as a relative importance analysis method.  Currently, 
-`domin` is the only importance function that is implemented.
+More specifically, `{domir}` provides a flexible wrapper function for conducting relative importance analysis. The current implementation of the package focuses solely on dominance analysis with the `domin` function that can accommodate modeling functions that use R formulas (or that can be adapted to do so by the user; which effectively encompasses any model).
 
-For readers looking to familiarize themselves more with the dominance 
-analysis methodology, a more extensive conceptual discussion of dominance 
-analysis (which focuses on the Stata version of `domin`) as a method is 
-available [here](https://github.com/jluchman/domin/blob/master/README.md).
+For readers looking to familiarize themselves more with the dominance analysis methodology, a more extensive conceptual discussion of dominance analysis (which focuses on the Stata software's version of `domin`) as a method is available [here](https://github.com/jluchman/domin/blob/master/README.md).
 
 # Installation
 
@@ -38,28 +32,17 @@ package use:
 
 # What `{domir}` Does
 
-Before discussing details of the `{domir}` package, I provide some examples of 
-what `{domir}` can do.
+Before discussing details of the `{domir}` package, I provide some examples of what `{domir}` can do.
 
-The focus of this section is on outlining how `domir::domin` extends existing 
-packages and on the structure of the function.
+The focus of this section is on outlining how `domir::domin` extends existing packages and on the structure of the function.
 
 ## Comparison with Existing Relative Importance Packages
 
-Fundamentally, `domir::domin` is an extension of the "lmg" type for the 
-`calc.relimpo` function in the `{relaimpo}` package as well as the 
-`dominanceAnalysis` function in the `{dominanceanalysis}` package.
+Fundamentally, `domir::domin` is an extension of the "lmg" type for the `calc.relimpo` function in the `{relaimpo}` package as well as the `dominanceAnalysis` function in the `{dominanceanalysis}` package.
 
-`domir::domin` can replicate the results produced by the above packages but, as 
-will be seen, requires a "deconstructed" the model to be submitted to it.  This 
-difference in structure does make `domin` more complex but also allows the 
-function a great deal more flexibility in terms of the kinds of models and 
-fit statistics that can be dominance analyzed.
+`domir::domin` can replicate the results produced by the above packages but, as will be seen, requires a "deconstructed" the model to be submitted to it.  This difference in structure does make `domin` more complex but also allows the function a great deal more flexibility in terms of the kinds of models and fit statistics that can be dominance analyzed.
 
-Before discussing some of the elements that make `domin` flexible, consider the 
-following example that shows how `domin` is similar to existing packages. All 
-three of the dominance analysis results to come are based on the following 
-linear model:
+Before discussing some of the elements that make `domin` flexible, consider the following example that shows how `domin` is similar to existing packages. All three of the dominance analysis results to come are based on the following linear model:
 
 `lm(mpg ~ am + vs + cyl, data = mtcars)`
 
@@ -74,23 +57,13 @@ domin(mpg ~ am + vs + cyl,
       data = mtcars)
 ```
 
-In `domin`, the `lm` model is submitted in pieces.  Specifically, the key inputs 
-were the formula (`mpg ~ am + vs + cyl`) and the model to be called using 
-the formula (`lm`).  In this way, `domin` is a `Map`- or `apply`-like 
-function as it receives an object on which to operate (i.e., the formula) and 
-a function to which to apply to it.
+In `domin`, the `lm` model is submitted in pieces.  Specifically, the key inputs were the formula (`mpg ~ am + vs + cyl`) and the model to be called using the formula (`lm`).  In this way, `domin` is a `Map`- or `apply`-like function as it receives an object on which to operate (i.e., the formula) and a function to which to apply to it.
 
-In being like `apply`, `domin` is agnostic to the fit statistic to use for the 
-model called and it must be supplied with a list outlining extractor function 
-information (`list(summary, "r.squared")`; described further in the
-[Details](#Details) section).
+In being like `apply`, `domin` is agnostic to the fit statistic to use for the model called and it must be supplied with a list outlining extractor function information (`list(summary, "r.squared")`; described further in the [Details](#Details) section).
 
-Like `apply`, other arguments (`data = mtcars`) can also be passed to each 
-call of `lm`.
+Like `apply`, other arguments (`data = mtcars`) can also be passed to each call of `lm`.
 
-The focus of `domin`'s `print`-ed results focuses on the numerical results from 
-"General Dominance Statistics" and "Conditional Dominance Statistics" and, a 
-logical matrix of "Complete Dominance Designations".
+The focus of `domin`'s `print`-ed results focuses on the numerical results from "General Dominance Statistics" and "Conditional Dominance Statistics" and, a logical matrix of "Complete Dominance Designations".
 
 ### `{relaimpo}`'s `calc.relimp` with "lmg"
 
@@ -357,11 +330,19 @@ One important note is that `factor()`s will also not be expanded into their coef
 
 There must be at least two terms in the `formula_overall` or `sets` arguments for `domin` to proceed.
 
-## Modeling Function
+## 2) Modeling Function
 
-***section in progress***
+The second input is the modeling function that is called repeatedly by `domin`. The only requirement for this modeling function is that it accepts a standard formula or can be adapted by the user to do so with a customized wrapper function (see [this](##Zero-Inflated Poisson with Wrapper Function) section for an example).
 
-## Fit Statistic Extractor Function
+The modeling function passes arguments to `do.call` and allows any function that `do.call` can accommodate. For example, `glm` can be called as a string (i.e., with quotes `"glm"`), a name (i.e., without quotes and with or without namespace; `glm`, `stats::glm`), or as an anonymous function (e.g., `function(x, ...) glm(x, ...)`, `\(x, ...) glm(x, ...)`).
+
+All function arguments that are not used by `domin` (e.g., a `data` argument) are passed (via `...`) to each call of this function/all models estimated. 
+
+The modeling function that is called repeatedly by `domin` uses the formula as the first argument always followed by all other arguments. The modeling function must thus accept a formula as it's first argument or must be adapted using a wrapper function to do so.
+
+## 3) Fit Statistic Extractor Function
+
+The third input is a list of arguments that 
 
 ***section in progress***
 
@@ -371,4 +352,10 @@ This section outlines a few key considerations
 
 `domin` does _not_ check to ensure that the sample underlying the modeling is consistent across modeling runs on which the dominance statistics are computed.  If the modeling function uses a `na.action` that omits missing responses, and different variables have different missing observations, the sample included for each modeling run will vary. I recommend filtering the data to include _only_ the sample that does not have any missing data on the variables included.
 
-In my view, `domin` is a decision tool for model explanation (i.e., understanding a fitted, pre-selected model) and is not as useful for model selection (i.e., choosing a "final" model) or inference (i.e., significance testing/bootstrapping).  This perspective will guide development of this package's functionality.
+## Author's Opinions: Development Perspective
+
+I have a few opinions about relative importance that will likely guide development of this package's functionality in the shorter term.
+
+In my view, `domin` is a decision tool for model explanation (i.e., understanding a fitted, pre-selected model) and is not as useful for model selection (i.e., choosing a "final" model) or inference (i.e., significance testing/bootstrapping).  Functions to obtain confidence intervals are unlikely to be offered and future developments are unlikely to incorporate "importance" metrics I view as primarily useful for model selection.
+
+
