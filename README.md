@@ -634,15 +634,56 @@ formula as the first argument always followed by all other arguments.
 The modeling function must thus accept a formula as it’s first argument
 or must be adapted using a wrapper function to do so.
 
+Note that the modeling function must return an object that can be passed
+to the fit statistic extractor function discussed next.
+
 ## 3) Fit Statistic Extractor Function
 
-The third input is a list of arguments that
+The third input is a list of arguments that are used to call a fit
+statistic extractor function using the model object created by the
+modeling function discussed above.
 
-***section in progress***
+Like the modeling function entries, the fit statistic extractor function
+passes arguments to `do.call` and does so in a specific
+order/positionally.
+
+The first element of the list of arguments for the fit extractor
+function can be any function called as a string (i.e., with quotes), a
+name (i.e., without quotes and with or without namespace), or as an
+anonymous function (see [this](##Decision%20Trees) section for an
+example).
+
+The second element of the list is a string that indicates the element of
+the object *returned by* the fit statistic extractor function to be used
+for dominance analysis. Thus, the fit statistic extractor function
+should return (or be adapted to return) a named vector or list from
+which `domin` can select the fit statistic.
+
+The third element, and every subsequent element, in the list is optional
+and submitted as additional (an) argument(s) to the fit statistic
+extractor function. These elements are effectively a second set of `...`
+elements but must be placed in the third and any subsequent element
+positions in this list.
+
+Finally, as mentioned in the modeling function section, the fit
+statistic extractor function must accept the model object/result of the
+modeling function and must do so as it’s first argument. Note that the
+model object is passed automatically by `domin` to the fit statistic
+extractor function call.
+
+When considered together, the user can think about the fit statistic
+extractor’s list, as constructed and used in `domin`, as having the
+following structure:
+
+`first_element(model_object, third_element_etc)[second_element]`
+
+Currently, `domin` expects to receive, and can only accommodate,
+scalar-valued (i.e., vector of length 1) fit statistics.
 
 # Overall Consideraions
 
-This section outlines a few key considerations
+This section outlines a few key considerations for the effective use of
+`domin`.
 
 `domin` does *not* check to ensure that the sample underlying the
 modeling is consistent across modeling runs on which the dominance
@@ -652,15 +693,48 @@ missing observations, the sample included for each modeling run will
 vary. I recommend filtering the data to include *only* the sample that
 does not have any missing data on the variables included.
 
+`domin` only does a few basic checks on the input to the function to
+ensure that it meets expectations and is otherwise the responsibility of
+the user to ensure that the arguments submitted to `domin` conform to
+expectation (hence the extensive discussion here of expected inputs).
+This is also, partly, the reason that results of individual model fits
+in computing all subsets are not captured–so the user can see what
+models are actually being fit and diagnose problems–at the expense of
+being potentially rather verbose.
+
 ## Author’s Opinions: Development Perspective
 
 I have a few opinions about relative importance that will likely guide
 development of this package’s functionality in the shorter term.
 
-In my view, `domin` is a decision tool for model explanation (i.e.,
+In my view, `domin` is a tool for model explanation/evaluation (i.e.,
 understanding a fitted, pre-selected model) and is not as useful for
-model selection (i.e., choosing a “final” model) or inference (i.e.,
-significance testing/bootstrapping). Functions to obtain confidence
-intervals are unlikely to be offered and future developments are
-unlikely to incorporate “importance” metrics I view as primarily useful
-for model selection.
+model selection (i.e., choosing a “final” model). The term importance is
+often used for model selection-like applications, especially for machine
+learning models, when the term coined by Azen, Budescu, and Reiser
+(2001) “criticality” is likely a more appropriate name. In the end, if a
+predictor has a non-trivial chance of not being selected, it should
+probably not be in an importance analysis like `domin`. Into the
+foreseeable future, `domir` will not offer methods that can flag
+predictors that have no importance as that is the purpose of model
+selection methods.
+
+In addition, I see relatively little value in applying inferential
+methods such as bootstrapping to importance methods like those offered
+in `domin`. Given that the model applied to `domin` should have passed
+through model selection methods and, potentially, have applied
+inferential methods to obtain confidence intervals and standard errors
+at the stage of model selection, the application of similar methods at
+this subsequent stage of model evaluation seems excessive. That is,
+obtaining the stability of importance statistics using confidence
+intervals with bootstrapping, while possible to implement, is
+computationally demanding and, in my experience, offers little
+additional information over and above the confidence intervals of the
+base model. Unstable coefficients have unstable importance statistics.
+The source of the instability tends to be due to predictor overlap,
+which can be affected by peculiarities of the sample, but can also be
+observed in the pattern of conditional dominance statistics produced. I
+recommend using these statistics first and only obtaining confidence
+intervals for dominance statistics in situations where the user suspects
+a great deal of instability–though this also might imply the base model
+needs adjusting.
