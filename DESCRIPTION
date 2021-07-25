@@ -18,7 +18,7 @@ Description: Provides tools that support relative importance analysis focusing
     These tools are intended to extend relative importance analysis to, 
     effectively, any statistical or machine learning function as defined or 
     desired by the user-especially those where the user wants to use custom 
-    importance/fit metric or modeling function.
+    importance/fit statistic or modeling function.
 Imports:
     methods
 Suggests: 

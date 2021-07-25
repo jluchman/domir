@@ -15,9 +15,10 @@ title: domir NEWS
 - output and warnings no longer suppressed by default - user must silence noisy functions
 - minimum of two terms/sets to run `domin` (replicates behavior of Stata version)
 - additional checks (response in formula/orders in formula)
-- names of entries in `domin` object changed to syntactic R names when not.  Affects entries in
+- names of entries in `domin` object changed to syntactic R names when not.  Affects entries in:
   - `Complete_Dominance` matrix
   - `Conditional_Dominance` matrix
+- returned value .$Subset_Details$Full_Model now includes variables in `all`
 
 # domir 0.0.1
 
