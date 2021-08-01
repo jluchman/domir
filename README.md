@@ -582,7 +582,7 @@ All three pieces of the formula component of `domin` are combined and
 submitted as a formula object, to call models. This is important to note
 for users looking to create wrapper functions for use in `domin` and is
 used in the [Zero-Inflated Poisson with Wrapper
-Function](##Zero-Inflated%20Poisson%20with%20Wrapper%20Function) section
+Function](#Zero-Inflated%20Poisson%20with%20Wrapper%20Function) section
 above.
 
 Each of the different types of components of the formula contribute
@@ -615,8 +615,8 @@ The second input is the modeling function that is called repeatedly by
 `domin`. The only requirement for this modeling function is that it
 accepts a standard formula or can be adapted by the user to do so with a
 customized wrapper function (see
-[this](##Zero-Inflated%20Poisson%20with%20Wrapper%20Function) section
-for an example).
+[this](#Zero-Inflated%20Poisson%20with%20Wrapper%20Function) section for
+an example).
 
 The modeling function passes arguments to `do.call` and allows any
 function that `do.call` can accommodate. For example, `glm` can be
@@ -650,14 +650,15 @@ order/positionally.
 The first element of the list of arguments for the fit extractor
 function can be any function called as a string (i.e., with quotes), a
 name (i.e., without quotes and with or without namespace), or as an
-anonymous function (see [this](##Decision%20Trees) section for an
-example).
+anonymous function (see [this](#Decision%20Trees) section for an
+example). This element of the fit extractor function list is required.
 
 The second element of the list is a string that indicates the element of
 the object *returned by* the fit statistic extractor function to be used
 for dominance analysis. Thus, the fit statistic extractor function
 should return (or be adapted to return) a named vector or list from
-which `domin` can select the fit statistic.
+which `domin` can select the fit statistic. This element of the fit
+extractor function list is required.
 
 The third element, and every subsequent element, in the list is optional
 and submitted as additional (an) argument(s) to the fit statistic
