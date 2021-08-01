@@ -520,7 +520,7 @@ second or higher order terms like `{relaimpo}` and will issue a warning
 when second or higher order terms (i.e., any two variables are
 `*`/multiplied together) are used.
 
-One important point of note is that, desite the use of some special
+One important point of note is that, despite the use of some special
 formula processing, `formula_overall` is not ‘data frame aware’. That
 is, shorthand such as `~ .` will not work to select variables in a data
 frame even if a `data` argument is supplied to the `domin` function. To
@@ -538,6 +538,9 @@ As can be seen, this produces a formula that can be used by `domin`.
 A formula that includes only an intercept term is accepted and
 effectively ignores the right hand side of the formula in the case that
 there are only sets terms under consideration in the dominance analysis.
+
+The formula must include a response. Predictive modeling functions in
+`reg` that do not must be adapted to do so.
 
 ### `sets`
 
