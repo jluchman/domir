@@ -2,7 +2,7 @@
 % Please edit documentation in R/domin.r
 \name{domin}
 \alias{domin}
-\title{Dominance analysis supporting \code{formula}-based functions}
+\title{Dominance analysis supporting \code{formula}-based modeling functions}
 \usage{
 domin(
   formula_overall,
@@ -15,23 +15,39 @@ domin(
 )
 }
 \arguments{
-\item{formula_overall}{An object of class \code{\link{formula}} or that can be coerced to class \code{formula} for use in the function in \code{reg}.
-The \code{formula} object must have the form \code{response ~ terms} with the \code{terms} separated by \code{+}.}
+\item{formula_overall}{An object of class \code{\link{formula}} or that can be coerced to class \code{formula} for use in the modeling function in \code{reg}.  The \code{\link{terms}} on the right hand side of this formula are used as separate entries to the dominance analysis.
 
-\item{reg}{The function implementing the predictive (or "reg"ression) model called. Uses \code{\link{do.call}} and accepts any function call
-\code{do.call} would accept.}
+A valid \code{formula_overall} entry is necessary, even if only submitting entries in \code{sets}, to define a valid left hand side of the prediction equation (see examples).}
 
-\item{fitstat}{List of specifications to call a fit statistic extracting function (see details). Like \code{reg}, uses \code{do.call} and
-accepts any function call \code{do.call} would accept.}
+\item{reg}{A function implementing the predictive (or "reg"ression) model called.
 
-\item{sets}{An optional list containing vectors of variable or factor names.  Each \link{vector} in the list is used as a set and always
-included together in the \code{formula}.}
+String function names (e.g., "lm"), function names (e.g., \code{lm}), or a full functions (e.g., \code{function(x) lm(x)}) are acceptable entries.  This argument's contents are passed to \code{\link{do.call}} and thus any function call \code{do.call} would accept is valid.
 
-\item{all}{An optional vector of variable or factor names to be built into the \code{formula} and included in all model subsets.}
+The predictive model in \code{reg} must accept a \code{formula} object as its first argument.}
 
-\item{complete}{Logical.  If \code{FALSE} then complete dominance matrix is not computed.}
+\item{fitstat}{List providing arguments to call a fit statistic extracting function (see details). \code{fitstat} must be of at least length two.
 
-\item{...}{Additional arguments passed to the function in \code{reg}.}
+The first element of \code{fitstat} must be a function implementing the fit statistic extraction. String function names (e.g., "summary"), function names (e.g., \code{summary}), or a full functions (e.g., \code{function(x) summary(x)}) are acceptable entries. This element's contents are passed to \code{\link{do.call}} and thus any function call \code{do.call} would accept is valid.
+
+The second element of \code{fitstat} must be the named element of the list or vector produced by the fit extractor function called in the first element of \code{fitstat}.  This element must be a string (e.g., "r.squared").
+
+All list elements beyond the second are submitted as additional arguments to the fit extractor function call.
+
+The fit statistic extractor function in the first list element of \code{fitstat} must accept the model object produced by the predictive modeling function in \code{reg} as its first argument.
+
+The fit statistic produced must be scalar valued (i.e., vector of length 1).}
+
+\item{sets}{A list with each element comprised of vectors containing variable/factor names or \code{formula} coercible strings.
+
+The each separate vector in \code{sets} is concatenated (when of length > 1) and used as an entry to the dominance analysis.}
+
+\item{all}{A vector of variable/factor names or \code{formula} coercible strings.  The entries in this vector are concatenated (when of length > 1) but are not used in the dominance analysis.  Rather the value of the fit statistic associated with these terms is removed from the dominance analysis; this vector is used like a set of covariates.}
+
+\item{complete}{Logical.  If \code{FALSE} then complete dominance matrix is not computed.
+
+If complete dominance, as an importance criterion, is not desired, not computing complete dominance can save computation time.}
+
+\item{...}{Additional arguments passed to the function call in the \code{reg} argument.}
 }
 \value{
 Returns an object of \code{\link{class}} "domin".
@@ -42,62 +58,100 @@ An object of class "domin" is a list composed of the following elements:
 \item{\code{Ranks}}{Vector of ranks applied to the general dominance statistics.}
 \item{\code{Conditional_Dominance}}{Matrix of conditional dominance statistics.}
 \item{\code{Complete_Dominance}}{Logical matrix of complete dominance designations.}
-\item{\code{Fit_Statistic_Overall}}{Value of fit statistic across all IVs.}
+\item{\code{Fit_Statistic_Overall}}{Value of fit statistic for the full model.}
 \item{\code{Fit_Statistic_All_Subsets}}{Value of fit statistic associated with IVs in \code{all}.}
 \item{\code{Call}}{The matched call.}
-\item{\code{Subset_Details}}{List containing full model and descriptions of IVs in model by source.}
+\item{\code{Subset_Details}}{List containing the full model and descriptions of IVs in the full model by source.}
 }
 }
 \description{
-Computes dominance statistics for predictive modeling functions that accept a "standard" \code{formula}.
+Computes dominance statistics for predictive modeling functions that accept a \code{\link{formula}}.
 }
 \details{
-Dominance analysis focuses on computing the contribution of independent variables/IVs or \code{terms} to a predictive model's fit to the data.
-\code{domin} automates the process whereby combinations of IVs are created and concatenated in a formula to be submitted to the model in \code{reg}.
-\code{domin} creates all the concatenated IVs from the entries on the right hand side of \code{formula_overall} and the entries in \code{sets}.
+\code{domin} automates the computation of all possible combination of entries to the dominance analysis (DA), the creation of \code{formula} objects based on those entries, the modeling calls/fit statistic capture, and the computation of all the dominance statistics for the user.
 
-Each entry in the right of \code{formula_overall} is processed and each individual entry is included as a separate IV.
-\code{formula_overall} must contain the dependent variable/DV or \code{response} on the left hand side and any individual IVs separated by \code{+}.
-\code{domin} applies only the formula processing that is available in the \code{stats} package.
+\code{domin} accepts only a "deconstructed" set of inputs and "reconstructs" them prior to formulating a coherent predictive modeling call.
 
-The elements of the list entries in \code{sets} are each considered a separate IV and must be submitted as a list.
-Each entry in \code{sets} must be a vector of IVs.  Individual vector elements within a single set are concatenated using \code{+} automatically.
-It is possible to use a \code{domin} with only sets (i.e., no IVs in \code{formula_overall}; see examples below).
+One specific instance of this deconstruction is in generating the number of entries to the DA. The number of entries is taken as all the \code{terms} from \code{formula_overall} and the separate list element vectors from \code{sets}. The entries themselves are concatenated into a single formula, combined with the entries in \code{all}, and submitted to the predictive modeling function in \code{reg}.  Each different combination of entries to the DA forms a different \code{formula} and thus a different model to estimate.
 
-The IV's in \code{all} must also be submitted as a vector, are concatenated with \code{+} automatically, and are also included in the model.
-These "all subsets" IVs are removed from the fit statistic and all subsequent dominance statistics.
+For example, this \code{domin} call:
 
-The entry to \code{fitstat} must be list and follow a specific structure: (\code{fit_function}, \code{element_name}, \code{...})
+\code{domin(y ~ x1 + x2, lm, list(summary, "r.squared"), sets = list(c("x3", "x4")), all = c("c1", "c2"), data = mydata))}
+
+This call records three entries and results in seven (i.e., \eqn{2^3 - 1}) different combinations:
+
+\enumerate{
+\item x1
+\item x2
+\item x3, x4
+\item x1, x2
+\item x1, x3, x4
+\item x2, x3, x4
+\item x1, x2, x3, x4
+}
+
+\code{domin} parses \code{formula_overall} to obtain all the terms in it and combines them with \code{sets}.  When parsing \code{formula_overall}, only the processing that is available in the \code{stats} package is applied.  Note that \code{domin} is not programmed to process terms of order > 1 (i.e., interactions/products) appropriately (i.e., only include in the presence of lower order component terms).
+
+From these combinations, the predictive models are constructed and called. The predictive model call includes the entries in \code{all}, applies the appropriate formula, and reconstructs the function itself. The seven combinations above imply the folowwing series of predictive model calls:
+
+\enumerate{
+\item \code{lm(y ~ x1 + c1 + c2, data = mydata})
+\item \code{lm(y ~ x2 + c1 + c2, data = mydata})
+\item \code{lm(y ~ x3 + x4 + c1 + c2, data = mydata})
+\item \code{lm(y ~ x1 + x2 + c1 + c2, data = mydata})
+\item \code{lm(y ~ x1 + x3 + x4 + c1 + c2, data = mydata})
+\item \code{lm(y ~ x2 + x3 + x4 + c1 + c2, data = mydata})
+\item \code{lm(y ~ x1 + x2 + x3 + x4 + c1 + c2, data = mydata})
+}
+
+It is possible to use a \code{domin} with only sets (i.e., no IVs in \code{formula_overall}; see examples below). There must be at least two entries to the DA for \code{domin} to run.
+
+All the called predictive models are submitted to the fit extractor function implied by the entries in \code{fitstat}. Again applying the example above, all seven predictive models' objects would be individually passed as follows:
+
+\code{summary(lm_obj)["r.squared"]}
+
+As can be seen, the entry to \code{fitstat} must be list and follow a specific structure:
+\code{list(fit_function, element_name, ...)}
 \describe{
-\item{\code{fit_function}}{First element and function to be applied to \code{reg}}
+\item{\code{fit_function}}{First element and function to be applied to the object produced by the \code{reg} function}
 \item{\code{element_name}}{Second element and name of the element from the object returned by \code{fit_function}}
 \item{\code{...}}{Subsequent elements and are additional arguments passed to \code{fit_function}}
 }
+
+In the case that the model object returned by \code{reg} includes its own fit statistic without the need for an extractor function, the user can apply an anonymous function following the required format to extract it.
 }
 \examples{
 ## Basic linear model with r-square
+
 domin(mpg ~ am + vs + cyl, 
   lm, 
   list("summary", "r.squared"), 
   data = mtcars)
 
+
 ## Linear model including sets
+
 domin(mpg ~ am + vs + cyl, 
   lm, 
   list("summary", "r.squared"), 
   data = mtcars, 
   sets = list(c("carb", "gear"), c("disp", "wt")))
 
-## Multivariate linear model with custom multivariate r-square function and all subsets variable
+
+## Multivariate linear model with custom multivariate r-square function 
+## and all subsets variable
+
 Rxy <- function(obj, names, data) {
    return(list("r2" = cancor(predict(obj), 
        as.data.frame(mget(names, as.environment(data))))[["cor"]][1]^2)) 
        }
+       
 domin(cbind(wt, mpg) ~ vs + cyl + am, 
   lm, 
   list("Rxy", "r2", c("mpg", "wt"), mtcars), 
   data = mtcars, 
   all = c("carb"))
+
 
 ## Sets only
 domin(mpg ~ 1, 
