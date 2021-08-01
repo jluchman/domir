@@ -132,6 +132,7 @@
 #'
 #'
 #' ## Sets only
+#' 
 #' domin(mpg ~ 1, 
 #'   lm, 
 #'   list("summary", "r.squared"), 

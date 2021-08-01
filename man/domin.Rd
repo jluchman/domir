@@ -154,6 +154,7 @@ domin(cbind(wt, mpg) ~ vs + cyl + am,
 
 
 ## Sets only
+
 domin(mpg ~ 1, 
   lm, 
   list("summary", "r.squared"), 
