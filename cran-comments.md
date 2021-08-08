@@ -1,33 +1,19 @@
-## Resubmission of atched version: 0.0.1
+## Minor version update: 0.1.0
+This minor version update has updates to the function mechanics underling 
+the `domin` function, extensive additional documentation, and bug fixes.
+Changes from version 0.1.0 include:
 
-* `LazyData` removed from DESCRIPTION file.
-  * fix to 0.0.0 NOTE on CRAN checks:
-    * r-devel-linux-x86_64-fedora-clang
-    * r-devel-linux-x86_64-fedora-gcc
-    * r-devel-windows-x86_64-gcc10-UCRT
-
-## Patched version: 0.0.1
-This patched version has a major bug fix and 
-additional documentation.  Changes from version 0.0.0 include:
-
-* `Ensemble_Coordinator` submits `utils::combn`'s columns instead of coercing 
-to `data.frame` and assuming it will be a `character` variable. Produced 
-errors in R versions < 4.
-  * fix to version 0.0.0 ERROR on CRAN checks: 
-    * r-oldrel-macos-x86_64
-    * r-oldrel-windows-ix86+x86_64
-* README.[R]md included and updated with multiple examples.
-* NEWS.md included with updates.
-* Updated DESCRIPTION file.
-  * fix to version 0.0.0 NOTE related to `datasets` import on for CRAN checks: 
-    * r-devel-linux-x86_64-fedora-clang
-    * r-devel-linux-x86_64-fedora-gcc
-    * r-devel-windows-x86_64-gcc10-UCRT
-    * r-patched-solaris-x86
-    * r-release-macos-x86_64
+* bug fixes to `Complete_Dominance` matrix computation
+* update to format of `Complete_Dominance` from integers to logicals
+* extensive re-write of computation methods
+* output and warnings no longer suppressed by default - user must silence noisy functions
+* minimum of two terms/sets to run `domin` (replicates behavior of Stata version)
+* additional checks (response in formula/orders in formula)
+* names of entries in `domin` object changed to syntactic R names when not.  Affects entries in:
+* returned value .$Subset_Details$Full_Model now includes variables in `all`
 
 ## Test environments
-* local pop!OS/ubuntu 20.10, R 4.0.4
+* local pop!OS/ubuntu 21.04, R 4.1.0
 * Windows Server 2008 R2 SP1, R-devel, 32/64 bit (rhub)
 * Ubuntu Linux 20.04.1 LTS, R-release, GCC (rhub)
 * Fedora Linux, R-devel, clang, gfortran (rhub)
