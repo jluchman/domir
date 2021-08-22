@@ -250,13 +250,6 @@ else {
 # 2. Middle level is model within a number of IVs
 # 3. Bottom level is a specific result from `do.call`
 
-# ensemble_begin = 0 # note where the ensemble of models has begun for this set of IVs (relevant for tracking progress only)
-# ensemble_end = 0 # note where the ensemble of models has ended for this set of IVs (relevant for tracking progress only)
-# 
-# if Total_Indep_Vars > 4: # if at least 20 models, note which models will report a '.' when estimating
-#     flag_list = [int(twentieth/20*Total_Models_to_Estimate) for twentieth in range(1,21)]
-# else: flag_list = [] # if not at least 20 models, do not track  progress
-
 # low-level function to identify the specific set of IVs to submit to `doModel_Fit` - called by `doModel_Coordinator`
 doModel_ListSelector <- function(Indep_Vars_Chosen, Number_of_Indep_Vars) { 
     
@@ -358,78 +351,6 @@ Model_List <- lapply(1:length(Ensemble_of_Models), Prepare_domList) # for all nu
 
 # Obtain complete and conditional dominance statistics ----
 
-# Conditional_Dominance <- matrix(nrow=Total_Indep_Vars, ncol=Total_Indep_Vars) # conditional dominance container
-# 
-# if (complete) Complete_Dominance <- 
-#     matrix(data=0, nrow=Total_Indep_Vars, ncol=Total_Indep_Vars) # complete dominance container
-# 
-# else Complete_Dominance <- NULL
-# 
-# for (Indep_Var in 1:Total_Indep_Vars) { # for each IV in the model...
-# 
-#     Conditional_Dominance[Indep_Var, 1] <- 
-#         Model_List[[1]][[Indep_Var]][["increment"]] # for single IV models, copy fit statistic as conditional dominance entry in first column...
-# 
-#     Indep_Varname <- 
-#         Model_List[[1]][[Indep_Var]][["names_curr"]] #... and record name of focal IV for use below
-# 
-#     if (complete) 
-#         Complete_atIndep_Var <- # produces logical vector indicating a comparison that represents ...
-#         ( Model_List[[1]][[Indep_Var]][["increment"]] > #... is focal IV's increment bigger than ...
-#              sapply(Model_List[[1]], # ... other models at one IV ... 
-#                     function(specific_fit_stat) specific_fit_stat[["increment"]] ) ) # ... when compared to their increments (note)
-
-#     for (number_of_Indep_Vars in 2:Total_Indep_Vars) { # for all numbers of IVs greater than 1...
-# 
-#         Relevant_Increments <- 
-#             vector(mode="numeric", length=choose(Total_Indep_Vars-1, number_of_Indep_Vars-1)) # initialize/reset container for collecting specific/relevant conditional dominance increments
-#         
-#         place = 1
-# 
-#         for (model in 1:length(Model_List[[number_of_Indep_Vars]])) { # for each individual model within a specific number of IVs...
-# 
-#             proceed_to_record <- any(intersect(Indep_Varname, Model_List[[number_of_Indep_Vars]][[model]][["names_curr"]])==Indep_Varname) &  # flag this entry for recording if the focal IV name is in the IV set...
-#                !any(intersect(Indep_Varname, Model_List[[number_of_Indep_Vars]][[model]][["names_prev"]])==Indep_Varname) # ...but is _not_ in the IV set less one - thus, the fit statistic here is a valid "increment" for the focal IV
-# 
-#             if (proceed_to_record) {
-#                 Relevant_Increments[[place]] <- Model_List[[number_of_Indep_Vars]][[model]][["increment"]] # always collect the fit statistic for conditional dominance computations
-#                 place <- place +1 
-#             }
-# 
-#             if (complete) {
-#                 for (other_model in 1:length(Model_List[number_of_Indep_Vars])) { # also proceed to collect complete dominance data using this loop comparing to all other models within this number of IVs to find relevant comparisons
-# 
-#                        relevant_complete <- ( # a relevant complete dominance comparison is found when ...
-#                             setequal(Model_List[[number_of_Indep_Vars]][[model]][[2]], Model_List[[number_of_Indep_Vars]][[other_model]][[2]]) & # ...the focal full model and the full other model have the same IV set (the only way they can be a 'subset' here) ...
-#                                 (length(setdiff(Model_List[[number_of_Indep_Vars]][[model]][[1]], Model_List[[number_of_Indep_Vars]][[other_model]][[1]])) == 1) ) #... but their reduced IV set differs by one IV (this ensures it is not trying to compare the subset to itself)
-# 
-# 
-#                     if (relevant_complete) {
-#                         MatrixLocation_Complete <- (1:Total_Indep_Vars)[ Indep_Vars %in% 
-#                             setdiff(Model_List[[number_of_Indep_Vars]][[other_model]][[1]], Model_List[[number_of_Indep_Vars]][[model]][[1]]) ] #... the different element in the reduced model (to place it in the correct "row" for the dominance matrix/list)
-#                         
-#                         Complete_atIndep_Var[MatrixLocation_Complete] <- as.integer( #at the correct location in the complete dominance matrix, append...
-#                             all(Model_List[[number_of_Indep_Vars]][[model]][["increment"]] > 
-#                                   Model_List[[number_of_Indep_Vars]][[other_model]][["increment"]],  
-#                                 as.logical(Complete_atIndep_Var[MatrixLocation_Complete]))) # ...whether the other model's increment is bigger than the focal
-#                     }
-#                 
-#                 }
-# 
-#             }
-# 
-#         }
-#         
-#         Conditional_Dominance[Indep_Var, number_of_Indep_Vars] <- 
-#             mean(Relevant_Increments) # compute conditional dominance at number of IVs for specific IV and append
-#     
-#     }
-#     
-#     if (complete) Complete_Dominance[Indep_Var,] <- 
-#         as.integer(Complete_atIndep_Var) # append full row of IV's complete dominance logicals/designations
-# 
-# }
-
 Conditional_Dominance <- matrix(nrow=Total_Indep_Vars, ncol=Total_Indep_Vars) # conditional dominance container
 
 Identify_domCondit <- function (focalIV, CandidateIncrement) { 
@@ -458,8 +379,6 @@ for (IV_Location in 1:Total_Indep_Vars) {
        
 }
 
-#print(Conditional_Dominance)
-
 # Obtain complete dominance statistics ----
 
 Identify_domComplt <- function (Increment, focalIV, compIV) { 
@@ -471,11 +390,11 @@ Identify_domComplt <- function (Increment, focalIV, compIV) {
         (length(Increment[["names_curr"]]) > 1) ))
     value <- Increment
   
-  else if ( (is.element(focalIV, Increment[["names_curr"]])) & 
+  else if ( (is.element(focalIV, Increment[["names_curr"]])) & # marked not covered in tests but clearly executes
             (length(Increment[["names_curr"]]) == 1) )
     value <- Increment
   
-  else value <- NA
+  else value <- NA # marked not covered in tests but clearly executes
   
   return(value)
   
@@ -515,12 +434,6 @@ Prepare_domComplt <- function(IncrementList, focalIV, compIV) {
   if (length(Null_Elements2) > 0) # if there are NULL elements...
     relevantIncs2 <- relevantIncs2[ -Null_Elements2 ] # ... remove them before returning
   
-  #str(relevantIncs)
-  
-  #print("sep")
-  
-  #str(relevantIncs2)
-  
   Focal_Models_Length <- length(relevantIncs) # record number of models at current IVs
   Comp_Models_Length <- length(relevantIncs2) # record number of models at one less IVs
   
@@ -535,8 +448,6 @@ Prepare_domComplt <- function(IncrementList, focalIV, compIV) {
                             focalIV=focalIV, compIV=compIV,
                             SIMPLIFY = TRUE)
   
-  #print(Focal_Comp_logi)
-  
   Null_Elements3 <- which(is.na(Focal_Comp_logi)) # identify NULL list elements
   
   if (length(Null_Elements3) > 0) # if there are NULL elements...
@@ -550,8 +461,6 @@ if (complete) {
   
   Complete_Dominance <- 
     matrix(data=NA, nrow=Total_Indep_Vars, ncol=Total_Indep_Vars) # complete dominance container
-  
-  #print(Indep_Vars)
   
   for (IV_Col in 1:(Total_Indep_Vars-1)) {
 
@@ -582,10 +491,6 @@ if (complete) {
 }
 
 else Complete_Dominance <- NULL
-
-#print(Complete_Dominance)
-
-#if (complete) Complete_Dominance <- Complete_Dominance + t(-Complete_Dominance) # ensure symmetry of complete dominance matrix
 
 # Obtain complete dominance statistics ----
 
