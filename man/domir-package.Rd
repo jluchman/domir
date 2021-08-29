@@ -22,7 +22,7 @@ As a relative importance method, DA determines the relative importance of indepe
 
 The implementation of DA in the \code{domin} function computes dominance statistics by moving through three processes.
 
-First, all IV/PEs (incuding sets of IV/PEs) for the DA are identified and all possible combinations of these entries are collected. The all possible combinations ensemble with \eqn{p} IV/PEs in focal model submitted to \code{domin} results in \eqn{2^p} combinations of IV/PEs. That is, each combination of \eqn{p} IV/PEs alternating between included versus excluded (i.e., the base of 2 to the \eqn{p} exponent number of IV/PEs).  This process can take
+First, all IV/PEs (inlcuding sets of IV/PEs) for the DA are identified and all possible combinations of these entries are collected. The all possible combinations ensemble with \eqn{p} IV/PEs in focal model submitted to \code{domin} results in \eqn{2^p} combinations of IV/PEs. That is, each combination of \eqn{p} IV/PEs alternating between included versus excluded (i.e., the base of 2 to the \eqn{p} exponent number of IV/PEs).  This process can take
 
 Second, all the models implied by the IV/PE combinations collected in the first step are estimated, a fit statistic extractor function is applied, and the fit statistics for each model are recorded.
 

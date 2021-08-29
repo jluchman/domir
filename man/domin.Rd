@@ -11,6 +11,7 @@ domin(
   sets = NULL,
   all = NULL,
   complete = TRUE,
+  consmodel = NULL,
   ...
 )
 }
@@ -47,6 +48,8 @@ The each separate vector in \code{sets} is concatenated (when of length > 1) and
 
 If complete dominance, as an importance criterion, is not desired, not computing complete dominance can save computation time.}
 
+\item{consmodel}{A vector of variable/factor names or \code{formula} coercible strings.  The entries in this vector are concatenated (when of length > 1) but are not used in the dominance analysis.  Rather the value of the fit statistic associated with these terms is removed from the dominance analysis; this vector is used to set a baseline for the fit statistic.  Typical usage is passing "1" to set the intercept as the baseline and control for its value when the baseline model's fit statistic value is not 0.}
+
 \item{...}{Additional arguments passed to the function call in the \code{reg} argument.}
 }
 \value{
@@ -60,6 +63,7 @@ An object of class "domin" is a list composed of the following elements:
 \item{\code{Complete_Dominance}}{Logical matrix of complete dominance designations.}
 \item{\code{Fit_Statistic_Overall}}{Value of fit statistic for the full model.}
 \item{\code{Fit_Statistic_All_Subsets}}{Value of fit statistic associated with IVs in \code{all}.}
+\item{\code{Fit_Statistic_Constant_Model}}{Value of fit statistic associated with IVs in \code{consmodel}.}
 \item{\code{Call}}{The matched call.}
 \item{\code{Subset_Details}}{List containing the full model and descriptions of IVs in the full model by source.}
 }
@@ -92,7 +96,7 @@ This call records three entries and results in seven (i.e., \eqn{2^3 - 1}) diffe
 
 \code{domin} parses \code{formula_overall} to obtain all the terms in it and combines them with \code{sets}.  When parsing \code{formula_overall}, only the processing that is available in the \code{stats} package is applied.  Note that \code{domin} is not programmed to process terms of order > 1 (i.e., interactions/products) appropriately (i.e., only include in the presence of lower order component terms).
 
-From these combinations, the predictive models are constructed and called. The predictive model call includes the entries in \code{all}, applies the appropriate formula, and reconstructs the function itself. The seven combinations above imply the folowwing series of predictive model calls:
+From these combinations, the predictive models are constructed and called. The predictive model call includes the entries in \code{all}, applies the appropriate formula, and reconstructs the function itself. The seven combinations above imply the following series of predictive model calls:
 
 \enumerate{
 \item \code{lm(y ~ x1 + c1 + c2, data = mydata})

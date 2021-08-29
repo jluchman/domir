@@ -28,6 +28,7 @@
 #' @param complete Logical.  If \code{FALSE} then complete dominance matrix is not computed.
 #' 
 #' If complete dominance, as an importance criterion, is not desired, not computing complete dominance can save computation time.
+#' @param consmodel A vector of variable/factor names or \code{formula} coercible strings.  The entries in this vector are concatenated (when of length > 1) but are not used in the dominance analysis.  Rather the value of the fit statistic associated with these terms is removed from the dominance analysis; this vector is used to set a baseline for the fit statistic.  Typical usage is passing "1" to set the intercept as the baseline and control for its value when the baseline model's fit statistic value is not 0.
 #' @param ... Additional arguments passed to the function call in the \code{reg} argument.
 #'
 #' @return Returns an object of \code{\link{class}} "domin".
@@ -40,6 +41,7 @@
 #'  \item{\code{Complete_Dominance}}{Logical matrix of complete dominance designations.}
 #'  \item{\code{Fit_Statistic_Overall}}{Value of fit statistic for the full model.}
 #'  \item{\code{Fit_Statistic_All_Subsets}}{Value of fit statistic associated with IVs in \code{all}.}
+#'  \item{\code{Fit_Statistic_Constant_Model}}{Value of fit statistic associated with terms in \code{consmodel}.}
 #'  \item{\code{Call}}{The matched call.}
 #'  \item{\code{Subset_Details}}{List containing the full model and descriptions of IVs in the full model by source.}
 #' }
