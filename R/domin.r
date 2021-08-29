@@ -141,23 +141,26 @@
 
 domin <- 
   function(formula_overall, reg, fitstat, sets = NULL, all = NULL, 
-           complete = TRUE, ...) {
+           complete = TRUE, consmodel = NULL, ...) {
     
 # Initial exit/warning conditions ---- 
     
-if (!methods::is(formula_overall, "formula")) 
-    stop(paste(formula_overall, "is not a formula object.  Coerce it to formula before use in domin."))
+if (!is(formula_overall, "formula")) 
+  stop(paste(formula_overall, "is not a formula object.  Coerce it to formula before use in domin."))
     
 if (!is.list(fitstat)) 
-    stop("fitstat is not a list.  Please submit it as a list object.")
+  stop("fitstat is not a list.  Please submit it as a list object.")
     
 if (length(sets) > 0 & !is.list(sets)) 
-    stop("sets is not a list.  Please submit it as a list object.")
+  stop("sets is not a list.  Please submit it as a list object.")
+    
+if (is.list(all)) 
+  stop("all is a list.  Please submit it as a vector.")
   
-if (!attr(stats::terms(formula_overall), "response")) 
+if (!attr(terms(formula_overall), "response")) 
     stop(paste(deparse(formula_overall), "missing a response.  Please supply a valid response."))
   
-if (any(attr(stats::terms(formula_overall), "order") > 1))
+if (any(attr(terms(formula_overall), "order") > 1))
     warning(paste(deparse(formula_overall), "contains second or higher order terms. domin may not handle them correctly."))
     
 if (length(fitstat) < 2) 
@@ -166,7 +169,9 @@ if (length(fitstat) < 2)
 # Process variable lists ----
     
 Indep_Vars <- 
-    attr(stats::terms(formula_overall), "term.labels") # obtain IV name vector from `formula_overall`
+    attr(terms(formula_overall), "term.labels") # obtain IV name vector from `formula_overall`
+
+intercept <- as.logical(attr(terms(formula_overall), "intercept") ) # does the model have an intercept?  Needed for `reformulate`
 
 if (length(sets) > 0) { # if there are sets...
     
@@ -179,7 +184,7 @@ if (length(sets) > 0) { # if there are sets...
 }
 
 Dep_Var <- 
-    attr(stats::terms(formula_overall),"variables")[[2]] # pull out DV name from `formula_overall`
+    attr(terms(formula_overall), "variables")[[2]] # pull out DV name from `formula_overall`
 
 Total_Indep_Vars <- length(Indep_Vars) # count number of IVs and sets in model
 
@@ -192,7 +197,7 @@ if (Total_Indep_Vars < 2)
 Combination_List <- 
     lapply( (1:length(Indep_Vars)), # Repeating over different numbers of IVs chosen at once in the model...
             function(Number_in_Combo) {
-                utils::combn(Indep_Vars, Number_in_Combo) # ...obtain all combinations choosing a considering a specific number of IVs chosen given the entire IV name vector
+                combn(Indep_Vars, Number_in_Combo) # ...obtain all combinations choosing a considering a specific number of IVs chosen given the entire IV name vector
             } 
     )
 
@@ -201,13 +206,16 @@ Total_Models_to_Estimate <- 2**Total_Indep_Vars - 1 # total number of models to 
 # Define function to call regression models ----
 
 # function to call regression models for modeling
-doModel_Fit <- function(Indep_Var_Combination, Dep_Var, reg, fitstat, all=NULL, ...) {
+doModel_Fit <- function(Indep_Var_Combination, Dep_Var, 
+                        reg, fitstat, all = NULL, consmodel = NULL, intercept, ...) {
 
     formula_to_use <- 
-        stats::formula( # build formula to submit to modeling function by...
-            paste0(deparse(Dep_Var), " ~ ", # ...combining the DV with...
-                   paste0(c(Indep_Var_Combination, all), collapse = " + " )) #...the set of IVs submitted 
-        )
+        # formula( # build formula to submit to modeling function by...
+        #     paste0(deparse(Dep_Var), " ~ ", # ...combining the DV with...
+        #            paste0(c(Indep_Var_Combination, all), collapse = " + " )) #...the set of IVs submitted 
+        # )
+      reformulate(c(Indep_Var_Combination, all, consmodel), 
+                  response = Dep_Var, intercept = intercept)
 
     Model_Result <- 
         list( # capture data from the called model as a list...
@@ -233,7 +241,7 @@ doModel_Fit <- function(Indep_Var_Combination, Dep_Var, reg, fitstat, all=NULL, 
 
 if (length(all) > 0) { # if there are entries in all...
     All_Result <- 
-        doModel_Fit(all, Dep_Var, reg, fitstat, ...) # ...obtain their `fitstat` value as well...
+        doModel_Fit(all, Dep_Var, reg, fitstat, intercept = intercept, ...) # ...obtain their `fitstat` value as well...
     FitStat_Adjustment <- 
         All_Result[["value"]] # ...and log the value as the adjustment to the fitstat
 }
@@ -241,6 +249,21 @@ if (length(all) > 0) { # if there are entries in all...
 else {
     All_Result <- NULL # ...otherwise return a null
     FitStat_Adjustment <- 0 # ...and a 0 for fitstat adjustment
+}
+
+# Constant model adjustments ----
+
+if (length(consmodel) > 0) { # if there are entries in consmodel...
+  Cons_Result <- 
+    doModel_Fit(consmodel, Dep_Var, reg, fitstat, intercept = intercept, ...) # ...obtain their `fitstat` value as well...
+  FitStat_Adjustment <- 
+    FitStat_Adjustment + Cons_Result[["value"]] # ...and add the value as the adjustment to the fitstat
+}
+
+else {
+  Cons_Result <- NULL # ...otherwise return a null
+  FitStat_Adjustment <- ifelse(FitStat_Adjustment == 0, 0, # if there is not an `all` adjustment keep 0...
+                               FitStat_Adjustment) # ...otherwise retain the `all` adjustment
 }
 
 # Obtain all subsets regression results ----
@@ -255,7 +278,7 @@ doModel_ListSelector <- function(Indep_Vars_Chosen, Number_of_Indep_Vars) {
     
     doModel_Fit(
         Combination_List[[Number_of_Indep_Vars]][, Indep_Vars_Chosen], # From the list at a specific number of IVs in the model, choose one unique combination (which is associated with the columns of the matrices returned by `combn`)...
-        Dep_Var, reg, fitstat, all=all, ...) # ...and submit all other pertinent information for model fitting - other names assumed pulled from parent env scope
+        Dep_Var, reg, fitstat, all = all, consmodel = consmodel, intercept = intercept, ...) # ...and submit all other pertinent information for model fitting - other names assumed pulled from parent env scope
     # ensemble_begin = ensemble_end # update where the ensemble tracker will begin for next round
     
 }
@@ -349,7 +372,7 @@ Model_List <- lapply(1:length(Ensemble_of_Models), Prepare_domList) # for all nu
 # 3. Bottom level is a specific increment's information (full_model, reduced_model, fit metric difference)
 
 
-# Obtain complete and conditional dominance statistics ----
+# Obtain conditional dominance statistics ----
 
 Conditional_Dominance <- matrix(nrow=Total_Indep_Vars, ncol=Total_Indep_Vars) # conditional dominance container
 
@@ -507,9 +530,9 @@ General_Dominance_Ranks <- rank(-General_Dominance) # rank general dominance sta
 # Finalize returned values and attributes ----
 
 if (length(sets) == 0 ) IV_Labels <- 
-    attr(stats::terms(formula_overall), "term.labels")
+    attr(terms(formula_overall), "term.labels")
 else IV_Labels <- 
-    c( attr(stats::terms(formula_overall), "term.labels"), 
+    c( attr(terms(formula_overall), "term.labels"), 
       paste0("set", 1:length(sets)) ) # names for returned values
 
 names(General_Dominance) <- IV_Labels
@@ -526,12 +549,15 @@ return_list <- list(
     "Complete_Dominance" = Complete_Dominance,
     "Fit_Statistic_Overall" = FitStat,
     "Fit_Statistic_All_Subsets" = All_Result[["value"]],
+    "Fit_Statistic_Constant_Model" = Cons_Result[["value"]],
     "Call" = match.call(),
     "Subset_Details" = list(
-        "Full_Model" = paste0(deparse(Dep_Var), " ~ ", (paste0(c(Combination_List[[Total_Indep_Vars]], all), collapse=" + "))), 
-        "Formula" = attr(stats::terms(formula_overall), "term.labels"), 
+        "Full_Model" = reformulate(c(Combination_List[[Total_Indep_Vars]], all, consmodel), response = Dep_Var, intercept = intercept),
+          #paste0(deparse(Dep_Var), " ~ ", (paste0(c(Combination_List[[Total_Indep_Vars]], all), collapse=" + "))), 
+        "Formula" = attr(terms(formula_overall), "term.labels"), 
         "All" = all,
-        "Sets" = sets
+        "Sets" = sets,
+        "Constant" = consmodel
     )
 )
 
@@ -567,6 +593,7 @@ print.domin <- function(x, ...) {
 
 cat("Overall Fit Statistic:     ", x[["Fit_Statistic_Overall"]], "\n")
 if (length(x[["Fit_Statistic_All_Subsets"]]) > 0) cat("All Subsets Fit Statistic: ", x[["Fit_Statistic_All_Subsets"]],"\n")
+  if (length(x[["Fit_Statistic_Constant_Model"]]) > 0) cat("Constant Model Fit Statistic: ", x[["Fit_Statistic_Constant_Model"]],"\n")
 cat("\n")
 cat("General Dominance Statistics:\n")
 Display_Std <- 
