@@ -143,7 +143,7 @@
 
 domin <- 
   function(formula_overall, reg, fitstat, sets = NULL, all = NULL, 
-           complete = TRUE, consmodel = NULL, ...) {
+           complete = TRUE, consmodel = NULL, reverse = FALSE, ...) {
     
 # Initial exit/warning conditions ---- 
     
@@ -517,6 +517,8 @@ if (complete) {
 
 else Complete_Dominance <- NULL
 
+if (reverse == TRUE) Complete_Dominance <- !Complete_Dominance # reverse all designations with `reverse`
+
 # Obtain complete dominance statistics ----
 
 General_Dominance <- 
@@ -527,7 +529,8 @@ General_Dominance <-
 FitStat <- 
     sum(General_Dominance) + FitStat_Adjustment # adjust overall fit statistic by replacing all subsets component and constant model component
 
-General_Dominance_Ranks <- rank(-General_Dominance) # rank general dominance statistic
+if (reverse == FALSE) General_Dominance_Ranks <- rank(-General_Dominance) # rank general dominance statistic if fitstat value increases (i.e., `reverse` == FALSE)
+else General_Dominance_Ranks <- rank(General_Dominance) # rank general dominance statistic if fitstat value decreases (i.e., `reverse` == TRUE)
 
 # Finalize returned values and attributes ----
 
@@ -543,9 +546,13 @@ dimnames(Conditional_Dominance) <- list(IV_Labels, paste0("IVs_", 1:length(Indep
 if (complete) 
   dimnames(Complete_Dominance) <- list(paste0("Dmnates_", IV_Labels),  paste0("Dmnated_", IV_Labels))
 
+if (reverse == FALSE) # Standardized if fitstat increases...
+       Standardized <- General_Dominance/(FitStat - ifelse(length(Cons_Result) > 0, Cons_Result[["value"]], 0)) # ...then use normal standardization...
+       else Standardized <- -General_Dominance/-(FitStat - ifelse(length(Cons_Result) > 0, Cons_Result[["value"]], 0)) # ...otherwise reverse the general dominance stats to standardize
+
 return_list <- list(
     "General_Dominance" = General_Dominance,
-    "Standardized" = General_Dominance/FitStat,
+    "Standardized" = Standardized,
     "Ranks" = General_Dominance_Ranks,
     "Conditional_Dominance" = Conditional_Dominance,
     "Complete_Dominance" = Complete_Dominance,
