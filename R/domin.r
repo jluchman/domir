@@ -29,6 +29,7 @@
 #' 
 #' If complete dominance, as an importance criterion, is not desired, not computing complete dominance can save computation time.
 #' @param consmodel A vector of variable/factor names or \code{formula} coercible strings.  The entries in this vector are concatenated (when of length > 1) but are not used in the dominance analysis.  Rather the value of the fit statistic associated with these terms is removed from the dominance analysis; this vector is used to set a baseline for the fit statistic.  Typical usage is passing "1" to set the intercept as the baseline and control for its value when the baseline model's fit statistic value is not 0.
+#' @param reverse Logical. If \code{TRUE} then Standardized General Dominance Statistics, Ranks, and Complete Dominance Designations are reversed in their interpretation.  Useful if the fit statistic used decreases with better fit to the data. 
 #' @param ... Additional arguments passed to the function call in the \code{reg} argument.
 #'
 #' @return Returns an object of \code{\link{class}} "domin".

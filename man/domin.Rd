@@ -12,6 +12,7 @@ domin(
   all = NULL,
   complete = TRUE,
   consmodel = NULL,
+  reverse = FALSE,
   ...
 )
 }
@@ -50,6 +51,8 @@ If complete dominance, as an importance criterion, is not desired, not computing
 
 \item{consmodel}{A vector of variable/factor names or \code{formula} coercible strings.  The entries in this vector are concatenated (when of length > 1) but are not used in the dominance analysis.  Rather the value of the fit statistic associated with these terms is removed from the dominance analysis; this vector is used to set a baseline for the fit statistic.  Typical usage is passing "1" to set the intercept as the baseline and control for its value when the baseline model's fit statistic value is not 0.}
 
+\item{reverse}{Logical. If \code{TRUE} then Standardized General Dominance Statistics, Ranks, and Complete Dominance Designations are reversed in their interpretation.  Useful if the fit statistic used decreases with better fit to the data.}
+
 \item{...}{Additional arguments passed to the function call in the \code{reg} argument.}
 }
 \value{
@@ -63,7 +66,7 @@ An object of class "domin" is a list composed of the following elements:
 \item{\code{Complete_Dominance}}{Logical matrix of complete dominance designations.}
 \item{\code{Fit_Statistic_Overall}}{Value of fit statistic for the full model.}
 \item{\code{Fit_Statistic_All_Subsets}}{Value of fit statistic associated with IVs in \code{all}.}
-\item{\code{Fit_Statistic_Constant_Model}}{Value of fit statistic associated with IVs in \code{consmodel}.}
+\item{\code{Fit_Statistic_Constant_Model}}{Value of fit statistic associated with terms in \code{consmodel}.}
 \item{\code{Call}}{The matched call.}
 \item{\code{Subset_Details}}{List containing the full model and descriptions of IVs in the full model by source.}
 }
