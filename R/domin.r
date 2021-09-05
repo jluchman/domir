@@ -148,7 +148,7 @@ domin <-
     
 # Initial exit/warning conditions ---- 
     
-if (!is(formula_overall, "formula")) 
+if (!methods::is(formula_overall, "formula")) 
   stop(paste(formula_overall, "is not a formula object.  Coerce it to formula before use in domin."))
     
 if (!is.list(fitstat)) 
@@ -160,10 +160,10 @@ if (length(sets) > 0 & !is.list(sets))
 if (is.list(all)) 
   stop("all is a list.  Please submit it as a vector.")
   
-if (!attr(terms(formula_overall), "response")) 
+if (!attr(stats::terms(formula_overall), "response")) 
     stop(paste(deparse(formula_overall), "missing a response.  Please supply a valid response."))
   
-if (any(attr(terms(formula_overall), "order") > 1))
+if (any(attr(stats::terms(formula_overall), "order") > 1))
     warning(paste(deparse(formula_overall), "contains second or higher order terms. domin may not handle them correctly."))
     
 if (length(fitstat) < 2) 
@@ -172,9 +172,9 @@ if (length(fitstat) < 2)
 # Process variable lists ----
     
 Indep_Vars <- 
-    attr(terms(formula_overall), "term.labels") # obtain IV name vector from `formula_overall`
+    attr(stats::terms(formula_overall), "term.labels") # obtain IV name vector from `formula_overall`
 
-intercept <- as.logical(attr(terms(formula_overall), "intercept") ) # does the model have an intercept?  Needed for `reformulate`
+intercept <- as.logical(attr(stats::terms(formula_overall), "intercept") ) # does the model have an intercept?  Needed for `reformulate`
 
 if (length(sets) > 0) { # if there are sets...
     
@@ -187,7 +187,7 @@ if (length(sets) > 0) { # if there are sets...
 }
 
 Dep_Var <- 
-    attr(terms(formula_overall), "variables")[[2]] # pull out DV name from `formula_overall`
+    attr(stats::terms(formula_overall), "variables")[[2]] # pull out DV name from `formula_overall`
 
 Total_Indep_Vars <- length(Indep_Vars) # count number of IVs and sets in model
 
@@ -200,7 +200,7 @@ if (Total_Indep_Vars < 2)
 Combination_List <- 
     lapply( (1:length(Indep_Vars)), # Repeating over different numbers of IVs chosen at once in the model...
             function(Number_in_Combo) {
-                combn(Indep_Vars, Number_in_Combo) # ...obtain all combinations choosing a considering a specific number of IVs chosen given the entire IV name vector
+                utils::combn(Indep_Vars, Number_in_Combo) # ...obtain all combinations choosing a considering a specific number of IVs chosen given the entire IV name vector
             } 
     )
 
@@ -217,7 +217,7 @@ doModel_Fit <- function(Indep_Var_Combination, Dep_Var,
         #     paste0(deparse(Dep_Var), " ~ ", # ...combining the DV with...
         #            paste0(c(Indep_Var_Combination, all), collapse = " + " )) #...the set of IVs submitted 
         # )
-      reformulate(c(Indep_Var_Combination, all, consmodel), 
+      stats::reformulate(c(Indep_Var_Combination, all, consmodel), 
                   response = Dep_Var, intercept = intercept)
 
     Model_Result <- 
@@ -536,9 +536,9 @@ else General_Dominance_Ranks <- rank(General_Dominance) # rank general dominance
 # Finalize returned values and attributes ----
 
 if (length(sets) == 0 ) IV_Labels <- 
-    attr(terms(formula_overall), "term.labels")
+    attr(stats::terms(formula_overall), "term.labels")
 else IV_Labels <- 
-    c( attr(terms(formula_overall), "term.labels"), 
+    c( attr(stats::terms(formula_overall), "term.labels"), 
       paste0("set", 1:length(sets)) ) # names for returned values
 
 names(General_Dominance) <- IV_Labels
@@ -562,9 +562,9 @@ return_list <- list(
     "Fit_Statistic_Constant_Model" = Cons_Result[["value"]],
     "Call" = match.call(),
     "Subset_Details" = list(
-        "Full_Model" = reformulate(c(Combination_List[[Total_Indep_Vars]], all, consmodel), response = Dep_Var, intercept = intercept),
+        "Full_Model" = stats::reformulate(c(Combination_List[[Total_Indep_Vars]], all, consmodel), response = Dep_Var, intercept = intercept),
           #paste0(deparse(Dep_Var), " ~ ", (paste0(c(Combination_List[[Total_Indep_Vars]], all), collapse=" + "))), 
-        "Formula" = attr(terms(formula_overall), "term.labels"), 
+        "Formula" = attr(stats::terms(formula_overall), "term.labels"), 
         "All" = all,
         "Sets" = sets,
         "Constant" = consmodel
