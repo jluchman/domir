@@ -142,7 +142,7 @@ cdl_cns_test <- matrix(c(vs_cns_c, cyl_cns_c, carb_cns_c), nrow = 3, ncol = 3,
                    byrow = TRUE, dimnames = cdl_cns_names)
 
 test_obj4 <- domin(mpg ~ vs + cyl + carb, lm, 
-                   list(\(x) list(AIC = extractAIC(x)[[2]]), "AIC"), 
+                   list(function(x) list(AIC = extractAIC(x)[[2]]), "AIC"), 
                    data=mtcars, reverse = TRUE, consmodel = "1") 
 
 test_that("Test Use of Constant Model with Conditional Dominance", {
