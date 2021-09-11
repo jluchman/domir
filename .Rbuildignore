@@ -4,3 +4,9 @@ README.Rmd
 ^\.Rproj\.user$
 ^CRAN-RELEASE$
 ^LICENSE\.md$
+^doc$
+^Meta$
+
+domme.r
+do_R2.t
+domir_details.Rmd
