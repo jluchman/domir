@@ -483,7 +483,11 @@ Prepare_domComplt <- function(IncrementList, focalIV, compIV) {
     Focal_Comp_logi <- Focal_Comp_logi[ -Null_Elements3 ] # ... remove them before returning
   
   #return(sum(Focal_Comp_logi))
-  return(ifelse(length(Focal_Comp_logi) == 0, NA, all(Focal_Comp_logi)))
+  compile_compare <- ifelse(length(Focal_Comp_logi) == 0, 
+                            NA, ifelse(all(Focal_Comp_logi),
+                                       TRUE, ifelse(all(!Focal_Comp_logi), 
+                                                    FALSE, NA)))  #ensure that mixes of F & T get correctly classified
+  return(compile_compare)
   
 }
 
