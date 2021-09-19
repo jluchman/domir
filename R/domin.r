@@ -439,6 +439,9 @@ domComplt_Comparator <- function(focal_model, comp_model, focalIV, compIV) {
   
   else value <- NA
   
+  if (!is.na(value) && focal_model[["increment"]] == comp_model[["increment"]]) # if fit metrics identical - they're NA
+    value <- NA
+  
   return(value)
   
 }
@@ -479,7 +482,8 @@ Prepare_domComplt <- function(IncrementList, focalIV, compIV) {
   if (length(Null_Elements3) > 0) # if there are NULL elements...
     Focal_Comp_logi <- Focal_Comp_logi[ -Null_Elements3 ] # ... remove them before returning
   
-  return(sum(Focal_Comp_logi))
+  #return(sum(Focal_Comp_logi))
+  return(ifelse(length(Focal_Comp_logi) == 0, NA, all(Focal_Comp_logi)))
   
 }
 
@@ -520,7 +524,7 @@ else Complete_Dominance <- NULL
 
 if (reverse == TRUE) Complete_Dominance <- !Complete_Dominance # reverse all designations with `reverse`
 
-# Obtain complete dominance statistics ----
+# Obtain general dominance statistics ----
 
 General_Dominance <- 
     apply(Conditional_Dominance, 1, mean) # average conditional dominance statistics to produce general dominance
