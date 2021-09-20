@@ -28,8 +28,14 @@
 #' @param complete Logical.  If \code{FALSE} then complete dominance matrix is not computed.
 #' 
 #' If complete dominance, as an importance criterion, is not desired, not computing complete dominance can save computation time.
-#' @param consmodel A vector of variable/factor names or \code{formula} coercible strings.  The entries in this vector are concatenated (when of length > 1) but are not used in the dominance analysis.  Rather the value of the fit statistic associated with these terms is removed from the dominance analysis; this vector is used to set a baseline for the fit statistic.  Typical usage is passing "1" to set the intercept as the baseline and control for its value when the baseline model's fit statistic value is not 0.
-#' @param reverse Logical. If \code{TRUE} then Standardized General Dominance Statistics, Ranks, and Complete Dominance Designations are reversed in their interpretation.  Useful if the fit statistic used decreases with better fit to the data. 
+#' @param consmodel A vector of variable/factor names or \code{formula} coercible strings.  The entries in this vector are concatenated (when of length > 1) but are not used in the dominance analysis.  Rather the value of the fit statistic associated with these terms is removed from the dominance analysis; this vector is used to set a baseline for the fit statistic. 
+#' 
+#' The use of \code{consmodel} changes the general and conditional dominance statistics such that they reflect the difference between the constant model's fit statistic and the overall fit statistic values.
+#'  
+#' Typical usage of this argument is to pass "1" to set the intercept as the baseline and control for its value when the baseline model's fit statistic value is not 0 (see examples).
+#' @param reverse Logical. If \code{TRUE} then Standardized General Dominance Statistics, Ranks, and Complete Dominance Designations are reversed in their interpretation.  
+#' 
+#' This argument should be changed to \code{TRUE} if the fit statistic used decreases with better fit to the data (e.g., AIC, BIC). 
 #' @param ... Additional arguments passed to the function call in the \code{reg} argument.
 #'
 #' @return Returns an object of \code{\link{class}} "domin".
@@ -141,6 +147,14 @@
 #'   list("summary", "r.squared"), 
 #'   data = mtcars, 
 #'   sets = list(c("am", "vs"), c("cyl", "disp"), c("qsec", "carb")))
+#'   
+#' ## Constant model using AIC
+#' 
+#' domin(mpg ~ am + carb + cyl, 
+#'   lm, 
+#'   list(function(x) list(aic = extractAIC(x)[[2]]), "aic"), 
+#'   data = mtcars, 
+#'   reverse = TRUE, consmodel = "1")
 
 domin <- 
   function(formula_overall, reg, fitstat, sets = NULL, all = NULL, 
