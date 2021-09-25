@@ -14,7 +14,7 @@ vignette: >
 
 ## Dominance Analysis
 
-The focus of the `{domir}` package is currently on the dominance analysis (DA) methodology for determining the relative importance of independent variables (IVs)/predictors/features in a predictive model. DA determines the relative importance of independent variables in an predictive model based on each IV's contribution to an overall model fit statistic.  More specifically, DA produces several results that decompose and compare the contribution each IV makes to the fit statistic to one another.  Conceptually, DA is an extension of Shapley value decomposition from Cooperative Game Theory (see Grömping, 2007 for a discussion) which seeks to find solutions of how to subdivide "payoffs" (i.e., the fit statistic) to "players" (i.e., the IVs) based on their relative contribution to the payoff; the payoff is usually assumed to be a single value (i.e., scalar valued).
+The focus of the `{domir}` package is on the dominance analysis (DA) methodology for determining the relative importance of independent variables (IVs)/predictors/features in a predictive model. DA determines the relative importance of independent variables in an predictive model based on each IV's contribution to an overall model fit statistic.  More specifically, DA produces several results that decompose and compare the contribution each IV makes to the fit statistic to one another.  Conceptually, DA is an extension of Shapley value decomposition from Cooperative Game Theory (see Grömping, 2007 for a discussion) which seeks to find solutions of how to subdivide "payoffs" (i.e., the fit statistic) to "players" (i.e., the IVs) based on their relative contribution to the payoff; the payoff is usually assumed to be a single value (i.e., scalar valued).
 
 The implementation DA uses to estimate the Shapley value decomposition works by using a pre-selected predictive model and applying a very extensive experimental design to it.  Effectively, DA asks treats the predictive model as data and the IVs as factors in an experiment with a within-subjects full-factorial design (i.e., all possible combinations of the IVs are applied to the data).  Another way of describing the process is as a brute force method where all combinations of the IVs included or excluded is estimated from the data and the fit statistics associated with each sub-model is collected.
 
@@ -28,11 +28,9 @@ As is mentioned above, an implication of the DA method is that the predictive mo
 
 ## DA Impelemtation with `domin`
 
-The `domin` function of the `{domir}` package implements the DA, full-factorial methodology with a flexible R function application programming interface/API.  The API is based on the R formula which is used in many predictive R modeling functions in base and recommended packages such as `lm`, `glm`, `arima`, `polr`, '`nnet`, `lme`, and `gam`.  Functions that do not use formulas, or use variants of the standard R formula (i.e., the `Formula` package), can be accommodated using wrapper functions.
+The `domin` function of the `{domir}` package implements the DA, full-factorial methodology with a flexible R function application programming interface/API.  The API is based on the R formula which is used in many predictive R modeling functions in base and recommended packages such as `lm`, `glm`, `arima`, `polr`, `nnet`, `lme`, and `gam`.  Functions that do not use formulas, or use variants of the standard R formula (i.e., those in the `Formula` package), can be accommodated using wrapper functions.
 
 I see the DA methodology is a general approach to model evaluation using relative importance and it is this perspective that has guided the development of this package.  In my view, if you have a pre-selected predictive model and a fit statistic that can be applied to it, the `domin` can help you evaluate/interpret the contribution of the IVs in that model.
-
-The vignette sections to come in this transition from a conceptual introduction to a more in-depth discussion of the DA methodology as implemented by `domin`.  
 
 ```{r, include = FALSE}
 knitr::opts_chunk$set(
@@ -43,11 +41,13 @@ knitr::opts_chunk$set(
 
 # Extensive Introductory Example
 
-The example below focuses on a simpler predictive model but discusses conceptual elements of DA more extensively and some specifics in terms of `domin`'s implementation.
+This section introduces some of the concepts in DA using a simple predictive model and discusses how each is displayed in the `domin` implementation when `print`-ed.
+
+The focus of this section is on the concepts underlying DA and less on the implementation of DA, and how to work with, the `domin` function.
 
 ## Linear Regression-based DA
 
-The example below uses the _mtcars_ datain the `{datasets}` package. Assume I have pre-selected, through whatever means, the following linear model:
+The example below uses the _mtcars_ data in the `{datasets}` package. Assume I have pre-selected, through whatever means, the following linear model:
 
 `lm(mpg ~ am + cyl + carb, data = mtcars)`
 
@@ -63,7 +63,7 @@ domin(mpg ~ am + cyl + carb,
       data = mtcars)
 ```
 
-`domin` produces results in four sections including fit statistics overall, as well as general and conditional dominance statistics, and complete dominance designations. Below each is discussed in turn.
+`domin` `print`s results in four sections including fit statistics overall, as well as general and conditional dominance statistics, and complete dominance designations.
 
 ### Fit Statistics
 
@@ -71,9 +71,9 @@ domin(mpg ~ am + cyl + carb,
 #> Overall Fit Statistic:      0.8113023 
 ```
 
-This results section reports on the value of the fit statistic of the pre-selected model.  Other fit statistic value adjustments are reported in this section but are the focus of other vignette sections below.
+This results section reports on the value of the fit statistic of the pre-selected model.  Other fit statistic value adjustments are reported in this section as well.
 
-The $R^2$ for this model is ~$.81$ meaning the model explains around 80% of the variance in _mpg_; this is the limiting value for how much each IV will be able to explain.  The three IVs in this model will be ascribed separate components of this $.81$.
+The $R^2$ for this model is ~$.8113$ meaning the model explains around 80% of the variance in _mpg_; this is the limiting value for how much each IV will be able to explain.  The three IVs in this model will be ascribed separate components of this ~$.8113$ value.
 
 ### General Dominance Statistics
 ```
@@ -84,15 +84,17 @@ The $R^2$ for this model is ~$.81$ meaning the model explains around 80% of the 
 #> carb         0.1783081    0.2197801     3
 ```
 
-This section reports on how the fit statistic value from the last section is divided up among the IVs.  The statistics produced when dividing up the overall fit statistic associated with the pre-selected model are known as *general dominance statistics*.  Because they sum to the overall fit statistic, general dominance statistics are considered the results from the DA that are easiest to interpret.
+This section reports on how the fit statistic value from the last section is divided up among the IVs.  The statistics produced when dividing up the overall fit statistic associated with the pre-selected model are known as *general dominance statistics*.  Because they sum to the overall fit statistic, general dominance statistics are the results from the DA that are considered easiest to interpret. 
 
 General dominance statistics are computed as a weighted average of the marginal/incremental contribution to prediction (as measured by the focal fit metric, in this case the $R^2$) the IV makes across all sub-models in which it is included. For example, _am_ has a value of ~$0.2157$ which means, on average, _am_ results in an increment to the $R^2$ of about twenty-two percentage points when it is included in the model versus when it is not.  
 
-The *Standardized* column of statistics expresses the general dominance statistic value as a percentage of the overall fit statistic value.  _am_'s contributions to prediction comprise 27% of the predictive usefulness of the pre-selected model.
+The *Standardized* column of statistics expresses the general dominance statistic value as a percentage of the overall fit statistic value and thus sum to 100%.  _am_'s contributions to prediction comprise ~27% of the predictive usefulness of the pre-selected model (i.e., $\frac{.2157}{.8113} = .2659$). 
 
-Finally, the general dominance statistics can be compared to one another to determine which variables "generally dominate" others. Here, _cyl_'s larger general dominance statistic than _am_ indicates that it "generally dominates", and is thus more important than, _am_. These *general dominance designations* are reflected in the *Ranks* column reported.  The only time a general dominance designation cannot be made between two IVs is when they are exactly equal to one another in terms of predicting the dependent variable (DV)/outcome/response. 
+Finally, the general dominance statistics can be compared to one another to determine which variables generally dominate others. Here, _cyl_'s larger general dominance statistic than _am_ indicates that it generally dominates, and is thus more important than, _am_. These *general dominance designations* are reflected in the *Ranks* column.  
 
-General dominance statistics for an IV are also the arithmetic average of that IV's conditional dominance statistics discussed next.
+The general dominance statistics, whereas simple to interpret, are the least stringent of the dominance statistics/designations as they average across the most sub-models (more specifics provided below).  Though least stringent, the general dominance statistics tent to always allow for a comparison between two IVs. The only time a general dominance designation cannot be made between two IVs is when they are exactly equal to one another in terms of predicting the dependent variable (DV)/outcome/response. 
+
+General dominance statistics for an IV are also the arithmetic average of that IV's conditional dominance statistics - these statistics are discussed next.
 
 ### Conditional Dominance Statistics
 
@@ -104,19 +106,19 @@ General dominance statistics for an IV are also the arithmetic average of that I
 #> carb 0.3035184 0.1791172 0.05228872
 ```
 
-This section reports on how the predictive usefulness for any given IV changes as more IVs are added to the model.  These statistics describing change as more IVs are added to the model are known as *conditional dominance statistics*.
+This section reports on how the predictive usefulness for any given IV changes as more IVs are added to the model.  These statistics describing change as more IVs are added to the model are known as *conditional dominance statistics*. Conditional dominance statistics are more challenging to interpret as they are best evaluated across their trajectory within an IV but across different numbers of IVs in the model. They also do not cleanly decompose the $R^2$ value like the general dominance statistics but rather shows the variation in $R^2$ values as more IVs are added to the model.
 
-Conditional dominance statistics are computed as the average incremental contribution to prediction an IV makes within a single "order" of models--where "order" refers to a distinct number of independent variables in the prediction model. As such, each IV will have $p$ different conditional dominance statistics.
+Conditional dominance statistics are computed as the average incremental contribution to prediction an IV makes within a single order of models--where order refers to a distinct number of IVs in the prediction model. As such, each IV will have $p$ different conditional dominance statistics.
 
-In the example above, order one is `IVs: 1` and refers to the incremental contribution the IV makes to predicting the DV when by itself.  Order two is `IVs: 2` and refers to the average incremental contribution the IV makes in predicting the DV when another IV is included in the model.  Finally, order three is `IVs: 3` and refers to the incremental contribution the IV makes beyond the other two IVs.  
+In the example above, order one is `IVs: 1` and refers to the incremental contribution an IV makes to predicting the DV when by itself.  Order two is `IVs: 2` and refers to the average incremental contribution an IV makes in predicting the DV when another IV is included in the model.  Finally, order three is `IVs: 3` and refers to the incremental contribution an IV makes beyond the other two IVs.  
 
 Conditional dominance statistics provide more information about each IV than general dominance statistics as they reveal the effect that IV redundancy has on prediction for each IV.  In the above conditional dominance statistic matrix, _am_ is slightly less affected by variable redundancy overall as its average incremental contribution to fit shrinks relatively less than the other two IVs across all three orders.
 
-As with general dominance statistics, conditional dominance statistics can be compared to determine which "conditionally dominate" others.  Conditional dominance is determined for an IV over another when its conditional dominance statistics are larger than another the other IV's statistics within-orders for all `p` orders. If, at any order, the conditional dominance statistics for two IVs are equal or there is a change rank order between IVs, no conditional dominance designation can be made between those IVs. As applied to the results above, _am_ is conditionally dominated by _cyl_ as its conditional dominance statistics are smaller than _cyl_'s at order 1, 2, and 3.
+As with general dominance statistics, conditional dominance statistics can be compared to determine which conditionally dominate others.  Conditional dominance is determined for an IV over another when its within-order conditional dominance statistic comparisons are larger than another IV's statistics for all `p` orders. If, at any order, the within-order comparison between conditional dominance statistics for two IVs are equal or there is a change rank order between IVs, no conditional dominance designation can be made between those IVs. As applied to the results above, _am_ is conditionally dominated by _cyl_ as its conditional dominance statistics are smaller than _cyl_'s at order 1, 2, and 3.
 
-Because it is more difficult to achieve, conditional dominance is a stronger importance criterion than general dominance.  Additionally, conditional dominance implies general dominance--but the reverse is not true. An IV can generally, but not conditionally, dominate another IV.
+The increase in complexity with conditional dominance from general also results in a more stringent set of comparisons.  It is more difficult for one IV to conditionally dominate than it is for one IV to generally dominate another IV as there are more ways in which conditional dominance can fail to be achieved. Additionally, conditional dominance implies general dominance--but the reverse is not true. An IV can generally, but not conditionally, dominate another IV.
 
-The next section discusses the strongest of the dominance designations.
+The next section discusses the most stringent of the dominance designations.
 
 ### Complete Dominance Designations
 
@@ -128,15 +130,15 @@ The next section discusses the strongest of the dominance designations.
 #> Dmnates?carb      FALSE       FALSE           NA
 ```
 
-This section reports on how the predictive usefulness for an IV compares with another IV across all models that are comparable for the two IVs.  The comparisons described in this section do not form statistics but only dominance designations; these are known as *complete dominance designations*.
+This section reports on how the predictive usefulness for an IV compares with another IV across all models that are comparable for the two IVs.  The comparisons described in this section do not form statistics but only dominance designations; these are known as *complete dominance designations*.  Conditional dominance designations are not difficult to interpret but are the most complex set of comparisons and only exist as a set of comparisons across IV pairs.
 
 Complete dominance designations are made by comparing all possible incremental contributions to predicting the DV between two IVs for models that are comparable--which include all sub-models that do not include the other IV. For example, the comparison between _am_ and _cyl_ would include comparing the model with _am_ alone to the model with _cyl_ alone as well as the model with _am_ and _carb_ beyond the model with _carb_ to the model with _cyl_ and _carb_ beyond the model with _carb_.
 
-Complete dominance is the most difficult dominance criterion to satisfy as it requires that an IV *always* have a larger increment to to prediction across all, $2^{p-2}$ comparable individual models between two IVs. 
+Complete dominance is the most stringent dominance criterion to satisfy as it requires that an IV *always* have a larger increment to to prediction across all, $2^{p-2}$ comparable individual models between two IVs. 
 
-By comparison to general and conditional dominance designations, the complete dominance designation has no statistic.  The matrix `domin` returns is a set of logicals that reads from the left to right. A value of `TRUE` means that the IV in the row completely dominates the IV in the column. Conversely, a value of `FALSE`  means the opposite, that the IV in the row is completely dominated by the IV in the column. A `NA` value means no complete dominance designation could be made as the comparison IVs' incremental contributions differ in relative magnitude from model to model.
+As is noted above, the complete dominance designation has no statistic.  The matrix `domin` returns is a set of logicals that reads from the left to right. A value of `TRUE` means that the IV in the row completely dominates the IV in the column. Conversely, a value of `FALSE`  means the opposite, that the IV in the row is completely dominated by the IV in the column. A `NA` value means no complete dominance designation could be made as the comparison IVs' incremental contributions differ in relative magnitude from model to model.
 
-In the example above, the complete dominance designations show a clear hierarchy among the IVs with `cyl` completely dominating `am` which completely dominates `carb`.  Complete dominance implies both general and conditional dominance, but, again, the reverse is not true. An IV can conditionally, but not completely, dominate another IV.
+In the example above, the complete dominance designations show a clear hierarchy among the IVs with `cyl` completely dominating `am` which completely dominates `carb`.  Complete dominance implies both general and conditional dominance, but, again, the reverse is not true. An IV can conditionally or generally, but not completely, dominate another IV.
 
 ## How Dominance Statistics Work
 
@@ -157,6 +159,7 @@ lm_capture <-
   }
 
 count <- 0
+
 results <- data.frame(fmla = rep("", times = 2^3-1), 
                       r2 = rep(NA, times = 2^3-1) )
 
@@ -165,13 +168,15 @@ lm_da <- domin(mpg ~ am + cyl + carb, lm_capture, list(summary, "r.squared"), da
 results
 ```
 
-As the printed result from  the _results_ data frame shows, `domin` just runs `r 2^3 - 1` linear regressions with all the different combinations of the IVs and collects the $R^2$ value associated with each model. 
+As the printed result from  the _results_ data frame shows, `domin` runs 7 linear regressions with all the different combinations of the IVs and collects the $R^2$ value associated with each model. 
 
 ### Designating Complete Dominance
 
-Given the results in the _results_ data frame, I will explain first how to determine complete dominance of two IVs--in this case, between _am_ and _carb_.  Complete dominance is computed by:
+Given the results in the _results_ data frame, I will explain first how to determine complete dominance of two IVs--in this case, between _am_ and _carb_.  Complete dominance ($D$) is computed as:
 
-$X_xDX_y$
+$X_vDX_z\; if\;2^{p-2}\, =\, \Sigma^{2^{p-2}}_{j=1}{ \{\begin{matrix} if\, R^2_{X_vS2_j}\, - R^2_{S2_j} > R^2_{X_zS2_j}\, - R^2_{S2_j}\,then\, 1\, \\ if\, R^2_{X_vS2_j}\, - R^2_{S2_j} \le R^2_{X_zS2_j}- R^2_{S2_j}\,then\, \,0\end{matrix} }$
+
+Where $X_v$ and $X_z$ are two IVs, $S2_j$ is a set of the other IVs not including $X_v$ and $X_z$ which can include the null set with no other IVs, and $R^2$ is a model fit statistic (does not have to be an $R^2$ metric).
 
 When comparing _am_ and _carb_, there are `r 2^(3-2)` comparisons for each IV pair of the `r 2^3-1` model results to be made.  Those comparisons are that between _`r results[1,1]`_ and _`r results[3,1]`_ as well as the difference between _`r results[4,1]`_ and _`r results[6,1]`_ from _`r results[2,1]`_. These comparisons are all the possible submodels in which models containing _am_ and _carb_ can be directly compared.
 
@@ -189,11 +194,11 @@ The process used to compare models containing _am_ and _carb_ are repeated for t
 
 Computing conditional dominance statistics is the next process to be described in this vignette.  Conditional dominance statistics are computed as:
 
-$C_x = \Sigma{}$
+$C^i_{X_v} = \Sigma^{(\begin{matrix}p-1\\i-1\end{matrix})}_{i=1}{\frac{R^2_{X_vS_i}\, - R^2_{S_i}}{(\begin{matrix}p-1\\i-1\end{matrix})}}$
 
-As compared to complete dominance which only used 2, conditional dominance statistics will use all 7 fit statistics computed in the 3 conditional dominance statistics produced for each IV.
+Where $S_i$ is a subset of IVs not including $X_v$ and $(\begin{matrix}p-1\\i-1\end{matrix})$ is the number of distinct combinations produced choosing the number of elements in the bottom value ($i-1$) given the number of elements in the top value ($p-1$)--which is the value that would be produced by `choose(p-1, i-1)`.
 
-The user can think of conditional dominance statistics as "window" statistics in which a "moving average" of statistics from the _results_ data frame are combined.  Specifically, at the specific order in question (i.e., number of IVs in the model), the conditional dominance statistic for that order will be the sum of the models at the order in question with the IV included less the sum of the models at the previous order with the IV omitted.  This sum is then divided by the number of models at the order in question . 
+The user can think of conditional dominance statistics as a window or grouped statistic in which a moving average of statistics from the _results_ data frame are combined.  Specifically, at the specific order in question (i.e., number of IVs in the model), the conditional dominance statistic for that order will be the sum of the models at the order in question with the IV included less the sum of the models at the previous order with the IV omitted.  This sum is then divided by the number of models at the order in question. 
 
 Put another way, it is the arithmetic average of the increment to the fit statistic for the models including the IV at the order in question.  
 
@@ -211,11 +216,11 @@ Because _am_ completely dominates _carb_ and is completely dominated by _cyl_, i
 
 General dominance is computed as:
 
-$C_{iv} = \Sigma{}$
+$C_{X_v} = \Sigma^p_{i=1}{\frac{C^i_{X_v}}{p}}$
 
-One way of thinking about the general dominance statistic is as a weighted average of all the fit statistics in the model.
+Thus, the general dominance statistics are the arithmetic average of all the conditional dominance statistics for an IV.
 
-Another way of thinking about the general dominance statistic is as the arithmetic average of all the conditional dominance statistics for an IV.
+Another way of thinking about the general dominance statistic is as a weighted average of all the fit statistics in the model. This is clearer when substituting the equation for the conditional dominance statistics into the equation for general dominance as each model is weighted both by the number of submodels at the order in which it was estimated (the average taken for conditional dominance statistic computation) as well as the number of IVs in the model total (the average taken for general dominance statistic computation).
 
 The general dominance statistic for _am_ is then computed as the average of `r lm_da$Conditional_Dominance[1,1]`, `r lm_da$Conditional_Dominance[1,2]`, and `r lm_da$Conditional_Dominance[1,3]`.
 
