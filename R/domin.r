@@ -258,7 +258,7 @@ doModel_Fit <- function(Indep_Var_Combination, Dep_Var,
 
 if (length(consmodel) > 0) { # if there are entries in consmodel...
   Cons_Result <- 
-    doModel_Fit(NULL, consmodel = consmodel, Dep_Var, reg, fitstat, intercept = intercept, ...) # ...obtain their `fitstat` value as well...
+    doModel_Fit(NULL, consmodel = consmodel, Dep_Var, reg, fitstat, intercept = intercept, ...) # ...obtain their `fitstat` value...
   FitStat_Adjustment <- Cons_Result[["value"]] # ...and add the value as the adjustment to the fitstat
 }
 
@@ -269,11 +269,11 @@ else {
 
 # All subsets adjustment ----
 
-if (length(all) > 0) { # if there are entries in all and no constant model...
+if (length(all) > 0) { # if there are entries in all...
   All_Result <- 
     doModel_Fit(NULL, all = all, consmodel = consmodel, Dep_Var, reg, fitstat, intercept = intercept, ...) # ...obtain their `fitstat` value as well...
   FitStat_Adjustment <- 
-    All_Result[["value"]] # ...and log the value as the adjustment to the fitstat
+    All_Result[["value"]] # ...and log the value as the adjustment to the fitstat (replacing consmodel)
 }
 
 else All_Result <- NULL # ...otherwise return a null
@@ -581,7 +581,6 @@ return_list <- list(
     "Call" = match.call(),
     "Subset_Details" = list(
         "Full_Model" = stats::reformulate(c(Combination_List[[Total_Indep_Vars]], all, consmodel), response = Dep_Var, intercept = intercept),
-          #paste0(deparse(Dep_Var), " ~ ", (paste0(c(Combination_List[[Total_Indep_Vars]], all), collapse=" + "))), 
         "Formula" = attr(stats::terms(formula_overall), "term.labels"), 
         "All" = all,
         "Sets" = sets,
