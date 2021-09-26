@@ -12,24 +12,22 @@
 \item{...}{further arguments passed to or from other methods.}
 }
 \value{
-None. This method is called only for side-effect of printing
-to the console.
+None. This method is called only for side-effect of printing to the console.
 }
 \description{
-Reports basic results from \code{domin} class object.
+Reports formatted results from \code{domin} class object.
 }
 \details{
-The print method for class \code{domin} objects reports out the
-following results:
+The print method for class \code{domin} objects reports out the following results:
 \itemize{
 \item{Fit statistic for the full model as well as the fit statistic for the
-all subsets model if any entries in \code{all}.}
+all subsets model if any entries in \code{all} as well as \code{consmodel}}
 \item{Matrix describing general dominance statistics, standardized
 general dominance statistics, and the ranking of the general dominance
-statistics.}
+statistics}
 \item{Matrix describing the conditional dominance statistics.}
 \item{If \code{conditional} is \code{TRUE}, matrix describing the complete
-dominance statistics.}
+dominance designations}
+\item{If there are entries in \code{sets} and/or \code{all} the terms included in each set as well as the terms in all subsets are reported}}
+The \code{domin} print method alters dimension names for readability and they do not display as stored in the \code{domin} object.
 }
-}
-\keyword{print}

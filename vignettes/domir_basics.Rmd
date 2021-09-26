@@ -1,11 +1,11 @@
 ---
-title: "Basic Concepts of Relative Importance Analysis"
-subtitle: "Dominance Analysis with `{domir}`"
+title: "Conceptual Introduction to Dominance Analysis"
+subtitle: "Examples and Implementation with `{domir}`'s `domin`"
 author: Joseph Luchman
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{domir_basics}
+  %\VignetteIndexEntry{Conceptual Introduction to Dominance Analysis}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---

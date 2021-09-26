@@ -23,39 +23,43 @@ A valid \code{formula_overall} entry is necessary, even if only submitting entri
 
 \item{reg}{A function implementing the predictive (or "reg"ression) model called.
 
-String function names (e.g., "lm"), function names (e.g., \code{lm}), or a full functions (e.g., \code{function(x) lm(x)}) are acceptable entries.  This argument's contents are passed to \code{\link{do.call}} and thus any function call \code{do.call} would accept is valid.
+String function names (e.g., "lm"), function names (e.g., \code{lm}), or anonymous functions (e.g., \code{function(x) lm(x)}) are acceptable entries.  This argument's contents are passed to \code{\link{do.call}} and thus any function call \code{do.call} would accept is valid.
 
-The predictive model in \code{reg} must accept a \code{formula} object as its first argument.}
+The predictive model in \code{reg} must accept a \code{formula} object as its first argument or must be adapted to do so with a wrapper function.}
 
-\item{fitstat}{List providing arguments to call a fit statistic extracting function (see details). \code{fitstat} must be of at least length two.
+\item{fitstat}{List providing arguments to call a fit statistic extracting function (see details). The \code{fitstat} list must be of at least length two.
 
-The first element of \code{fitstat} must be a function implementing the fit statistic extraction. String function names (e.g., "summary"), function names (e.g., \code{summary}), or a full functions (e.g., \code{function(x) summary(x)}) are acceptable entries. This element's contents are passed to \code{\link{do.call}} and thus any function call \code{do.call} would accept is valid.
+The first element of \code{fitstat} must be a function implementing the fit statistic extraction. String function names (e.g., "summary"), function names (e.g., \code{summary}), or anonymous functions (e.g., \code{function(x) summary(x)}) are acceptable entries. This element's contents are passed to \code{\link{do.call}} and thus any function call \code{do.call} would accept is valid.
 
 The second element of \code{fitstat} must be the named element of the list or vector produced by the fit extractor function called in the first element of \code{fitstat}.  This element must be a string (e.g., "r.squared").
 
 All list elements beyond the second are submitted as additional arguments to the fit extractor function call.
 
-The fit statistic extractor function in the first list element of \code{fitstat} must accept the model object produced by the predictive modeling function in \code{reg} as its first argument.
+The fit statistic extractor function in the first list element of \code{fitstat} must accept the model object produced by the predictive modeling function in \code{reg} as its first argument or be adapted to do so with a wrapper function.
 
 The fit statistic produced must be scalar valued (i.e., vector of length 1).}
 
 \item{sets}{A list with each element comprised of vectors containing variable/factor names or \code{formula} coercible strings.
 
-The each separate vector in \code{sets} is concatenated (when of length > 1) and used as an entry to the dominance analysis.}
+Each separate list element-vector in \code{sets} is concatenated (when the list element-vector is of length > 1) and used as an entry to the dominance analysis along with the terms in \code{formula_overall}.}
 
-\item{all}{A vector of variable/factor names or \code{formula} coercible strings.  The entries in this vector are concatenated (when of length > 1) but are not used in the dominance analysis.  Rather the value of the fit statistic associated with these terms is removed from the dominance analysis; this vector is used like a set of covariates.}
+\item{all}{A vector of variable/factor names or \code{formula} coercible strings.  The entries in this vector are concatenated (when of length > 1) but are not used in the dominance analysis.  Rather the value of the fit statistic associated with these terms is removed from the dominance analysis; this vector is used like a set of covariates.
+
+The entries in \code{all} are removed from and considered an additional component that explains the fit metric.  As a result, the general dominance statistics will no longer sum to the overall fit metric and the standardized vector will no longer sum to 1.}
 
 \item{complete}{Logical.  If \code{FALSE} then complete dominance matrix is not computed.
 
-If complete dominance, as an importance criterion, is not desired, not computing complete dominance can save computation time.}
+If complete dominance is not desired as an importance criterion, avoiding computing complete dominance designations can save computation time.}
 
-\item{consmodel}{A vector of variable/factor names or \code{formula} coercible strings.  The entries in this vector are concatenated (when of length > 1) but are not used in the dominance analysis.  Rather the value of the fit statistic associated with these terms is removed from the dominance analysis; this vector is used to set a baseline for the fit statistic.
+\item{consmodel}{A vector of variable/factor names, \code{formula} coercible strings, or other formula terms (i.e., 1 to indicate an intercept).  The entries in this vector are concatenated (when of length > 1) and, like the entries of \code{all}, are not used in the dominance analysis; this vector is used as an adjustment to the baseline value of the overall fit statistic.
 
-The use of \code{consmodel} changes the general and conditional dominance statistics such that they reflect the difference between the constant model's fit statistic and the overall fit statistic values.
+The use of \code{consmodel} changes the interpretation of the the general and conditional dominance statistics.  When \code{consmodel} is used, the general and conditional dominance statistics are reflect the difference between the constant model and the overall fit statistic values.
 
-Typical usage of this argument is to pass "1" to set the intercept as the baseline and control for its value when the baseline model's fit statistic value is not 0 (see examples).}
+Typical usage of \code{consmodel} is to pass "1" to set the intercept as the baseline and control for its value when the baseline model's fit statistic value is not 0 (e.g., if using the AIC or BIC as a fit statistic; see examples).
 
-\item{reverse}{Logical. If \code{TRUE} then Standardized General Dominance Statistics, Ranks, and Complete Dominance Designations are reversed in their interpretation.
+As such, this vector is used to set a baseline for the fit statistic when it is non-0.}
+
+\item{reverse}{Logical. If \code{TRUE} then standardized vector, ranks, and complete dominance Designations are reversed in their interpretation.
 
 This argument should be changed to \code{TRUE} if the fit statistic used decreases with better fit to the data (e.g., AIC, BIC).}
 
@@ -66,15 +70,15 @@ Returns an object of \code{\link{class}} "domin".
 An object of class "domin" is a list composed of the following elements:
 \describe{
 \item{\code{General_Dominance}}{Vector of general dominance statistics.}
-\item{\code{Standardized}}{Vector of general dominance statistics normalized to be out of 100.}
+\item{\code{Standardized}}{Vector of general dominance statistics normalized to sum to 1.}
 \item{\code{Ranks}}{Vector of ranks applied to the general dominance statistics.}
-\item{\code{Conditional_Dominance}}{Matrix of conditional dominance statistics.}
-\item{\code{Complete_Dominance}}{Logical matrix of complete dominance designations.}
+\item{\code{Conditional_Dominance}}{Matrix of conditional dominance statistics.  Each row represents a term; each column represents an order of terms.}
+\item{\code{Complete_Dominance}}{Logical matrix of complete dominance designations. The term represented in each row indicates dominance status; the terms represented in each columns indicates dominanted-by status.}
 \item{\code{Fit_Statistic_Overall}}{Value of fit statistic for the full model.}
-\item{\code{Fit_Statistic_All_Subsets}}{Value of fit statistic associated with IVs in \code{all}.}
+\item{\code{Fit_Statistic_All_Subsets}}{Value of fit statistic associated with terms in \code{all}.}
 \item{\code{Fit_Statistic_Constant_Model}}{Value of fit statistic associated with terms in \code{consmodel}.}
 \item{\code{Call}}{The matched call.}
-\item{\code{Subset_Details}}{List containing the full model and descriptions of IVs in the full model by source.}
+\item{\code{Subset_Details}}{List containing the full model and descriptions of terms in the full model by source.}
 }
 }
 \description{
@@ -87,7 +91,7 @@ Computes dominance statistics for predictive modeling functions that accept a \c
 
 One specific instance of this deconstruction is in generating the number of entries to the DA. The number of entries is taken as all the \code{terms} from \code{formula_overall} and the separate list element vectors from \code{sets}. The entries themselves are concatenated into a single formula, combined with the entries in \code{all}, and submitted to the predictive modeling function in \code{reg}.  Each different combination of entries to the DA forms a different \code{formula} and thus a different model to estimate.
 
-For example, this \code{domin} call:
+For example, consider this \code{domin} call:
 
 \code{domin(y ~ x1 + x2, lm, list(summary, "r.squared"), sets = list(c("x3", "x4")), all = c("c1", "c2"), data = mydata))}
 
@@ -123,11 +127,13 @@ All the called predictive models are submitted to the fit extractor function imp
 
 \code{summary(lm_obj)["r.squared"]}
 
-As can be seen, the entry to \code{fitstat} must be list and follow a specific structure:
+where \code{lm_obj} is the model object returned by \code{lm}.
+
+The entries to \code{fitstat} must be as a list and follow a specific structure:
 \code{list(fit_function, element_name, ...)}
 \describe{
 \item{\code{fit_function}}{First element and function to be applied to the object produced by the \code{reg} function}
-\item{\code{element_name}}{Second element and name of the element from the object returned by \code{fit_function}}
+\item{\code{element_name}}{Second element and name of the element from the object returned by \code{fit_function} to be used as a fit statistic.  The fit statistic must be scalar-valued/length 1}
 \item{\code{...}}{Subsequent elements and are additional arguments passed to \code{fit_function}}
 }
 
@@ -182,5 +188,3 @@ domin(mpg ~ am + carb + cyl,
   data = mtcars, 
   reverse = TRUE, consmodel = "1")
 }
-\keyword{multivariate}
-\keyword{utilities}
