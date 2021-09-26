@@ -254,34 +254,29 @@ doModel_Fit <- function(Indep_Var_Combination, Dep_Var,
 
 }
 
-# All subsets adjustment ----
-
-if (length(all) > 0) { # if there are entries in all...
-    All_Result <- 
-        doModel_Fit(all, Dep_Var, reg, fitstat, intercept = intercept, ...) # ...obtain their `fitstat` value as well...
-    FitStat_Adjustment <- 
-        All_Result[["value"]] # ...and log the value as the adjustment to the fitstat
-}
-
-else {
-    All_Result <- NULL # ...otherwise return a null
-    FitStat_Adjustment <- 0 # ...and a 0 for fitstat adjustment
-}
-
 # Constant model adjustments ----
 
 if (length(consmodel) > 0) { # if there are entries in consmodel...
   Cons_Result <- 
-    doModel_Fit(consmodel, Dep_Var, reg, fitstat, intercept = intercept, ...) # ...obtain their `fitstat` value as well...
-  FitStat_Adjustment <- 
-    FitStat_Adjustment + Cons_Result[["value"]] # ...and add the value as the adjustment to the fitstat
+    doModel_Fit(NULL, consmodel = consmodel, Dep_Var, reg, fitstat, intercept = intercept, ...) # ...obtain their `fitstat` value as well...
+  FitStat_Adjustment <- Cons_Result[["value"]] # ...and add the value as the adjustment to the fitstat
 }
 
 else {
   Cons_Result <- NULL # ...otherwise return a null
-  FitStat_Adjustment <- ifelse(FitStat_Adjustment == 0, 0, # if there is not an `all` adjustment keep 0...
-                               FitStat_Adjustment) # ...otherwise retain the `all` adjustment
+  FitStat_Adjustment <- 0
 }
+
+# All subsets adjustment ----
+
+if (length(all) > 0) { # if there are entries in all and no constant model...
+  All_Result <- 
+    doModel_Fit(NULL, all = all, consmodel = consmodel, Dep_Var, reg, fitstat, intercept = intercept, ...) # ...obtain their `fitstat` value as well...
+  FitStat_Adjustment <- 
+    All_Result[["value"]] # ...and log the value as the adjustment to the fitstat
+}
+
+else All_Result <- NULL # ...otherwise return a null
 
 # Obtain all subsets regression results ----
 
@@ -580,7 +575,8 @@ return_list <- list(
     "Conditional_Dominance" = Conditional_Dominance,
     "Complete_Dominance" = Complete_Dominance,
     "Fit_Statistic_Overall" = FitStat,
-    "Fit_Statistic_All_Subsets" = All_Result[["value"]],
+    "Fit_Statistic_All_Subsets" = 
+      All_Result[["value"]] - ifelse(is.null(Cons_Result[["value"]]), 0, Cons_Result[["value"]]),
     "Fit_Statistic_Constant_Model" = Cons_Result[["value"]],
     "Call" = match.call(),
     "Subset_Details" = list(
