@@ -21,11 +21,9 @@ function that can accommodate modeling functions that use R formulas (or
 that can be adapted to do so by the user; which effectively encompasses
 any model).
 
-For readers looking to familiarize themselves more with the dominance
-analysis methodology, a more extensive conceptual discussion of
-dominance analysis (which focuses on the Stata software’s version of
-`domin`) as a method is available
-[here](https://github.com/jluchman/domin/blob/master/README.md).
+*An extensive conceptual introduction to dominance analysis is provided
+as a vignette in the package. Much of the content to follow will
+eventually be included in vignettes in the future*.
 
 # Installation
 
@@ -382,7 +380,8 @@ da_mnl
 da_mnl$Subset_Details$Full_Model
 ```
 
-    ## [1] "carb2 ~ mpg + am + vs + cyl + disp + gear"
+    ## carb2 ~ mpg + am + vs + cyl + disp + gear
+    ## <environment: 0x55e5feae2600>
 
 The `domin` automatically combines the entries in the `formula_overall`,
 `sets`, and `all` arguments. The full model formula can be obtained from
@@ -684,7 +683,7 @@ following structure:
 Currently, `domin` expects to receive, and can only accommodate,
 scalar-valued (i.e., vector of length 1) fit statistics.
 
-# Overall Consideraions
+# Overall Considerations
 
 This section outlines a few key considerations for the effective use of
 `domin`.

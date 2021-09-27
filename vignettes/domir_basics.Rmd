@@ -26,7 +26,7 @@ As is mentioned above, an implication of the DA method is that the predictive mo
 
 "Relative importance" as a concept is used in many different ways in statistics and data science and many of them refer to methods that are focused on, or are probably best used for, model selection/identifying trivial IVs for removal.  DA is a method that is more focused on importance in a "model evaluation" sense.  I see this as being an application where the user describes/interprets IVs' effects in the context of a finalized, predictive approach.  
 
-## DA Impelemtation with `domin`
+## DA Implemtation with `domin`
 
 The `domin` function of the `{domir}` package implements the DA, full-factorial methodology with a flexible R function application programming interface/API.  The API is based on the R formula which is used in many predictive R modeling functions in base and recommended packages such as `lm`, `glm`, `arima`, `polr`, `nnet`, `lme`, and `gam`.  Functions that do not use formulas, or use variants of the standard R formula (i.e., those in the `Formula` package), can be accommodated using wrapper functions.
 

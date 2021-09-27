@@ -73,7 +73,7 @@ An object of class "domin" is a list composed of the following elements:
 \item{\code{Standardized}}{Vector of general dominance statistics normalized to sum to 1.}
 \item{\code{Ranks}}{Vector of ranks applied to the general dominance statistics.}
 \item{\code{Conditional_Dominance}}{Matrix of conditional dominance statistics.  Each row represents a term; each column represents an order of terms.}
-\item{\code{Complete_Dominance}}{Logical matrix of complete dominance designations. The term represented in each row indicates dominance status; the terms represented in each columns indicates dominanted-by status.}
+\item{\code{Complete_Dominance}}{Logical matrix of complete dominance designations. The term represented in each row indicates dominance status; the terms represented in each columns indicates dominated-by status.}
 \item{\code{Fit_Statistic_Overall}}{Value of fit statistic for the full model.}
 \item{\code{Fit_Statistic_All_Subsets}}{Value of fit statistic associated with terms in \code{all}.}
 \item{\code{Fit_Statistic_Constant_Model}}{Value of fit statistic associated with terms in \code{consmodel}.}

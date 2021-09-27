@@ -17,7 +17,7 @@ The `{domir}` package provides tools that allow relative importance analysis acr
 
 More specifically, `{domir}` provides a flexible wrapper function for conducting relative importance analysis. The current implementation of the package focuses solely on dominance analysis with the `domin` function that can accommodate modeling functions that use R formulas (or that can be adapted to do so by the user; which effectively encompasses any model).
 
-For readers looking to familiarize themselves more with the dominance analysis methodology, a more extensive conceptual discussion of dominance analysis (which focuses on the Stata software's version of `domin`) as a method is available [here](https://github.com/jluchman/domin/blob/master/README.md).
+_An extensive conceptual introduction to dominance analysis is provided as a vignette in the package. Much of the content to follow will eventually be included in vignettes in the future_.
 
 # Installation
 
@@ -161,8 +161,7 @@ da_polr
 
 ### Decision Trees
 
-`domin` can also accept models that do not produce model coefficients like 
-`rpart::rpart`. 
+`domin` can also accept models that do not produce model coefficients like `rpart::rpart`. 
 
 ```{r da_rpart}
 domin(mpg ~ am + vs + cyl, 
@@ -364,7 +363,7 @@ When considered together, the user can think about the fit statistic extractor's
 
 Currently, `domin` expects to receive, and can only accommodate, scalar-valued (i.e., vector of length 1) fit statistics.  
 
-# Overall Consideraions
+# Overall Considerations
 
 This section outlines a few key considerations for the effective use of `domin`.
 
