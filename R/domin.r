@@ -215,13 +215,26 @@ if (Total_Indep_Vars < 2)
     stop(paste("Total of", Total_Indep_Vars, "independent variables or sets. At least 2 needed for useful dominance analysis."))
 
 # Create independent variable/set combination list ----
-    
+
+# 1] old ----
 Combination_List <- 
     lapply( (1:length(Indep_Vars)), # Repeating over different numbers of IVs chosen at once in the model...
             function(Number_in_Combo) {
                 utils::combn(Indep_Vars, Number_in_Combo) # ...obtain all combinations choosing a considering a specific number of IVs chosen given the entire IV name vector
             } 
     )
+
+# 1] new ----
+Combination_Matrix <- 
+  expand.grid(
+    lapply(1:Total_Indep_Vars, 
+           function(x) c(FALSE, TRUE)), 
+    KEEP.OUT.ATTRS = FALSE) # Logical matrix of inclusion/exclusion for IVs
+
+IV_Count_Vector <- rowSums(Combination_Matrix) # Record of number of IVs included in a specific model
+
+# 1] end ----
+
 
 Total_Models_to_Estimate <- 2**Total_Indep_Vars - 1 # total number of models to estimate
 
@@ -232,10 +245,6 @@ doModel_Fit <- function(Indep_Var_Combination, Dep_Var,
                         reg, fitstat, all = NULL, consmodel = NULL, intercept, ...) {
 
     formula_to_use <- 
-        # formula( # build formula to submit to modeling function by...
-        #     paste0(deparse(Dep_Var), " ~ ", # ...combining the DV with...
-        #            paste0(c(Indep_Var_Combination, all), collapse = " + " )) #...the set of IVs submitted 
-        # )
       stats::reformulate(c(Indep_Var_Combination, all, consmodel), 
                   response = Dep_Var, intercept = intercept)
 
