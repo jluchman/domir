@@ -161,6 +161,8 @@
 #'   data = mtcars, 
 #'   reverse = TRUE, consmodel = "1")
 
+# 0] note - make fitstat arg accept called do_fitstat() a function ----
+
 domin <- 
   function(formula_overall, reg, fitstat, sets = NULL, all = NULL, 
            complete = TRUE, consmodel = NULL, reverse = FALSE, ...) {
@@ -233,6 +235,9 @@ Combination_Matrix <-
 
 IV_Count_Vector <- rowSums(Combination_Matrix) # Record of number of IVs included in a specific model
 
+print(Combination_List) ##
+print(Combination_Matrix) ##
+
 # 1] end ----
 
 
@@ -241,6 +246,7 @@ Total_Models_to_Estimate <- 2**Total_Indep_Vars - 1 # total number of models to 
 # Define function to call regression models ----
 
 # function to call regression models for modeling
+# 2] old ----
 doModel_Fit <- function(Indep_Var_Combination, Dep_Var, 
                         reg, fitstat, all = NULL, consmodel = NULL, intercept, ...) {
 
@@ -267,6 +273,38 @@ doModel_Fit <- function(Indep_Var_Combination, Dep_Var,
     )
 
 }
+
+# 2] new ----
+doModel_Fit2 <- function(Indep_Var_Combin_lgl, Indep_Vars, Dep_Var, 
+                        reg, fitstat, all = NULL, consmodel = NULL, intercept, ...) {
+  
+  Indep_Var_Combination <- Indep_Vars[Indep_Var_Combin_lgl]
+  
+  formula_to_use <- 
+    stats::reformulate(c(Indep_Var_Combination, all, consmodel), 
+                       response = Dep_Var, intercept = intercept)
+  
+  Model_Result <- 
+    list( # capture data from the called model as a list...
+      do.call(reg, list(formula_to_use, ...) ) # ...`do.call` modeling function with formula and all other arguments
+    ) 
+  
+  if (length(fitstat) > 2) # if there are additional arguments to pass to the fitstat function, indicated by having length of > 2 for this list...
+    Model_Result <- 
+    append(Model_Result, fitstat[3:length(fitstat)]) # ...append these additional arguments to `temp_result`
+  
+  Fit_Value <- do.call(fitstat[[1]], Model_Result) # use first entry of `fitstat` as fitstat function name, use `Model_Result` as results to submit to it
+  
+  return( Fit_Value[[ fitstat[[2]] ]] ) # ... and uses second, necessarily named, argument of `fitstat` to select the result of `Fit_Value` to return
+  
+}
+
+print(unlist(Combination_List[[1]][,1]))
+print(unlist(Combination_Matrix[2,]))
+print(doModel_Fit(unlist(Combination_List[[1]][,1]), Dep_Var, reg, fitstat, all = all, consmodel = consmodel, intercept = intercept, ...)) ##
+print(doModel_Fit2(unlist(Combination_Matrix[2,]), Indep_Vars, Dep_Var, reg, fitstat, all = all, consmodel = consmodel, intercept = intercept, ...)) ##      
+
+# 2] end ----
 
 # Constant model adjustments ----
 
