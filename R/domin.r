@@ -309,9 +309,15 @@ print(doModel_Fit2(unlist(Combination_Matrix[2,]), Indep_Vars, Dep_Var, reg, fit
 # Constant model adjustments ----
 
 if (length(consmodel) > 0) { # if there are entries in consmodel...
+  # 3] old ----
   Cons_Result <- 
     doModel_Fit(NULL, consmodel = consmodel, Dep_Var, reg, fitstat, intercept = intercept, ...) # ...obtain their `fitstat` value...
   FitStat_Adjustment <- Cons_Result[["value"]] # ...and add the value as the adjustment to the fitstat
+  # 3] new ----
+  FitStat_Adjustment2 <- Cons_Result2 <- doModel_Fit2(NULL, Indep_Vars, Dep_Var, reg, fitstat, consmodel = consmodel, intercept = intercept, ...) # ...obtain their `fitstat` value
+  print(paste("cons_old", FitStat_Adjustment))
+  print(paste("cons_new", FitStat_Adjustment2))
+  # 3] end ----
 }
 
 else {
@@ -322,16 +328,24 @@ else {
 # All subsets adjustment ----
 
 if (length(all) > 0) { # if there are entries in all...
+  # 4] old ----
   All_Result <- 
     doModel_Fit(NULL, all = all, consmodel = consmodel, Dep_Var, reg, fitstat, intercept = intercept, ...) # ...obtain their `fitstat` value as well...
   FitStat_Adjustment <- 
     All_Result[["value"]] # ...and log the value as the adjustment to the fitstat (replacing consmodel)
+  # 4] new ----
+  FitStat_Adjustment2 <- All_Result2 <- doModel_Fit2(NULL, Indep_Vars, Dep_Var, reg, fitstat, all = all, consmodel = consmodel, intercept = intercept, ...) # ...obtain their `fitstat` value as well...
+  
+  print(paste("all_old", FitStat_Adjustment))
+  print(paste("all_new", FitStat_Adjustment2))
+  # 4] end ----
 }
 
 else All_Result <- NULL # ...otherwise return a null
 
 # Obtain all subsets regression results ----
 
+# 5] old ----
 # 'Ensemble_of_Models' is structured such that:
 # 1. Top level is results by number of IVs in the model
 # 2. Middle level is model within a number of IVs
