@@ -231,7 +231,7 @@ Combination_Matrix <-
   expand.grid(
     lapply(1:Total_Indep_Vars, 
            function(x) c(FALSE, TRUE)), 
-    KEEP.OUT.ATTRS = FALSE) # Logical matrix of inclusion/exclusion for IVs
+    KEEP.OUT.ATTRS = FALSE)[-1,] # Logical matrix of inclusion/exclusion for IVs; omit the first, empty row
 
 IV_Count_Vector <- rowSums(Combination_Matrix) # Record of number of IVs included in a specific model
 
@@ -373,6 +373,19 @@ doModel_Coordinator <- function(Number_of_Indep_Vars) {
 Ensemble_of_Models <- # as a list ...
   lapply(1:Total_Indep_Vars, doModel_Coordinator) #... call `doModel_Coordinator` over all numbers of IVs in the model
 
+# 5] new ----
+Ensemble_of_Models2 <- sapply(1:nrow(Combination_Matrix), 
+                             function(x) {
+                               doModel_Fit2(unlist(Combination_Matrix[x,]), 
+                                            Indep_Vars, Dep_Var, reg, fitstat, 
+                                            all = all, consmodel = consmodel, intercept = intercept, ...)
+                             },
+                             simplify = TRUE, USE.NAMES = FALSE)
+
+print(str(Ensemble_of_Models))
+print(Ensemble_of_Models2)
+
+# 5] end ----
 
 # Process all subsets - find the increments ----
 
