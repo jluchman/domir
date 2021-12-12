@@ -540,6 +540,7 @@ print(Conditional_Dominance2)
 
 # Obtain complete dominance statistics ----
 
+# 7] old ----
 Identify_domComplt <- function (Increment, focalIV, compIV) { 
   
   if ((is.element(focalIV, Increment[["names_curr"]])) & 
@@ -658,6 +659,50 @@ if (complete) {
 }
 
 else Complete_Dominance <- NULL
+
+# 7] new ----
+
+if (complete) {
+  
+  Complete_Dominance2 <- 
+    matrix(data = NA, nrow = Total_Indep_Vars, ncol = Total_Indep_Vars) # complete dominance container
+  
+  Complete_Combinations <- utils::combn(1:Total_Indep_Vars, 2)
+  
+  for (pair in 1:ncol(Complete_Combinations)) {
+    
+    Focal_Cols <- Complete_Combinations[, pair]
+    
+    NonFocal_Cols <- setdiff(1:Total_Indep_Vars, Focal_Cols)
+    
+    Select_2IVs <- 
+      cbind(Combination_Matrix, 1:nrow(Combination_Matrix))[ 
+        rowSums( Combination_Matrix[,Focal_Cols] )==1, ]
+    
+    Sorted_2IVs <- Select_2IVs[do.call("order", as.data.frame(Select_2IVs[,c(NonFocal_Cols, Focal_Cols)])), ]
+    
+    Compare_2IVs <-
+      cbind(Ensemble_of_Models2[Sorted_2IVs[(1:nrow(Sorted_2IVs) %% 2)==0, ncol(Sorted_2IVs)]], 
+            Ensemble_of_Models2[Sorted_2IVs[(1:nrow(Sorted_2IVs) %% 2)==1, ncol(Sorted_2IVs)]])
+    
+    Complete_Designation <-
+      ifelse(all(Compare_2IVs[,1] > Compare_2IVs[,2]), FALSE,
+                 ifelse(all(Compare_2IVs[,1] < Compare_2IVs[,2]), TRUE, NA))
+    
+    Complete_Dominance2[ Focal_Cols[[2]], Focal_Cols[[1]] ] <- Complete_Designation
+    
+    Complete_Dominance2[ Focal_Cols[[1]], Focal_Cols[[2]] ] <- !Complete_Designation
+    
+  }
+  
+}
+
+else Complete_Dominance2 <- NULL
+
+print(Complete_Dominance)
+print(Complete_Dominance2)
+
+# 7] end ----
 
 if (reverse == TRUE) Complete_Dominance <- !Complete_Dominance # reverse all designations with `reverse`
 
