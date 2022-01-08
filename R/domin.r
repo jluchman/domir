@@ -171,7 +171,7 @@ domin <-
     
 # Initial exit/warning conditions ---- 
     
-if (!methods::is(formula_overall, "formula")) 
+if (!isa(formula_overall, "formula")) 
   stop(paste(formula_overall, "is not a formula object.  Coerce it to formula before use in domin."))
     
 if (!is.list(fitstat)) 
