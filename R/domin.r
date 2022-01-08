@@ -162,12 +162,12 @@
 #'   reverse = TRUE, consmodel = "1")
 
 # 0a] note - make fitstat arg accept called do_fitstat() a function ----
-# 0b] note - make conditional dominance optional ----
+# 0b] note - make conditional dominance optional and add documentation/accommodate in print.domin ----
 # 0c] note - formula interfaces for all and sets? ----
 
 domin <- 
   function(formula_overall, reg, fitstat, sets = NULL, all = NULL, 
-           complete = TRUE, consmodel = NULL, reverse = FALSE, ...) {
+           conditional = TRUE, complete = TRUE, consmodel = NULL, reverse = FALSE, ...) {
     
 # Initial exit/warning conditions ---- 
     
@@ -495,46 +495,50 @@ for (IV_Location in 1:Total_Indep_Vars) {
 }
 
 # 6] new ----
-Conditional_Dominance2 <- matrix(nrow = Total_Indep_Vars, ncol = Total_Indep_Vars) # conditional dominance container
 
-Combination_Matrix_Anti <-!Combination_Matrix
+#if (conditional) {
 
-IVs_per_Model <- rowSums(Combination_Matrix)
-
-Combins_at_Order <- sapply(IVs_per_Model, 
-                           function(x) choose(Total_Indep_Vars, x),
-                           simplify = TRUE, USE.NAMES = FALSE)
-
-Combins_at_Order_Prev <- sapply(IVs_per_Model, 
-                           function(x) choose(Total_Indep_Vars - 1, x),
-                           simplify = TRUE, USE.NAMES = FALSE)
-
-Weighted_Order_Ensemble <-
-  ((Combination_Matrix*(Combins_at_Order - Combins_at_Order_Prev))**-1)*Ensemble_of_Models2
-
-Weighted_Order_Ensemble <-
-  replace(Weighted_Order_Ensemble, 
-          Weighted_Order_Ensemble==Inf, 0)
-
-Weighted_Order_Ensemble_Anti <- 
-  ((Combination_Matrix_Anti*Combins_at_Order_Prev)**-1)*Ensemble_of_Models2
-
-Weighted_Order_Ensemble_Anti <-
-  replace(Weighted_Order_Ensemble_Anti, 
-          Weighted_Order_Ensemble_Anti==Inf, 0)
-
-print(Weighted_Order_Ensemble)
-print(Weighted_Order_Ensemble_Anti)
-
-for (order in 1:Total_Indep_Vars) {
+  Conditional_Dominance2 <- matrix(nrow = Total_Indep_Vars, ncol = Total_Indep_Vars) # conditional dominance container
   
-  Conditional_Dominance2[, order] <-
-    t(colSums(Weighted_Order_Ensemble[IVs_per_Model==order,]) - 
-        colSums(Weighted_Order_Ensemble_Anti[IVs_per_Model==(order-1),]))
+  ## i] begin replicated 1a ----
+  Combination_Matrix_Anti <-!Combination_Matrix
   
-}
-
-print(Conditional_Dominance2)
+  IVs_per_Model <- rowSums(Combination_Matrix)
+  
+  Combins_at_Order <- sapply(IVs_per_Model, 
+                             function(x) choose(Total_Indep_Vars, x),
+                             simplify = TRUE, USE.NAMES = FALSE)
+  
+  Combins_at_Order_Prev <- sapply(IVs_per_Model, 
+                                  function(x) choose(Total_Indep_Vars - 1, x),
+                                  simplify = TRUE, USE.NAMES = FALSE)
+  ## i] end replicated 1a ----
+  
+  Weighted_Order_Ensemble <-
+    ((Combination_Matrix*(Combins_at_Order - Combins_at_Order_Prev))**-1)*Ensemble_of_Models2
+  
+  Weighted_Order_Ensemble <-
+    replace(Weighted_Order_Ensemble, 
+            Weighted_Order_Ensemble==Inf, 0)
+  
+  Weighted_Order_Ensemble_Anti <- 
+    ((Combination_Matrix_Anti*Combins_at_Order_Prev)**-1)*Ensemble_of_Models2
+  
+  Weighted_Order_Ensemble_Anti <-
+    replace(Weighted_Order_Ensemble_Anti, 
+            Weighted_Order_Ensemble_Anti==Inf, 0)
+  
+  for (order in 1:Total_Indep_Vars) {
+    
+    Conditional_Dominance2[, order] <-
+      t(colSums(Weighted_Order_Ensemble[IVs_per_Model==order,]) - 
+          colSums(Weighted_Order_Ensemble_Anti[IVs_per_Model==(order-1),]))
+    
+  }
+  
+  print(Conditional_Dominance2)
+  
+#}
 
 # 6] end ----
 
@@ -699,7 +703,6 @@ if (complete) {
 
 else Complete_Dominance2 <- NULL
 
-print(Complete_Dominance)
 print(Complete_Dominance2)
 
 # 7] end ----
@@ -708,8 +711,44 @@ if (reverse == TRUE) Complete_Dominance <- !Complete_Dominance # reverse all des
 
 # Obtain general dominance statistics ----
 
+# 8] old ----
 General_Dominance <- 
     apply(Conditional_Dominance, 1, mean) # average conditional dominance statistics to produce general dominance
+
+# 8] new ----
+# !!  invoke if conditions to make all conditional on, well, conditional dominance once this section is complete
+#if (!conditional) {
+  
+  Combination_Matrix_Anti <-!Combination_Matrix
+  
+  IVs_per_Model <- rowSums(Combination_Matrix)
+  
+  Combins_at_Order <- sapply(IVs_per_Model, 
+                             function(x) choose(Total_Indep_Vars, x),
+                             simplify = TRUE, USE.NAMES = FALSE)
+  
+  Combins_at_Order_Prev <- sapply(IVs_per_Model, 
+                                  function(x) choose(Total_Indep_Vars - 1, x),
+                                  simplify = TRUE, USE.NAMES = FALSE)
+  
+  Indicator_Weight <- 
+    Combination_Matrix*(Combins_at_Order - Combins_at_Order_Prev)
+  
+  Indicator_Weight_Anti <-
+    (Combination_Matrix_Anti*Combins_at_Order_Prev)*-1
+  
+  Weight_Matrix <- 
+    ((Indicator_Weight + Indicator_Weight_Anti)*Total_Indep_Vars)^-1
+  
+  General_Dominance2 <- colSums(Ensemble_of_Models2*Weight_Matrix)
+  
+#}
+
+#else General_Dominance2 <- rowMeans(Conditional_Dominance2)
+  
+print(General_Dominance2)
+  
+# 8] end ----
 
 # Obtain overall fit statistic and ranks ----
 
