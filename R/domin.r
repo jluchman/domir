@@ -333,6 +333,8 @@ if (conditional) {
     
   }
   
+  Conditional_Dominance[,1] <- Conditional_Dominance[,1] - FitStat_Adjustment # adjust the first set of conditional dominance statistics for the constant and/or all fitstat adjustments
+  
 }
 
 # Obtain complete dominance statistics ----
@@ -415,6 +417,8 @@ if (!conditional) { # if there was no conditional dominance computed, generate g
   
   General_Dominance <- # general dominance is sum of the product of the weight matrix above and all the fit statistics
     colSums(Ensemble_of_Models*Weight_Matrix)
+  
+  General_Dominance <- General_Dominance - FitStat_Adjustment/Total_Indep_Vars # adjust the general dominance statistics for the constant and/or all fitstat adjustments in the first/order 1 stats as conditional dominance would do
   
 }
 
