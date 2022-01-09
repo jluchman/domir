@@ -337,6 +337,8 @@ if (conditional) {
   
 }
 
+else Conditional_Dominance <- NULL
+
 # Obtain complete dominance statistics ----
 
 if (complete) {
@@ -442,7 +444,8 @@ else IV_Labels <-
 
 names(General_Dominance) <- IV_Labels
 names(General_Dominance_Ranks) <- IV_Labels 
-dimnames(Conditional_Dominance) <- list(IV_Labels, paste0("IVs_", 1:length(Indep_Vars)))
+if (conditional) 
+  dimnames(Conditional_Dominance) <- list(IV_Labels, paste0("IVs_", 1:length(Indep_Vars)))
 if (complete) 
   dimnames(Complete_Dominance) <- list(paste0("Dmnates_", IV_Labels),  paste0("Dmnated_", IV_Labels))
 
@@ -508,11 +511,13 @@ dimnames(Display_Std) <-
     list(names(x[["Ranks"]]), c("General Dominance", "Standardized", "Ranks"))
 print(Display_Std)
 cat("\n")
-cat("Conditional Dominance Statistics:\n")
-colnames(x[["Conditional_Dominance"]]) <- 
-  paste("IVs:", 1:ncol(x[["Conditional_Dominance"]]))
-print(x[["Conditional_Dominance"]])
-cat("\n")
+if (length(x[["Conditional_Dominance"]]>0)) {
+  cat("Conditional Dominance Statistics:\n")
+  colnames(x[["Conditional_Dominance"]]) <- 
+    paste("IVs:", 1:ncol(x[["Conditional_Dominance"]]))
+  print(x[["Conditional_Dominance"]])
+  cat("\n")
+}
 if (length(x[["Complete_Dominance"]]>0)) {
     cat("Complete Dominance Designations:\n")
     colnames(x[["Complete_Dominance"]]) <- 
