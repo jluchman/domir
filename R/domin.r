@@ -27,6 +27,9 @@
 #' @param all A vector of variable/factor names or \code{formula} coercible strings.  The entries in this vector are concatenated (when of length > 1) but are not used in the dominance analysis.  Rather the value of the fit statistic associated with these terms is removed from the dominance analysis; this vector is used like a set of covariates.
 #' 
 #' The entries in \code{all} are removed from and considered an additional component that explains the fit metric.  As a result, the general dominance statistics will no longer sum to the overall fit metric and the standardized vector will no longer sum to 1.
+#' @param conditional Logical.  If \code{FALSE} then conditional dominance matrix is not computed.
+#' 
+#' If conditional dominance is not desired as an importance criterion, avoiding computing the conditional dominance matrix can save computation time.
 #' @param complete Logical.  If \code{FALSE} then complete dominance matrix is not computed.
 #' 
 #' If complete dominance is not desired as an importance criterion, avoiding computing complete dominance designations can save computation time.
