@@ -464,7 +464,7 @@ return_list <- list(
     "Fit_Statistic_Constant_Model" = Cons_Result,
     "Call" = match.call(),
     "Subset_Details" = list(
-        "Full_Model" = stats::reformulate(c(attr(stats::terms(formula_overall), "term.labels") , all, consmodel), response = Dep_Var, intercept = intercept),
+        "Full_Model" = stats::reformulate(c(Indep_Vars, all, consmodel), response = Dep_Var, intercept = intercept),
         "Formula" = attr(stats::terms(formula_overall), "term.labels"), 
         "All" = all,
         "Sets" = sets,
