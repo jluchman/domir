@@ -1,6 +1,13 @@
 ---
 title: domir NEWS
 ---
+# domir 0.3.0
+
+- visible
+  - `summary.domin` method for computing the strongest dominance designations between independent variables
+- internal
+  - looping used to construct many dominance statistics, replaced with matrix-based methods; intended to simplify and expedite computations
+
 # domir 0.2.0
 
 - visible

@@ -10,6 +10,7 @@ domin(
   fitstat,
   sets = NULL,
   all = NULL,
+  conditional = TRUE,
   complete = TRUE,
   consmodel = NULL,
   reverse = FALSE,
@@ -46,6 +47,10 @@ Each separate list element-vector in \code{sets} is concatenated (when the list 
 \item{all}{A vector of variable/factor names or \code{formula} coercible strings.  The entries in this vector are concatenated (when of length > 1) but are not used in the dominance analysis.  Rather the value of the fit statistic associated with these terms is removed from the dominance analysis; this vector is used like a set of covariates.
 
 The entries in \code{all} are removed from and considered an additional component that explains the fit metric.  As a result, the general dominance statistics will no longer sum to the overall fit metric and the standardized vector will no longer sum to 1.}
+
+\item{conditional}{Logical.  If \code{FALSE} then conditional dominance matrix is not computed.
+
+If conditional dominance is not desired as an importance criterion, avoiding computing the conditional dominance matrix can save computation time.}
 
 \item{complete}{Logical.  If \code{FALSE} then complete dominance matrix is not computed.
 

@@ -165,7 +165,6 @@
 #'   reverse = TRUE, consmodel = "1")
 
 # 0a] note - make fitstat arg accept called do_fitstat() a function ----
-# 0b] note - make conditional dominance optional and add documentation/accommodate in print.domin ----
 # 0c] note - formula interfaces for all and sets? ----
 
 domin <- 
@@ -485,60 +484,192 @@ return_list <- list(
 #'
 #' Reports formatted results from \code{domin} class object.
 #' @param x an object of class "domin".
-#' @param ... further arguments passed to or from other methods.
-#' @return None. This method is called only for side-effect of printing to the console.
+#' @param ... further arguments passed to or from other methods. Not used currently.
+#' @return The "domin" object with altered column and row names for conditional and complete dominance results as displayed in the console.
 #' @details The print method for class \code{domin} objects reports out the following results:
 #' \itemize{
-#'  \item{Fit statistic for the full model as well as the fit statistic for the
-#'  all subsets model if any entries in \code{all} as well as \code{consmodel}}
-#'  \item{Matrix describing general dominance statistics, standardized 
-#'  general dominance statistics, and the ranking of the general dominance 
-#'  statistics}
-#'  \item{Matrix describing the conditional dominance statistics.}
-#'  \item{If \code{conditional} is \code{TRUE}, matrix describing the complete 
-#'  dominance designations}
+#'  \item{Fit statistic for the full model.  The fit statistic for the all subsets model is reported here if there are any entries in \code{all}.  The fit statistic for the constant model is reported here if there are any entries in \code{consmodel}.}
+#'  \item{Matrix describing general dominance statistics, standardized general dominance statistics, and the ranking of the general dominance statistics}
+#'  \item{If \code{conditional} is \code{TRUE}, matrix describing the conditional dominance designations}
+#'  \item{If \code{complete} is \code{TRUE}, matrix describing the complete dominance designations}
+#'  \item{If following \code{summary.domin}, matrix describing the strongest dominance designations between all independent variables}
 #'  \item{If there are entries in \code{sets} and/or \code{all} the terms included in each set as well as the terms in all subsets are reported}}
-#'  The \code{domin} print method alters dimension names for readability and they do not display as stored in the \code{domin} object.
+#'  The \code{domin} print method alters dimension names for readability and they do not display as stored in the original \code{domin} object.
 #' @export
 
 print.domin <- function(x, ...) {
-
-cat("Overall Fit Statistic:     ", x[["Fit_Statistic_Overall"]], "\n")
-if (length(x[["Fit_Statistic_All_Subsets"]]) > 0) cat("All Subsets Fit Statistic: ", x[["Fit_Statistic_All_Subsets"]],"\n")
-  if (length(x[["Fit_Statistic_Constant_Model"]]) > 0) cat("Constant Model Fit Statistic: ", x[["Fit_Statistic_Constant_Model"]],"\n")
-cat("\n")
-cat("General Dominance Statistics:\n")
-Display_Std <- 
-    t(rbind(x[["General_Dominance"]], x[["Standardized"]], x[["Ranks"]]))
-dimnames(Display_Std) <- 
-    list(names(x[["Ranks"]]), c("General Dominance", "Standardized", "Ranks"))
-print(Display_Std)
-cat("\n")
-if (length(x[["Conditional_Dominance"]]>0)) {
-  cat("Conditional Dominance Statistics:\n")
-  colnames(x[["Conditional_Dominance"]]) <- 
-    paste("IVs:", 1:ncol(x[["Conditional_Dominance"]]))
-  print(x[["Conditional_Dominance"]])
+  
+  cat("Overall Fit Statistic:     ", x[["Fit_Statistic_Overall"]], "\n")
+  
+  if (length(x[["Fit_Statistic_All_Subsets"]]) > 0) 
+    cat("All Subsets Fit Statistic: ", x[["Fit_Statistic_All_Subsets"]], "\n")
+  
+  if (length(x[["Fit_Statistic_Constant_Model"]]) > 0) 
+    cat("Constant Model Fit Statistic: ", x[["Fit_Statistic_Constant_Model"]], "\n")
+  
   cat("\n")
-}
-if (length(x[["Complete_Dominance"]]>0)) {
+  
+  cat("General Dominance Statistics:\n")
+  
+  Display_Std <- 
+    t(rbind(x[["General_Dominance"]], x[["Standardized"]], x[["Ranks"]]))
+  
+  dimnames(Display_Std) <- 
+    list(names(x[["Ranks"]]), c("General Dominance", "Standardized", "Ranks"))
+  
+  print(Display_Std)
+  
+  cat("\n")
+  
+  if (length(x[["Conditional_Dominance"]] > 0)) {
+    
+    cat("Conditional Dominance Statistics:\n")
+    
+    colnames(x[["Conditional_Dominance"]]) <- 
+      paste("IVs:", 1:ncol(x[["Conditional_Dominance"]]))
+    
+    print(x[["Conditional_Dominance"]])
+    
+    cat("\n")
+    
+  }
+  
+  if (length(x[["Complete_Dominance"]] > 0)) {
+    
     cat("Complete Dominance Designations:\n")
+    
     colnames(x[["Complete_Dominance"]]) <- 
       gsub("^Dmnated_", "Dmnated?", colnames(x[["Complete_Dominance"]]))
+    
     rownames(x[["Complete_Dominance"]]) <- 
       gsub("^Dmnates_", "Dmnates?", rownames(x[["Complete_Dominance"]]))
+    
     print(x[["Complete_Dominance"]])
+    
     cat("\n")
-}
-if (length(x[["Subset_Details"]][["Sets"]])>0) {
+    
+  }
+  
+  if (length(x[["Strongest_Dominance"]] > 0)) {
+    
+    cat("Strongest Dominance Designations:\n")
+    
+    print(x[["StrongestDominance"]])
+    
+    cat("\n")
+    
+  }
+  
+  if (length(x[["Subset_Details"]][["Sets"]]) > 0) {
+    
     cat("Components of sets:\n")
+    
     for (set in 1:length(x[["Subset_Details"]][["Sets"]])) {
-        cat(paste0("set", set),":", x[["Subset_Details"]][["Sets"]][[set]], "\n")
+      
+      cat(paste0("set", set),":", x[["Subset_Details"]][["Sets"]][[set]], "\n")
+      
     }
+    
     cat("\n")
-}
-if (length(x[["Subset_Details"]][["All"]])>0) {
+    
+  }
+  
+  if (length(x[["Subset_Details"]][["All"]]) > 0) {
+    
     cat("All subsets variables:", x[["Subset_Details"]][["All"]])
-}
+    
+  }
+  
+  invisible(x)
+  
 }
 
+
+#' Summary method for \code{domin}
+#'
+#' Reports dominance designation results from the \code{domin} class object.
+#' @param object an object of class "domin".
+#' @param ... further arguments passed to or from other methods. Not used currently.
+#' @return The originally submitted "domin" object with an additional \code{Strongest_Dominance} element added.
+#' \describe{
+#'  \item{\code{Strongest_Dominance}}{Matrix comparing the independent variable in the first row to the independent variable in the third row.  The second row denotes the strongest designation.}
+#' }
+#' @details The summary method for class \code{domin} is used for obtaining the strongest dominance designations (i.e., general, conditional, or complete) among the independent variables.
+#' @export
+
+summary.domin <- function(object, ...) {
+  
+  if (length(object[["Strongest_Dominance"]]) == 0) {
+    
+    pairs <- utils::combn(names(object$General_Dominance), 2)
+    
+    pairs <- rbind(pairs[1,], rep("", times = ncol(pairs)), pairs[2,])
+    
+    location <- 0
+    
+    for (IV1 in 1:(length(object$General_Dominance) - 1)) {
+      
+      for (IV2 in (IV1+1):length(object$General_Dominance)) {
+        
+        location <- location + 1
+        
+        if (length(object[["Complete_Dominance"]] > 0)) {
+          
+          if (!is.na(object$Complete_Dominance[IV2, IV1])) {
+            pairs[2, location] <- 
+              ifelse(object$Complete_Dominance[IV2, IV1], 
+                     "completely dominates",
+                     "is completely dominated by")
+            
+            next
+            
+          }
+          
+        }
+        
+        if (length(object[["Conditional_Dominance"]] > 0)) {
+          
+          if (all(object$Conditional_Dominance[IV1,] > object$Conditional_Dominance[IV2,])) { 
+            
+            pairs[2, location] <- "conditionally dominates"
+            
+            next
+            
+          }
+          
+          else if (all(object$Conditional_Dominance[IV1,] < object$Conditional_Dominance[IV2,])) {
+            
+            pairs[2, location] <- "is conditionally dominated by"
+            
+            next
+            
+          }
+          
+        }
+        
+        pairs[2, location] <- 
+          ifelse(object$General_Dominance[[IV1]] > object$General_Dominance[[IV2]], 
+                 "generally dominates", 
+                 ifelse(object$General_Dominance[[IV1]] < object$General_Dominance[[IV2]],
+                        "is generally dominated by", 
+                        "has no dominance designation with"))
+        
+      }
+      
+    }
+    
+    rownames(pairs) <- rep("", times = 3)
+    
+    colnames(pairs) <- rep("", times = ncol(pairs))
+    
+    res <- append(object, list(Strongest_Dominance = pairs))
+    
+    class(res) <- c("domin", "list")
+    
+    return(res)
+    
+  }
+  
+  else return(object)
+  
+}
