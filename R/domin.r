@@ -552,9 +552,9 @@ print.domin <- function(x, ...) {
   
   if (length(x[["Strongest_Dominance"]] > 0)) {
     
-    cat("Strongest Dominance Designations:\n")
+    cat("Strongest Dominance Designations:")
     
-    print(x[["StrongestDominance"]])
+    print(x[["Strongest_Dominance"]])
     
     cat("\n")
     
