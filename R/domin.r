@@ -615,9 +615,9 @@ summary.domin <- function(object, ...) {
         
         if (length(object[["Complete_Dominance"]] > 0)) {
           
-          if (!is.na(object$Complete_Dominance[IV2, IV1])) {
+          if (!is.na(object$Complete_Dominance[IV1, IV2])) {
             pairs[2, location] <- 
-              ifelse(object$Complete_Dominance[IV2, IV1], 
+              ifelse(object$Complete_Dominance[IV1, IV2], 
                      "completely dominates",
                      "is completely dominated by")
             
