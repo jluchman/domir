@@ -164,9 +164,6 @@
 #'   data = mtcars, 
 #'   reverse = TRUE, consmodel = "1")
 
-# 0a] note - make fitstat arg accept called do_fitstat() a function ----
-# 0c] note - formula interfaces for all and sets? ----
-
 domin <- 
   function(formula_overall, reg, fitstat, sets = NULL, all = NULL, 
            conditional = TRUE, complete = TRUE, consmodel = NULL, reverse = FALSE, ...) {
@@ -174,19 +171,19 @@ domin <-
 # Initial exit/warning conditions ---- 
     
 if (!isa(formula_overall, "formula")) 
-  stop(paste(formula_overall, "is not a formula object.  Coerce it to formula before use in domin."))
+  stop(paste(formula_overall, "is not a 'formula' class object."))
     
 if (!is.list(fitstat)) 
-  stop("fitstat is not a list.  Please submit it as a list object.")
+  stop("fitstat is not a list.")
     
 if (length(sets) > 0 & !is.list(sets)) 
-  stop("sets is not a list.  Please submit it as a list object.")
+  stop("sets is not a list.")
     
 if (is.list(all)) 
   stop("all is a list.  Please submit it as a vector.")
   
 if (!attr(stats::terms(formula_overall), "response")) 
-    stop(paste(deparse(formula_overall), "missing a response.  Please supply a valid response."))
+    stop(paste(deparse(formula_overall), "missing a response."))
   
 if (any(attr(stats::terms(formula_overall), "order") > 1))
     warning(paste(deparse(formula_overall), "contains second or higher order terms. domin may not handle them correctly."))
@@ -592,7 +589,7 @@ print.domin <- function(x, ...) {
 #' @param ... further arguments passed to or from other methods. Not used currently.
 #' @return The originally submitted "domin" object with an additional \code{Strongest_Dominance} element added.
 #' \describe{
-#'  \item{\code{Strongest_Dominance}}{Matrix comparing the independent variable in the first row to the independent variable in the third row.  The second row denotes the strongest designation.}
+#'  \item{\code{Strongest_Dominance}}{Matrix comparing the independent variable in the first row to the independent variable in the third row.  The second row denotes the strongest designation between the two independent variables.}
 #' }
 #' @details The summary method for class \code{domin} is used for obtaining the strongest dominance designations (i.e., general, conditional, or complete) among the independent variables.
 #' @export

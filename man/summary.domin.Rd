@@ -14,7 +14,7 @@
 \value{
 The originally submitted "domin" object with an additional \code{Strongest_Dominance} element added.
 \describe{
-\item{\code{Strongest_Dominance}}{Matrix comparing the independent variable in the first row to the independent variable in the third row.  The second row denotes the strongest designation.}
+\item{\code{Strongest_Dominance}}{Matrix comparing the independent variable in the first row to the independent variable in the third row.  The second row denotes the strongest designation between the two independent variables.}
 }
 }
 \description{
