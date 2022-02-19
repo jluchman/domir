@@ -187,3 +187,11 @@ test_that("Test Reversed General Dominance Ranking", {
   expect_equal(test_obj4$Ranks, gen_rev_test
   )}
 )
+
+test_obj_nocdl <- domin(mpg ~ vs + cyl, "lm", list("summary", "r.squared"), 
+                  data = mtcars, sets = list(c("carb", "am")), conditional = FALSE)
+
+test_that("'Conditional is False' General Dominance Statistics", {
+  expect_equal(test_obj_nocdl$General_Dominance, test_obj$General_Dominance
+  )}
+)
