@@ -170,7 +170,7 @@ domin <-
     
 # Initial exit/warning conditions ---- 
     
-if (!isa(formula_overall, "formula")) 
+if (!inherits(formula_overall, "formula")) 
   stop(paste(formula_overall, "is not a 'formula' class object."))
     
 if (!is.list(fitstat)) 
