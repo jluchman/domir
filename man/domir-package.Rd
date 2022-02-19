@@ -27,5 +27,5 @@ See the \emph{vignettes} for a more extensive discussion of basic concepts for D
 }
 }
 \author{
-Joseph Luchman \email{jluchman_at_gmail_com}
+Joseph Luchman \email{jluchman@gmail_com}
 }
