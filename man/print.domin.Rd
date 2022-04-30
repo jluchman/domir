@@ -2,7 +2,9 @@
 % Please edit documentation in R/domin.r
 \name{print.domin}
 \alias{print.domin}
-\title{Print method for \code{domin}}
+\title{Print method for \code{domin}
+
+Reports formatted results from \code{domin} class object.}
 \usage{
 \method{print}{domin}(x, ...)
 }
@@ -15,6 +17,8 @@
 The "domin" object with altered column and row names for conditional and complete dominance results as displayed in the console.
 }
 \description{
+Print method for \code{domin}
+
 Reports formatted results from \code{domin} class object.
 }
 \details{

@@ -2,9 +2,40 @@
 % Please edit documentation in R/domin.r
 \name{domin}
 \alias{domin}
-\title{Dominance analysis supporting \code{formula}-based modeling functions}
+\alias{domin.formula}
+\alias{domin.Formula}
+\alias{domin.list}
+\title{Dominance analysis for multiple input types}
 \usage{
-domin(
+domin(formula_overall, ...)
+
+\method{domin}{formula}(
+  formula_overall,
+  reg,
+  fitstat,
+  sets = NULL,
+  all = NULL,
+  conditional = TRUE,
+  complete = TRUE,
+  consmodel = NULL,
+  reverse = FALSE,
+  ...
+)
+
+\method{domin}{Formula}(
+  formula_overall,
+  reg,
+  fitstat,
+  sets = NULL,
+  all = NULL,
+  conditional = TRUE,
+  complete = TRUE,
+  consmodel = NULL,
+  reverse = FALSE,
+  ...
+)
+
+\method{domin}{list}(
   formula_overall,
   reg,
   fitstat,
@@ -21,6 +52,8 @@ domin(
 \item{formula_overall}{An object of class \code{\link{formula}} or that can be coerced to class \code{formula} for use in the modeling function in \code{reg}.  The \code{\link{terms}} on the right hand side of this formula are used as separate entries to the dominance analysis.
 
 A valid \code{formula_overall} entry is necessary, even if only submitting entries in \code{sets}, to define a valid left hand side of the prediction equation (see examples).  The function called in \code{reg} must accept one or more responses on the left hand side.}
+
+\item{...}{Additional arguments passed to the function call in the \code{reg} argument.}
 
 \item{reg}{A function implementing the predictive (or "reg"ression) model called.
 
@@ -67,8 +100,6 @@ As such, this vector is used to set a baseline for the fit statistic when it is 
 \item{reverse}{Logical. If \code{TRUE} then standardized vector, ranks, and complete dominance Designations are reversed in their interpretation.
 
 This argument should be changed to \code{TRUE} if the fit statistic used decreases with better fit to the data (e.g., AIC, BIC).}
-
-\item{...}{Additional arguments passed to the function call in the \code{reg} argument.}
 }
 \value{
 Returns an object of \code{\link{class}} "domin".
@@ -87,7 +118,7 @@ An object of class "domin" is a list composed of the following elements:
 }
 }
 \description{
-Computes dominance statistics for predictive modeling functions that accept a \code{\link{formula}}.
+Computes dominance statistics for predictive modeling functions that accept a \code{\link{formula}}, \code{\link{Formula}}, or \code{list}.
 }
 \details{
 \code{domin} automates the computation of all possible combination of entries to the dominance analysis (DA), the creation of \code{formula} objects based on those entries, the modeling calls/fit statistic capture, and the computation of all the dominance statistics for the user.

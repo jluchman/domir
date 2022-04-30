@@ -2,7 +2,9 @@
 % Please edit documentation in R/domin.r
 \name{summary.domin}
 \alias{summary.domin}
-\title{Summary method for \code{domin}}
+\title{Summary method for \code{domin}
+
+Reports dominance designation results from the \code{domin} class object.}
 \usage{
 \method{summary}{domin}(object, ...)
 }
@@ -18,6 +20,8 @@ The originally submitted "domin" object with an additional \code{Strongest_Domin
 }
 }
 \description{
+Summary method for \code{domin}
+
 Reports dominance designation results from the \code{domin} class object.
 }
 \details{

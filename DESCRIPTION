@@ -1,6 +1,6 @@
 Package: domir
 Title: Tools to Support Relative Importance Analysis
-Version: 0.3.0
+Version: 0.3.0.9
 Date: 2022-2-19
 Authors@R: 
     person(given = "Joseph",
@@ -24,11 +24,12 @@ Imports:
     utils
 Suggests: 
     dominanceanalysis,
-    testthat (>= 3.0.0),
-    relaimpo,
-    yhat,
     knitr,
-    rmarkdown
+    performance,
+    relaimpo,
+    rmarkdown,
+    testthat (>= 3.0.0),
+    yhat
 License: GPL (>= 3)
 URL: https://github.com/jluchman/domir
 Encoding: UTF-8
