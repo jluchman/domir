@@ -1,7 +1,7 @@
 Package: domir
 Title: Tools to Support Relative Importance Analysis
-Version: 0.3.0
-Date: 2022-2-19
+Version: 0.3.1
+Date: 2022-4-30
 Authors@R: 
     person(given = "Joseph",
            family = "Luchman",
@@ -28,7 +28,8 @@ Suggests:
     relaimpo,
     yhat,
     knitr,
-    rmarkdown
+    rmarkdown,
+    tidyverse
 License: GPL (>= 3)
 URL: https://github.com/jluchman/domir
 Encoding: UTF-8

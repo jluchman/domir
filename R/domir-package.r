@@ -13,7 +13,7 @@
 #' @aliases domir
 #' @docType package
 #' @title Tools to Support Relative Importance Analysis
-#' @author Joseph Luchman \email{jluchman@gmail_com}
+#' @author Joseph Luchman \email{jluchman@gmail.com}
 #' @references
 #' \itemize{
 #' \item Azen, R., & Budescu, D. V. (2003). The dominance analysis approach for comparing predictors in multiple regression. Psychological Methods, 8(2), 129-148. doi:10.1037/1082-989X.8.2.129
