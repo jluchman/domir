@@ -23,7 +23,6 @@ Imports:
     stats,
     utils
 Suggests: 
-    dominanceanalysis,
     testthat (>= 3.0.0),
     relaimpo,
     yhat,
