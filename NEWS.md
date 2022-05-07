@@ -1,3 +1,9 @@
+# domir 0.3.2
+
+## bug fixes
+
+-   removing reference to `dominanceanalysis` package not on CRAN currently given request from CRAN maintainers and CRAN note.
+
 # domir 0.3.1
 
 ## visible
