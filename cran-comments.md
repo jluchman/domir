@@ -1,8 +1,8 @@
-## Minor version update: 0.3.1
+## Minor version update: 0.3.2
 
-This patch version update corrects warnings from R-devel checks from Linux platforms on CRAN related to: "domir-package.Rd:30: invalid email address: [jluchman\@gmail](mailto:jluchman@gmail){.email}\_com".
+This patch version update corrects the note from R-devel and R-patched checks on CRAN, along with a request from CRAN maintainers in the previous submission, related to: "Package suggested but not available for checking: 'dominanceanalysis'".
 
-In addition, this patch version update corrects the note from R-devel and R-patched checks on CRAN, along with a request from CRAN maintainers in the previous submission, related to: "Package suggested but not available for checking: 'dominanceanalysis'".
+This patch version update also corrects warnings from R-devel checks from Linux platforms on CRAN related to: "domir-package.Rd:30: invalid email address: [jluchman\@gmail](mailto:jluchman@gmail){.email}\_com" (completed in 0.3.1).
 
 Changes from version 0.3.0 also include:
 
