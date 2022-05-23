@@ -1,6 +1,6 @@
 Package: domir
 Title: Tools to Support Relative Importance Analysis
-Version: 0.3.0.9
+Version: 0.3.2.9
 Date: 2022-2-19
 Authors@R: 
     person(given = "Joseph",
@@ -11,7 +11,8 @@ Authors@R:
 Description: Provides tools that support relative importance analysis focusing 
     on dominance analysis.  Dominance analysis is a methodology for 
     determining the relative importance of predictors/features/independent
-    variables (Azen, R., & Budescu, D. V. (2003) <doi:10.1037/1082-989X.8.2.129>; 
+    variables 
+    (Azen, R., & Budescu, D. V. (2003) <doi:10.1037/1082-989X.8.2.129>; 
     Groemping, U. (2007) <doi:10.1198/000313007X188252>) 
     as well as parameter estimates (Luchman, J. N, Lei, X., & Kaplan, S. 
     (2020) <doi:10.47263/JASEM.4(2)02>). 
@@ -23,8 +24,8 @@ Imports:
     stats,
     utils
 Suggests: 
-    dominanceanalysis,
-    knitr,
+    knitr
+    parameters,
     performance,
     relaimpo,
     rmarkdown,
@@ -34,7 +35,7 @@ License: GPL (>= 3)
 URL: https://github.com/jluchman/domir
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
-RoxygenNote: 7.1.2
+RoxygenNote: 7.2.0
 Config/testthat/edition: 3
 VignetteBuilder: knitr
 Language: en-US

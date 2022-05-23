@@ -1,3 +1,11 @@
+# domir 1.0.0
+
+## visible
+* `domir` is now a generic function with S3 method dispatch based on the first argument renamed from `formula_overall` to `object2domin`
+  * Backward code compatibility with code assuming `domir` < 1.0 implemented
+  
+* Checks on form of 'formula'-classed objects removed
+
 # domir 0.3.0
 
 ## visible
@@ -52,7 +60,7 @@
 # domir 0.0.1
 
 ## bug fixes 
-* `Ensemble_Coordinator` that submitted factor #'s instead of text in R versions < 4
+* `Ensemble_Coordinator` that submitted factor numbers instead of text in R versions < 4.0
 
 # domir 0.0.0
 * initial working version of `domin`

@@ -2,11 +2,17 @@
 #'
 #' @name domin
 #'
-#' @description Computes dominance statistics for predictive modeling functions that accept a \code{\link{formula}}, \code{\link{Formula}}, or \code{list}.
+#' @description Computes dominance statistics for predictive modeling 
+#' functions that accept a `\link{formula}`, `\link{Formula}`, 
+#' or `\link{list}`.
 #' 
-#' @param formula_overall An object of class \code{\link{formula}} or that can be coerced to class \code{formula} for use in the modeling function in \code{reg}.  The \code{\link{terms}} on the right hand side of this formula are used as separate entries to the dominance analysis.
+#' @param object2domin An object of class `\link{formula}`, `\link{Formula}`, 
+#' or `\link{list}`.  The object submitted to the `object2domin` argument 
+#' will be used to determine the sub-models that will be used in the dominance 
+#' analysis.
+#' \code{\link{formula}} or that can be coerced to class \code{formula} for use in the modeling function in \code{reg}.  The \code{\link{terms}} on the right hand side of this formula are used as separate entries to the dominance analysis.
 #' 
-#' A valid \code{formula_overall} entry is necessary, even if only submitting entries in \code{sets}, to define a valid left hand side of the prediction equation (see examples).  The function called in \code{reg} must accept one or more responses on the left hand side.
+#' A valid \code{object2domin} entry is necessary, even if only submitting entries in \code{sets}, to define a valid left hand side of the prediction equation (see examples).  The function called in \code{reg} must accept one or more responses on the left hand side.
 #' @param reg A function implementing the predictive (or "reg"ression) model called. 
 #' 
 #' String function names (e.g., "lm"), function names (e.g., \code{lm}), or anonymous functions (e.g., \code{function(x) lm(x)}) are acceptable entries.  This argument's contents are passed to \code{\link{do.call}} and thus any function call \code{do.call} would accept is valid.
@@ -25,7 +31,7 @@
 #' The fit statistic produced must be scalar valued (i.e., vector of length 1).
 #' @param sets A list with each element comprised of vectors containing variable/factor names or \code{formula} coercible strings. 
 #' 
-#' Each separate list element-vector in \code{sets} is concatenated (when the list element-vector is of length > 1) and used as an entry to the dominance analysis along with the terms in \code{formula_overall}.
+#' Each separate list element-vector in \code{sets} is concatenated (when the list element-vector is of length > 1) and used as an entry to the dominance analysis along with the terms in \code{object2domin}.
 #' @param all A vector of variable/factor names or \code{formula} coercible strings.  The entries in this vector are concatenated (when of length > 1) but are not used in the dominance analysis.  Rather the value of the fit statistic associated with these terms is removed from the dominance analysis; this vector is used like a set of covariates.
 #' 
 #' The entries in \code{all} are removed from and considered an additional component that explains the fit metric.  As a result, the general dominance statistics will no longer sum to the overall fit metric and the standardized vector will no longer sum to 1.
@@ -45,7 +51,8 @@
 #' @param reverse Logical. If \code{TRUE} then standardized vector, ranks, and complete dominance Designations are reversed in their interpretation.  
 #' 
 #' This argument should be changed to \code{TRUE} if the fit statistic used decreases with better fit to the data (e.g., AIC, BIC). 
-#' @param ... Additional arguments passed to the function call in the \code{reg} argument.
+#' @param ... Passes arguments to other methods. Depreciated for `formula` method.
+#' @param formula_overall Defunct.
 #'
 #' @return Returns an object of \code{\link{class}} "domin".
 #' An object of class "domin" is a list composed of the following elements:
@@ -66,7 +73,7 @@
 #' 
 #' \code{domin} accepts only a "deconstructed" set of inputs and "reconstructs" them prior to formulating a coherent predictive modeling call.
 #' 
-#' One specific instance of this deconstruction is in generating the number of entries to the DA. The number of entries is taken as all the \code{terms} from \code{formula_overall} and the separate list element vectors from \code{sets}. The entries themselves are concatenated into a single formula, combined with the entries in \code{all}, and submitted to the predictive modeling function in \code{reg}.  Each different combination of entries to the DA forms a different \code{formula} and thus a different model to estimate.
+#' One specific instance of this deconstruction is in generating the number of entries to the DA. The number of entries is taken as all the \code{terms} from \code{object2domin} and the separate list element vectors from \code{sets}. The entries themselves are concatenated into a single formula, combined with the entries in \code{all}, and submitted to the predictive modeling function in \code{reg}.  Each different combination of entries to the DA forms a different \code{formula} and thus a different model to estimate.
 #' 
 #' For example, consider this \code{domin} call:
 #' 
@@ -84,7 +91,7 @@
 #' \item x1, x2, x3, x4
 #' }
 #' 
-#' \code{domin} parses \code{formula_overall} to obtain all the terms in it and combines them with \code{sets}.  When parsing \code{formula_overall}, only the processing that is available in the \code{stats} package is applied.  Note that \code{domin} is not programmed to process terms of order > 1 (i.e., interactions/products) appropriately (i.e., only include in the presence of lower order component terms).
+#' \code{domin} parses \code{object2domin} to obtain all the terms in it and combines them with \code{sets}.  When parsing \code{object2domin}, only the processing that is available in the \code{stats} package is applied.  Note that \code{domin} is not programmed to process terms of order > 1 (i.e., interactions/products) appropriately (i.e., only include in the presence of lower order component terms).
 #' 
 #' From these combinations, the predictive models are constructed and called. The predictive model call includes the entries in \code{all}, applies the appropriate formula, and reconstructs the function itself. The seven combinations above imply the following series of predictive model calls:
 #' 
@@ -98,7 +105,7 @@
 #' \item \code{lm(y ~ x1 + x2 + x3 + x4 + c1 + c2, data = mydata})
 #' }
 #'
-#' It is possible to use a \code{domin} with only sets (i.e., no IVs in \code{formula_overall}; see examples below). There must be at least two entries to the DA for \code{domin} to run.
+#' It is possible to use a \code{domin} with only sets (i.e., no IVs in \code{object2domin}; see examples below). There must be at least two entries to the DA for \code{domin} to run.
 #'
 #' All the called predictive models are submitted to the fit extractor function implied by the entries in \code{fitstat}. Again applying the example above, all seven predictive models' objects would be individually passed as follows:
 #' 
@@ -166,153 +173,175 @@
 #'   data = mtcars, 
 #'   reverse = TRUE, consmodel = "1")
 
-domin <- function(formula_overall, ...) {
+domin <- function(...) {
   
-  UseMethod("domin")
+  ## !! allow sets to "be" object2domin !! ----
+  
+  # is call likely < 1.0 formatted? if so, use 'old_method'
+  if ( (all(...names() %in% c("formula_overall", "reg", "fitstat")) && 
+        !is.null(...names())) ||
+       (all(isa(..1, "formula") && 
+            (..2[[1]] != "model_dmn") && 
+            (..3[[1]] != "metric_dmn"))) ) {
+    
+    object2domin <- vector()
+    
+    class(object2domin) <- "old_method"
+    
+  }
+  
+  # does call use named argument?
+  else if (any(...names() %in% "object2domin")) 
+    object2domin <- ...elt(which(...names() == "object2domin"))
+  
+  # otherwise assume positional argument
+  else object2domin <- ..1
+  
+  UseMethod("domin", object2domin)
   
 }
 
 #' @rdname domin
 #' @exportS3Method 
-domin.formula <- function(formula_overall, reg, fitstat, sets = NULL, all = NULL, 
-                          conditional = TRUE, complete = TRUE, consmodel = NULL, reverse = FALSE, ...) {
+domin.formula <- function(
+    object2domin, 
+    model, metric, sets = NULL, all = NULL, 
+    conditional = TRUE, complete = TRUE, constant = NULL, 
+    reverse = FALSE) {
   
   # Initial processing with exit/warning conditions ---- 
-  reg_list <- reg
-  if (!is.list(reg)) { # depreciated - backward compatibility
-    
-    reg_list <- list(.fct = reg, ...) 
-    
-    warning("Submitting a function directly to reg is depreciated as of domin version 0.4.0.\n", 
-    "Use the reg_control() function to submit the modeling function and arguments to domin.", call. = FALSE)
-    
-  }
+  if ((model)[[1]] != "model_dmn") 
+    stop("'model' argument requires the use of model_dmn().", call.= FALSE)
   
-  else if (is.list(reg) && length(list(...)) > 0) {
-    stop("Additional arguments, \"...\", to the modeling function is not allowed while using reg_control().\n", 
-         "Submit addiional arguments to the modeling function in reg_control().", call. = FALSE)
-  }
+  if ((metric)[[1]] != "metric_dmn") 
+    stop("fitstat argument must use metric_dmn() function.", call. = FALSE)
   
-  # here1 ----
-  # focus on checks to `reg_control` first ---
-  # disallow using reg_control() and `...`  <- kind of done above.  
-  # check the list in `reg` is a call to `reg_control`
-  # todo - add in fitstat_control()
-  
-  print("reg_list")
-  print(reg_list) ## ~~
-  # here1 ----
-  
-  if (!is.list(fitstat)) 
-    stop("fitstat is not a list.")
-  
-  if (length(sets) > 0 & !is.list(sets)) 
-    stop("sets is not a list.")
-  
-  if (is.list(all)) 
-    stop("all is a list.  Please submit it as a vector.")
-  
-  if (!attr(stats::terms(formula_overall), "response")) 
-    stop(paste(deparse(formula_overall), "missing a response."))
-  
-  if (any(attr(stats::terms(formula_overall), "order") > 1))
-    warning(paste(deparse(formula_overall), "contains second or higher order terms. domin may not handle them correctly."))
-  
-  if (length(fitstat) < 2) 
-    stop("fitstat requires at least two elements.")
-  
-  # Process variable lists ----
+  # Process formula ----
+  # obtain IV name vector from `object2domin`
   Indep_Vars <- 
-    attr(stats::terms(formula_overall), "term.labels") # obtain IV name vector from `formula_overall`
+    attr(stats::terms(object2domin), "term.labels") 
   
-  intercept <- as.logical(attr(stats::terms(formula_overall), "intercept") ) # does the model have an intercept?  Needed for `reformulate`
+  # Intercept flag
+  Intercept <- as.logical(attr(stats::terms(object2domin), "intercept") ) 
   
-  if (length(sets) > 0) { # if there are sets...
-    
-    set_aggregated <- 
-      sapply(sets, paste0, collapse=" + ") # ...paste together IV names from each set in `formula` format as a vector...
-    
-    Indep_Vars <- 
-      append(Indep_Vars, set_aggregated) # ...append sets vector to end of IV name vector
-    
-  }
-  
+  # Obtain DV (if one is specified)
   Dep_Var <- 
-    attr(stats::terms(formula_overall), "variables")[[2]] # pull out DV name from `formula_overall`
+    ifelse( 
+      attr(stats::terms(object2domin), "response") != 0,
+      attr(
+        stats::terms(object2domin), "variables"
+      )[[attr(stats::terms(object2domin), "response") + 1]]
+      , 
+      NULL
+    )
   
-  Total_Indep_Vars <- length(Indep_Vars) # count number of IVs and sets in model
+  # Total IV count
+  Total_Indep_Vars <- length(Indep_Vars)
   
-  ## IV-based exit conditions ----
+  # Too few IVs error
+    # !! this should be later after sets are defined ... !! ----
   if (Total_Indep_Vars < 2) 
-    stop(paste("Total of", Total_Indep_Vars, "independent variables or sets. At least 2 needed for useful dominance analysis."))
+    stop(paste("Total of", Total_Indep_Vars, 
+               "independent variables or sets. At least 2 needed for ", 
+               "useful dominance analysis."))
+  
+  # Process sets ----
+  #TBD
+  
+  # Process all ----
+  #TBD
+  
+  # Process constant ----
+  #TBD - note consmodel depeciation
   
   # Define function to call regression models ----
-
-  doModel_Fit <- function(Indep_Var_Combin_lgl, Indep_Vars, Dep_Var, # assumes receipt of a logical matrix indicating which IVs to use as well as IV list and DV
-                          reg, fitstat, all, consmodel, intercept, ...) { # also regression function, fitstat function, with all and consmodel arguments along with an intercept argument for reformulate
-
+  
+  # assumes receipt of a logical matrix indicating which IVs to use as 
+  # well as IV list and DV also regression function, metric function, 
+  # with all and consmodel arguments along with an intercept argument 
+  # for reformulate
+  doModel_Fit <- 
+    function(Indep_Var_Combin_lgl, Indep_Vars, Dep_Var, 
+             reg, fitstat, all, consmodel, intercept, ...) { 
+      
     Indep_Var_Combination <- Indep_Vars[Indep_Var_Combin_lgl] # select vector of IVs
-
+    
     formula_to_use <-
       stats::reformulate(c(Indep_Var_Combination, all, consmodel), # 'reformulate' formula to submit to model
                          response = Dep_Var, intercept = intercept)
-
+    
     Model_Result <- # capture the model object ...
       list( # ... as an element of a list, needed for next step calling fit statistic function ...
         do.call(reg, list(formula_to_use, ...) ) # ... from `do.call` invoking the modeling function with formula and all other arguments as the ellipsis
       )
-
-    if (length(fitstat) > 2) # if there are additional arguments to pass to the fitstat function, indicated by having length of > 2 for this list...
+    
+    # if there are additional arguments to pass to the fitstat function, indicated by having length of > 2 for this list and append these additional arguments to 'Model_Result' for coming `do.call`
+    if (length(fitstat) > 2) 
       Model_Result <-
-      append(Model_Result, fitstat[3:length(fitstat)]) # ...append these additional arguments to 'Model_Result' for coming `do.call`
-
-    Fit_Value <- do.call(fitstat[[1]], Model_Result) # use first entry of `fitstat` as fitstat function name, use `Model_Result` as results to submit to it
-
-    return( Fit_Value[[ fitstat[[2]] ]] ) # ... use second, necessarily named, argument of `fitstat` to select the result of `Fit_Value` to return
-
+      append(Model_Result, fitstat[3:length(fitstat)])
+    
+    # use first entry of `fitstat` as fitstat function name, use `Model_Result` as results to submit to it
+    Fit_Value <- do.call(eval(fitstat[[1]]), Model_Result) 
+    
+    # ... use second, necessarily named, argument of `fitstat` to select the result of `Fit_Value` to return
+    return( do.call(eval(fitstat[[2]]), list(Fit_Value)) )
+    
   }
   # here2 ----
   ## ~~ still need to build in the .lnk_fct function to doModel_Fit()
-  ## ~~ will still need to add in fitstat_control() 
-  reg_list_reduced <- reg_list[which(!(names(reg_list) %in% c(".fct", ".lnk_fct", ".cll")))]
+  
+  # keep only the '...' arguments removes '.fct' and '.lnk_fct' from 
+  # list removes function name (first entry in list)
+  reg_list_reduced <- (
+    model[which(!(names(model) %in% c(".fct", ".lnk_fct")))]
+  )[-1]
   
   component_list <- 
     list(fitting_fun = doModel_Fit, 
          args_list = 
            append(list(Indep_Vars = Indep_Vars, Dep_Var = deparse(Dep_Var), 
-                       reg = reg_list$.fct, fitstat = fitstat, all = all, 
-                       consmodel = consmodel, intercept = intercept), reg_list_reduced), 
+                       reg = model$.fct, fitstat = metric[-1], all = all, 
+                       consmodel = constant, intercept = Intercept), reg_list_reduced), 
          cons_args = 
            append(list(Indep_Vars = Indep_Vars, Dep_Var = deparse(Dep_Var), 
-                       reg = reg_list$.fct, fitstat = fitstat, all = NULL, 
-                       consmodel = consmodel, intercept = intercept), reg_list_reduced),
+                       reg = model$.fct, fitstat = metric[-1], all = NULL, 
+                       consmodel = constant, intercept = Intercept), reg_list_reduced),
          Total_Combination_N = Total_Indep_Vars) # this should include `doModel_fit` and arguments to it -- only pass on args directly relevant to `domme` all other stuff should be passed as encapsulated arguments that `fitting_fun` can 
   
-  #print("args_list")
-  #print(component_list$args_list)
   # here2 ----
   
   return_list <- domme(component_list, conditional, complete, reverse)
- 
+  
   # Finalize returned values and attributes ----
-
+  
   if (length(sets) == 0 ) IV_Labels <-
-    attr(stats::terms(formula_overall), "term.labels")
+    attr(stats::terms(object2domin), "term.labels")
   else IV_Labels <-
-    c( attr(stats::terms(formula_overall), "term.labels"),
+    c( attr(stats::terms(object2domin), "term.labels"),
        paste0("set", 1:length(sets)) ) # names for returned values
-
+  
   names(return_list$General_Dominance) <- IV_Labels
   names(return_list$General_Dominance_Ranks) <- IV_Labels
   if (conditional)
     dimnames(return_list$Conditional_Dominance) <- list(IV_Labels, paste0("IVs_", 1:length(Indep_Vars)))
   if (complete)
     dimnames(return_list$Complete_Dominance) <- list(paste0("Dmnates_", IV_Labels),  paste0("Dmnated_", IV_Labels))
-
-  if (reverse == FALSE) # Standardized if fitstat increases...
-    Standardized <- return_list$General_Dominance/(return_list$FitStat - ifelse(length(return_list$Cons_Result) > 0, return_list$Cons_Result, 0)) # ...then use normal standardization...
-  else Standardized <- -return_list$General_Dominance/-(return_list$FitStat - ifelse(length(return_list$Cons_Result) > 0, return_list$Cons_Result, 0)) # ...otherwise reverse the general dominance stats to standardize
-
+  
+  if (reverse == FALSE) # Standardized if metric increases...
+    Standardized <- 
+    return_list$General_Dominance / 
+    (
+      return_list$FitStat - 
+        ifelse(length(return_list$Cons_Result) > 0, return_list$Cons_Result, 0)
+      ) # ...then use normal standardization...
+  
+  else Standardized <- 
+    -return_list$General_Dominance / 
+    -(
+      return_list$FitStat - 
+        ifelse(length(return_list$Cons_Result) > 0, return_list$Cons_Result, 0)
+      ) # ...otherwise reverse the general dominance stats to standardize
+  
   return_list <- list(
     "General_Dominance" = return_list$General_Dominance,
     "Standardized" = Standardized,
@@ -320,35 +349,40 @@ domin.formula <- function(formula_overall, reg, fitstat, sets = NULL, all = NULL
     "Conditional_Dominance" = return_list$Conditional_Dominance,
     "Complete_Dominance" = return_list$Complete_Dominance,
     "Fit_Statistic_Overall" = return_list$FitStat,
-    "Fit_Statistic_All_Subsets" = return_list$All_Result - ifelse(is.null(return_list$Cons_Result), 0, return_list$Cons_Result),
+    "Fit_Statistic_All_Subsets" = 
+      return_list$All_Result - 
+      ifelse(is.null(return_list$Cons_Result), 0, return_list$Cons_Result),
     "Fit_Statistic_Constant_Model" = return_list$Cons_Result,
     "Call" = match.call(),
     "Subset_Details" = list(
-      "Full_Model" = stats::reformulate(c(Indep_Vars, all, consmodel), response = Dep_Var, intercept = intercept),
-      "Formula" = attr(stats::terms(formula_overall), "term.labels"),
+      "Full_Model" = 
+        stats::reformulate(c(Indep_Vars, all, constant), 
+                           response = Dep_Var, intercept = Intercept),
+      "Formula" = attr(stats::terms(object2domin), "term.labels"),
       "All" = all,
       "Sets" = sets,
-      "Constant" = consmodel
+      "Constant" = constant
     )
   )
-
-  class(return_list) <- c("domin", "list") # apply 'domin' type for S3 method dispatch - list is alternative
-
+  
+  # apply class 'domin'
+  class(return_list) <- c("domin") 
+  
   return(return_list)
   
 }
 
 #' @rdname domin
 #' @exportS3Method 
-domin.Formula <- function(formula_overall, reg, fitstat, sets = NULL, all = NULL, 
-                          conditional = TRUE, complete = TRUE, consmodel = NULL, reverse = FALSE, ...) {
+domin.Formula <- function(object2domin, reg, fitstat, sets = NULL, all = NULL, 
+                          conditional = TRUE, complete = TRUE, consmodel = NULL, reverse = FALSE) {
   
 }
 
 #' @rdname domin
 #' @exportS3Method 
-domin.list <- function(formula_overall, reg, fitstat, sets = NULL, all = NULL, 
-                          conditional = TRUE, complete = TRUE, consmodel = NULL, reverse = FALSE, ...) {
+domin.list <- function(object2domin, reg, fitstat, sets = NULL, all = NULL, 
+                       conditional = TRUE, complete = TRUE, consmodel = NULL, reverse = FALSE) {
   
 }
 
