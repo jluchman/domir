@@ -41,7 +41,7 @@
 #' @param complete Logical.  If \code{FALSE} then complete dominance matrix is not computed.
 #' 
 #' If complete dominance is not desired as an importance criterion, avoiding computing complete dominance designations can save computation time.
-#' @param consmodel A vector of variable/factor names, \code{formula} coercible strings, or other formula terms (i.e., 1 to indicate an intercept).  The entries in this vector are concatenated (when of length > 1) and, like the entries of \code{all}, are not used in the dominance analysis; this vector is used as an adjustment to the baseline value of the overall fit statistic.  
+#' @param adjust A vector of variable/factor names, \code{formula} coercible strings, or other formula terms (i.e., 1 to indicate an intercept).  The entries in this vector are concatenated (when of length > 1) and, like the entries of \code{all}, are not used in the dominance analysis; this vector is used as an adjustment to the baseline value of the overall fit statistic.  
 #' 
 #' The use of \code{consmodel} changes the interpretation of the the general and conditional dominance statistics.  When \code{consmodel} is used, the general and conditional dominance statistics are reflect the difference between the constant model and the overall fit statistic values.
 #'  
@@ -175,14 +175,13 @@
 
 domin <- function(...) {
   
-  ## !! allow sets to "be" object2domin !! ----
-  
   # is call likely < 1.0 formatted? if so, use 'old_method'
   if ( (all(...names() %in% c("formula_overall", "reg", "fitstat")) && 
         !is.null(...names())) ||
        (all(isa(..1, "formula") && 
-            (..2[[1]] != "model_dmn") && 
-            (..3[[1]] != "metric_dmn"))) ) {
+            (length(..2) == 1 && (is.character(..2) | is.function(..2))) &&
+            (is.function(..3[[1]]) | 
+             (is.character(..3[[1]]) && (..3[[1]] != "metric_dmn"))))) ) {
     
     object2domin <- vector()
     
@@ -205,54 +204,125 @@ domin <- function(...) {
 #' @exportS3Method 
 domin.formula <- function(
     object2domin, 
-    model, metric, sets = NULL, all = NULL, 
-    conditional = TRUE, complete = TRUE, constant = NULL, 
-    reverse = FALSE) {
+    model, metric, 
+    sets = NULL, all = NULL, adjust = NULL, 
+    conditional = TRUE, complete = TRUE, reverse = FALSE) {
   
-  # Initial processing with exit/warning conditions ---- 
   if ((model)[[1]] != "model_dmn") 
     stop("'model' argument requires the use of model_dmn().", call.= FALSE)
   
   if ((metric)[[1]] != "metric_dmn") 
-    stop("fitstat argument must use metric_dmn() function.", call. = FALSE)
+    stop("'metric' argument requiresthe use of metric_dmn().", call. = FALSE)
   
   # Process formula ----
   # obtain IV name vector from `object2domin`
-  Indep_Vars <- 
-    attr(stats::terms(object2domin), "term.labels") 
+  Indep_Vars <- attr(stats::terms(object2domin), "term.labels") 
   
   # Intercept flag
   Intercept <- as.logical(attr(stats::terms(object2domin), "intercept") ) 
   
-  # Obtain DV (if one is specified)
+  # Obtain DV (if one is included)
   Dep_Var <- 
-    ifelse( 
-      attr(stats::terms(object2domin), "response") != 0,
-      attr(
-        stats::terms(object2domin), "variables"
-      )[[attr(stats::terms(object2domin), "response") + 1]]
-      , 
-      NULL
+    switch(sign(attr(stats::terms(object2domin), "response")) + 1,
+           NULL, 
+           attr(
+             stats::terms(object2domin), "variables"
+           )[[attr(stats::terms(object2domin), "response") + 1]]
     )
   
-  # Total IV count
-  Total_Indep_Vars <- length(Indep_Vars)
-  
-  # Too few IVs error
-    # !! this should be later after sets are defined ... !! ----
-  if (Total_Indep_Vars < 2) 
-    stop(paste("Total of", Total_Indep_Vars, 
-               "independent variables or sets. At least 2 needed for ", 
-               "useful dominance analysis."))
-  
   # Process sets ----
-  #TBD
+  if (!is.null(sets)) {
+
+    if (!is.list(sets)) {
+      stop("'sets' argument must be submitted as list.", call. = FALSE)
+    }
+    
+    if (!all(sapply(sets, isa, "formula"))) {
+      
+      elements_not_formula <- 
+        paste(which((!sapply(sets, inherits, "formula"))), 
+              collapse = " ")
+      
+      stop("Each element of list in 'sets' must be a formula.\n", 
+           "Elements ", elements_not_formula, 
+           " are of different class.", call. = FALSE)
+    }
+    
+    if (any(sapply(sets, function(x) attr(stats::terms(x), "response")==1))) {
+      
+      elements_has_response <- 
+        paste(which(sapply(sets, 
+                           function(x) attr(terms(x), "response")) > 0 ), 
+              collapse = " ")
+      
+      stop("Formulas in 'sets' argument must not have ",
+      "responses/left hand sides.\n",
+      "Elements ", elements_has_response, " have responses.", call. = FALSE)
+    }
+    
+    # gather IVs from each set
+    sets_processed <- 
+      lapply(sets, 
+             function(x) attr(stats::terms(x), "term.labels"))
+    
+    # remove IVs from `Indep_Vars` list if in `sets`
+    set_remove_loc <- 
+      unlist(lapply(sets_processed, 
+                    function(x) which(Indep_Vars %in% x)))
+    
+    if (length(set_remove_loc) != length(unlist(sets_processed))) {
+      
+      wrong_set_terms <- 
+        paste(
+          unlist(sets_processed)[
+            which(!(unlist(sets_processed) %in% 
+                      Indep_Vars))], 
+          collapse = " ")
+      
+      stop("Terms ", wrong_set_terms,
+          " in 'sets' argument do not match any independent variables ", 
+          "in formula.", 
+          call. = FALSE)
+    }
+    
+    Indep_Vars <- Indep_Vars[-set_remove_loc]
+    
+    # apply names to sets
+    if (!is.null(names(sets)))    
+      set_names <- names(sets)
+    else set_names <- paste0("set", 1:length(sets))
+    
+    missing_set_names <- which(set_names == "")
+    
+    if (length(missing_set_names) > 0)
+      set_names[missing_set_names] <- paste0("set", missing_set_names)
+    
+    if (any(set_names %in% Indep_Vars)) {
+      repeat_names <- set_names[which(set_names %in% Indep_Vars)]
+      
+      stop("Set names ",
+        paste(repeat_names, collapse = " "), 
+        " are also the names of indiviual independent variables.\n",
+        "Please rename these sets.", call. = FALSE)
+    }
+    
+  }
+  
+  else sets_processed <- NULL
+  
+  # Total subsetors count
+  Total_Indep_Vars <- length(Indep_Vars) + length(sets_processed)
+  
+  # Too few subsetors error
+  if (Total_Indep_Vars < 2) 
+    stop("At least two independent variables or sets needed for ", 
+               "a dominance analysis.", call. = FALSE)
   
   # Process all ----
   #TBD
   
-  # Process constant ----
-  #TBD - note consmodel depeciation
+  # Process adjust ----
+  #TBD - note consmodel argument depreciation
   
   # Define function to call regression models ----
   
@@ -262,17 +332,20 @@ domin.formula <- function(
   # for reformulate
   doModel_Fit <- 
     function(Indep_Var_Combin_lgl, Indep_Vars, Dep_Var, 
-             reg, fitstat, all, consmodel, intercept, ...) { 
+             reg, fitstat, all, consmodel, intercept, link, ...) { 
       
-    Indep_Var_Combination <- Indep_Vars[Indep_Var_Combin_lgl] # select vector of IVs
+    Indep_Var_Combination <- unlist(Indep_Vars[Indep_Var_Combin_lgl]) # select vector of IVs
     
     formula_to_use <-
       stats::reformulate(c(Indep_Var_Combination, all, consmodel), # 'reformulate' formula to submit to model
                          response = Dep_Var, intercept = intercept)
     
+    # apply linking function to adjust formula to a different input format
+    if (!is.null(link)) formula_to_use <- do.call(link, list(formula_to_use))
+    
     Model_Result <- # capture the model object ...
       list( # ... as an element of a list, needed for next step calling fit statistic function ...
-        do.call(reg, list(formula_to_use, ...) ) # ... from `do.call` invoking the modeling function with formula and all other arguments as the ellipsis
+        do.call(reg, append(formula_to_use, list(...)) ) # ... from `do.call` invoking the modeling function with formula and all other arguments as the ellipsis
       )
     
     # if there are additional arguments to pass to the fitstat function, indicated by having length of > 2 for this list and append these additional arguments to 'Model_Result' for coming `do.call`
@@ -287,8 +360,6 @@ domin.formula <- function(
     return( do.call(eval(fitstat[[2]]), list(Fit_Value)) )
     
   }
-  # here2 ----
-  ## ~~ still need to build in the .lnk_fct function to doModel_Fit()
   
   # keep only the '...' arguments removes '.fct' and '.lnk_fct' from 
   # list removes function name (first entry in list)
@@ -299,33 +370,36 @@ domin.formula <- function(
   component_list <- 
     list(fitting_fun = doModel_Fit, 
          args_list = 
-           append(list(Indep_Vars = Indep_Vars, Dep_Var = deparse(Dep_Var), 
+           append(list(Indep_Vars = append(Indep_Vars, sets_processed), 
+                       Dep_Var = deparse(Dep_Var), #this has to be optional - does null deparse right?
                        reg = model$.fct, fitstat = metric[-1], all = all, 
-                       consmodel = constant, intercept = Intercept), reg_list_reduced), 
+                       consmodel = adjust, intercept = Intercept, link = model$.lnk_fct), reg_list_reduced), 
          cons_args = 
-           append(list(Indep_Vars = Indep_Vars, Dep_Var = deparse(Dep_Var), 
+           append(list(Indep_Vars = Indep_Vars, 
+                       Dep_Var = deparse(Dep_Var), #this has to be optional - does null deparse right?
                        reg = model$.fct, fitstat = metric[-1], all = NULL, 
-                       consmodel = constant, intercept = Intercept), reg_list_reduced),
+                       consmodel = adjust, intercept = Intercept, link = model$.lnk_fct), reg_list_reduced),
          Total_Combination_N = Total_Indep_Vars) # this should include `doModel_fit` and arguments to it -- only pass on args directly relevant to `domme` all other stuff should be passed as encapsulated arguments that `fitting_fun` can 
-  
-  # here2 ----
   
   return_list <- domme(component_list, conditional, complete, reverse)
   
   # Finalize returned values and attributes ----
   
-  if (length(sets) == 0 ) IV_Labels <-
-    attr(stats::terms(object2domin), "term.labels")
-  else IV_Labels <-
-    c( attr(stats::terms(object2domin), "term.labels"),
-       paste0("set", 1:length(sets)) ) # names for returned values
+  if (is.null(sets)) IV_Labels <- Indep_Vars
+  else IV_Labels <- c(Indep_Vars, set_names)
   
   names(return_list$General_Dominance) <- IV_Labels
   names(return_list$General_Dominance_Ranks) <- IV_Labels
+  
   if (conditional)
-    dimnames(return_list$Conditional_Dominance) <- list(IV_Labels, paste0("IVs_", 1:length(Indep_Vars)))
+    dimnames(return_list$Conditional_Dominance) <- 
+    list(names(return_list$General_Dominance), 
+         paste0("IVs_", 1:length(return_list$General_Dominance)))
+  
   if (complete)
-    dimnames(return_list$Complete_Dominance) <- list(paste0("Dmnates_", IV_Labels),  paste0("Dmnated_", IV_Labels))
+    dimnames(return_list$Complete_Dominance) <- 
+    list(paste0("Dmnates_", names(return_list$General_Dominance)),  
+         paste0("Dmnated_", names(return_list$General_Dominance)))
   
   if (reverse == FALSE) # Standardized if metric increases...
     Standardized <- 
@@ -353,16 +427,16 @@ domin.formula <- function(
       return_list$All_Result - 
       ifelse(is.null(return_list$Cons_Result), 0, return_list$Cons_Result),
     "Fit_Statistic_Constant_Model" = return_list$Cons_Result,
-    "Call" = match.call(),
-    "Subset_Details" = list(
-      "Full_Model" = 
-        stats::reformulate(c(Indep_Vars, all, constant), 
-                           response = Dep_Var, intercept = Intercept),
-      "Formula" = attr(stats::terms(object2domin), "term.labels"),
-      "All" = all,
-      "Sets" = sets,
-      "Constant" = constant
-    )
+    "Call" = match.call() #,
+    # "Subset_Details" = list(
+    #   "Full_Model" = 
+    #     stats::reformulate(c(Indep_Vars, all, adjust), 
+    #                        response = Dep_Var, intercept = Intercept),
+    #   "Formula" = attr(stats::terms(object2domin), "term.labels"),
+    #   "All" = all,
+    #   "Sets" = sets,
+    #   "Constant" = adjust
+    # )
   )
   
   # apply class 'domin'
@@ -466,25 +540,25 @@ print.domin <- function(x, ...) {
     
   }
   
-  if (length(x[["Subset_Details"]][["Sets"]]) > 0) {
-    
-    cat("Components of sets:\n")
-    
-    for (set in 1:length(x[["Subset_Details"]][["Sets"]])) {
-      
-      cat(paste0("set", set),":", x[["Subset_Details"]][["Sets"]][[set]], "\n")
-      
-    }
-    
-    cat("\n")
-    
-  }
+  # if (length(x[["Subset_Details"]][["Sets"]]) > 0) {
+  # 
+  #   cat("Components of sets:\n")
+  # 
+  #   for (set in 1:length(x[["Subset_Details"]][["Sets"]])) {
+  # 
+  #     cat(paste0("set", set),":", deparse(x[["Subset_Details"]][["Sets"]][[set]]), "\n")
+  # 
+  #   }
+  # 
+  #   cat("\n")
+  # 
+  # }
   
-  if (length(x[["Subset_Details"]][["All"]]) > 0) {
-    
-    cat("All subsets variables:", x[["Subset_Details"]][["All"]])
-    
-  }
+  # if (length(x[["Subset_Details"]][["All"]]) > 0) {
+  #   
+  #   cat("All subsets variables:", x[["Subset_Details"]][["All"]])
+  #   
+  # }
   
   invisible(x)
   

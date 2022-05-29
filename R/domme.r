@@ -19,8 +19,11 @@ domme <- function(component_list, conditional, complete, reverse) {
   
   if (length(component_list$args_list$consmodel) > 0) { # if there are entries in consmodel...
     
-    FitStat_Adjustment <- Cons_Result <- 
-      do.call(component_list$fitting_fun, append(x = list(Indep_Var_Combin_lgl  = NULL), values = component_list$cons_args))# ...obtain their fitstat' value using `doModel_Fit()`
+    FitStat_Adjustment <- 
+      Cons_Result <- 
+      do.call(component_list$fitting_fun, 
+              append(x = list(Indep_Var_Combin_lgl  = NULL), 
+                     values = component_list$cons_args))# ...obtain their fitstat' value using `doModel_Fit()`
     
   }
   
@@ -33,14 +36,17 @@ domme <- function(component_list, conditional, complete, reverse) {
   
   if (length(component_list$args_list$all) > 0) { # if there are entries in all...
     
-    FitStat_Adjustment <- All_Result <- do.call(component_list$fitting_fun, append(x = list(Indep_Var_Combin_lgl  = NULL), values = component_list$args_list)) # ...obtain their 'fitstat' value as well using `doModel_fit()`...
+    FitStat_Adjustment <- 
+      All_Result <- 
+      do.call(component_list$fitting_fun, 
+              append(x = list(Indep_Var_Combin_lgl  = NULL), 
+                     values = component_list$args_list)) # ...obtain their 'fitstat' value as well using `doModel_fit()`...
     
   }
   
   else All_Result <- NULL # ...otherwise return a null
   
   # Obtain all subsets regression results ----
-  #print(append(x = list(Indep_Var_Combin_lgl = unlist(Combination_Matrix[1,])), values = component_list$args_list))  # clear
   
   Ensemble_of_Models <- 
     sapply(1:nrow(Combination_Matrix), # for all individual models/rows in the logical combination matrix...
@@ -56,7 +62,8 @@ domme <- function(component_list, conditional, complete, reverse) {
   if (conditional) {
     
     Conditional_Dominance <- 
-      matrix(nrow = component_list$Total_Combination_N, ncol = component_list$Total_Combination_N) # conditional dominance container
+      matrix(nrow = component_list$Total_Combination_N, 
+             ncol = component_list$Total_Combination_N) # conditional dominance container
     
     Combination_Matrix_Anti <-!Combination_Matrix # complement of logical IV inclusion matrix
     
@@ -69,7 +76,7 @@ domme <- function(component_list, conditional, complete, reverse) {
     
     Combins_at_Order_Prev <- 
       sapply(IVs_per_Model, # for each IV/column, ... 
-             function(x) choose(component_list$Total_Combination_N - 1, x),# ... compute # of combinations associated with each row given the total number of IVs (i.e., # of combinations _not_ including focal IV)
+             function(x) choose(component_list$Total_Combination_N - 1, x), # ... compute # of combinations associated with each row given the total number of IVs (i.e., # of combinations _not_ including focal IV)
              simplify = TRUE, USE.NAMES = FALSE)
     
     Weighted_Order_Ensemble <- # create a matrix indicating how many unique combinations are associated with each number of IVs in the model; these values are associated with models that have the focal IV (hence multiplied by logical matrix).  This matrix is inverted to make weights that can be used for weighted averaging.  Finally, these weights are multiplied by all the fit statistics

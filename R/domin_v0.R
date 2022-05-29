@@ -1,4 +1,3 @@
-#' @rdname domin
 #' @exportS3Method 
 
 domin.old_method <- 
