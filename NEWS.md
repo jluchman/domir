@@ -2,24 +2,21 @@
 
 ## breaking changes
 
--   `formula_overall`, `reg` and `fitstat` arguments depreciated in favor of `object2domin`, `model`, and `metric`.
-    -   `model` argument requires use of `model_dmn` control function
-    -   `metric` argument requires use of `metric_dmn` control function
--   `sets` requires list with entries of the same type as submitted in `object2domin`
--   `all` requires entry of same type as submitted in `object2domin`
--   `consomdel` argument depreciated in favor of `adjust`
+-   `tweed` (The Working Elastic Edition of Dominance analysis) supercedes `domin`
+    -   Generic function with three S3 methods: `formula`, `Formula`, and `list`
+        -   `Formula` and `list` methods under development
+    -   `.obj` submits object on which S3 method dispatch is based
+    -   `.fct` submits function that accepts result of same type as `.obj` and returns a scalar
+    -   `.set`, `.all` and `.adj` affect `.obj` entries
 
 ## visible
 
--   `domir` is now a generic function with S3 method dispatch based on the `object2domin` argument
-    -   backward code compatibility with code assuming `domir` \< 1.0 implemented (w/ warning)
--   checks/warnings on form of 'formula'-classed objects removed
--   `model_dmn` control function to submit arguments to, and adjust format of arguments submitted to, the predictive modeling function used in the dominance analysis
--   `metric_dmn` control function to submit arguments to, and adjust format of arguments submitted to, the fit metric extracting function used in the dominance analysis
+-   ... `domir_details`
 
 ## internal
 
--   `domme` internal function responsible for computation; `domin` is front-end to computational engine
+-   `domin_scalar` internal function responsible for computation. `tweed` is front-end to computational engine.
+    -   Other computational engines planned.
 
 ## bug fixes
 

@@ -21,6 +21,7 @@ Description: Provides tools that support relative importance analysis focusing
     desired by the user-especially those where the user wants to use custom 
     importance/fit statistic or modeling function.
 Imports:
+    Formula,
     stats,
     utils
 Suggests: 

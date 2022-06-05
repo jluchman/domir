@@ -1,9 +1,12 @@
-#' @title Internal dominance analysis computation function
+#' @title Internal dominance analysis computation function assuming a scalar 
+#' input
 #'
 #' @keywords internal
 #'
+#' @name domin_scalar
+#' @rdname domin_scalar
 #' @export
-domme <- function(component_list, conditional, complete, reverse) {
+domin_scalar <- function(component_list, conditional, complete, reverse) {
   
   # Create independent variable/set combination list ----
   
@@ -22,7 +25,7 @@ domme <- function(component_list, conditional, complete, reverse) {
     FitStat_Adjustment <- 
       Cons_Result <- 
       do.call(component_list$fitting_fun, 
-              append(x = list(Indep_Var_Combin_lgl  = NULL), 
+              append(x = list(Indep_Var_Combin_lgl = NULL), 
                      values = component_list$cons_args))# ...obtain their fitstat' value using `doModel_Fit()`
     
   }
@@ -39,7 +42,7 @@ domme <- function(component_list, conditional, complete, reverse) {
     FitStat_Adjustment <- 
       All_Result <- 
       do.call(component_list$fitting_fun, 
-              append(x = list(Indep_Var_Combin_lgl  = NULL), 
+              append(x = list(Indep_Var_Combin_lgl = NULL), 
                      values = component_list$args_list)) # ...obtain their 'fitstat' value as well using `doModel_fit()`...
     
   }
@@ -48,6 +51,7 @@ domme <- function(component_list, conditional, complete, reverse) {
   
   # Obtain all subsets regression results ----
   
+  # ~~make some checks here to be sure this does not return a list - could keep unlist but that seems needless ----
   Ensemble_of_Models <- 
     sapply(1:nrow(Combination_Matrix), # for all individual models/rows in the logical combination matrix...
            function(x) { # ... submit the row number ...
@@ -206,7 +210,14 @@ domme <- function(component_list, conditional, complete, reverse) {
   
   # Finalize returned values and attributes ----
   
-  return_list <- list(General_Dominance = General_Dominance, General_Dominance_Ranks = General_Dominance_Ranks, Conditional_Dominance = Conditional_Dominance, Complete_Dominance = Complete_Dominance, All_Result = All_Result, Cons_Result = Cons_Result, FitStat = FitStat)
+  return_list <- 
+    list(General_Dominance = General_Dominance, 
+         General_Dominance_Ranks = General_Dominance_Ranks, 
+         Conditional_Dominance = Conditional_Dominance, 
+         Complete_Dominance = Complete_Dominance, 
+         All_Result = All_Result, 
+         Cons_Result = Cons_Result, 
+         FitStat = FitStat)
   
   return(return_list)
   
