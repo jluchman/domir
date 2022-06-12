@@ -10,7 +10,6 @@
 #' See the \emph{vignettes} for a more extensive discussion of basic concepts for DA and the \href{https://github.com/jluchman/domir#readme}{README} for further examples and a discussion of some of the implementation specifics of \code{domin}.
 #'
 #' @name domir-package
-#' @aliases domir
 #' @docType package
 #' @title Tools to Support Relative Importance Analysis
 #' @author Joseph Luchman \email{jluchman@gmail_com}

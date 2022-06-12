@@ -3,7 +3,6 @@
 \docType{package}
 \name{domir-package}
 \alias{domir-package}
-\alias{domir}
 \title{Tools to Support Relative Importance Analysis}
 \description{
 The \code{domir} package provides flexible wrapper and helper functions for conducting relative importance analysis with a focus on dominance analysis. The intention of this package is to provide tools that allow relative importance analysis across a wide variety of practical data analytic situations.
