@@ -23,41 +23,40 @@ domir(.obj, ...)
 
 \method{domir}{Formula}(
   .obj,
-  reg,
-  fitstat,
+  .fct,
   .set = NULL,
   .all = NULL,
+  .adj = NULL,
   .cdl = TRUE,
   .cpt = TRUE,
-  consmodel = NULL,
   .rev = FALSE,
   ...
 )
 
 \method{domir}{list}(
   .obj,
-  reg,
-  fitstat,
+  .fct,
   .set = NULL,
   .all = NULL,
+  .adj = NULL,
   .cdl = TRUE,
   .cpt = TRUE,
-  consmodel = NULL,
   .rev = FALSE,
   ...
 )
 }
 \arguments{
-\item{.obj}{A \link{formula}, \link[=formula]{Formula}, or \link{list}.
+\item{.obj}{A \code{\link{formula}}, \code{\link[=formula]{Formula}}, or \code{\link{list}}.
 
-Parsed to produce subsets of the same type for the dominance analysis.}
+Parsed to produce subsets.  Always submits subsets of the same type
+to \code{.fct}.}
 
 \item{...}{Passes arguments to other methods; passes arguments to
 function in \code{.fct}.}
 
 \item{.fct}{A function/closure or string function name.
 
-Applied to all subsets produced from \code{.obj}.  Must return a length 1
+Applied to all subsets received from \code{.obj}.  Must return a length 1
 (scalar), numeric vector.}
 
 \item{.set}{A \code{list}.
@@ -65,11 +64,11 @@ Applied to all subsets produced from \code{.obj}.  Must return a length 1
 Must be comprised of elements of the same class as \code{.obj}.  Elements of
 the list can be named.}
 
-\item{.all}{A \link{formula}, \link[=formula]{Formula}, or \link{list}.
+\item{.all}{A \code{formula}, \code{Formula}, or \code{list}.
 
 Must be the same class as \code{.obj}.}
 
-\item{.adj}{A \link{formula}, \link[=formula]{Formula}, or \link{list}.
+\item{.adj}{A \code{formula}, \code{Formula}, or \code{list}.
 
 Must be the same class as \code{.obj}.}
 
@@ -110,9 +109,9 @@ with terms in \code{.adj}.}
 }
 }
 \description{
-Computes dominance analysis decomposition statistics.
-Parses \code{formula}s, \code{Formula}s, or \code{list}s, generates subsets of the input,
-and passes all subsets to a function.
+Parses input depending on method, computes all valid subsets,
+submits subsets to a function, and computes dominance decomposition
+statistics based on the returned values from the function.
 }
 \details{
 \code{.obj} is used to determine the number of subsets included the

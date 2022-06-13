@@ -2,7 +2,7 @@
 % Please edit documentation in R/domir.r
 \name{print.domir}
 \alias{print.domir}
-\title{Print method for \code{domin}}
+\title{Print method for \code{domir}}
 \usage{
 \method{print}{domir}(x, ...)
 }
@@ -15,7 +15,7 @@
 The "domin" object with altered column and row names for Conditional and Complete dominance results as displayed in the console.
 }
 \description{
-Reports formatted results from \code{domin} class object.
+Reports formatted results from \code{domir} class object.
 }
 \details{
 The print method for class \code{domin} objects reports out the following results:

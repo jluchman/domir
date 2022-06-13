@@ -2,17 +2,20 @@
 #'
 #' @name domir
 #'
-#' @description Computes dominance analysis decomposition statistics.  
-#' Parses `formula`s, `Formula`s, or `list`s, generates subsets of the input, 
-#' and passes all subsets to a function.
+#' @description 
 #' 
-#' @param .obj A [formula], [Formula], or [list]. 
+#' Parses input depending on method, computes all valid subsets, 
+#' submits subsets to a function, and computes dominance decomposition 
+#' statistics based on the returned values from the function.
 #' 
-#' Parsed to produce subsets of the same type for the dominance analysis.  
+#' @param .obj A [`formula`], [`Formula`], or [`list`]. 
+#' 
+#' Parsed to produce subsets.  Always submits subsets of the same type 
+#' to `.fct`.  
 #' 
 #' @param .fct A function/closure or string function name.
 #' 
-#' Applied to all subsets produced from `.obj`.  Must return a length 1 
+#' Applied to all subsets received from `.obj`.  Must return a length 1 
 #' (scalar), numeric vector.
 #' 
 #' @param .set A `list`.
@@ -20,26 +23,26 @@
 #' Must be comprised of elements of the same class as `.obj`.  Elements of 
 #' the list can be named.
 #' 
-#' @param .all A [formula], [Formula], or [list]. 
+#' @param .all A `formula`, `Formula`, or `list`. 
 #' 
 #' Must be the same class as `.obj`.
 #' 
-#' @param .adj A [formula], [Formula], or [list]. 
+#' @param .adj A `formula`, `Formula`, or `list`.
 #' 
 #' Must be the same class as `.obj`.
 #' 
 #' @param .cdl Logical.  
 #' 
-#' If \code{FALSE} then conditional dominance matrix is not computed and 
+#' If `FALSE` then conditional dominance matrix is not computed and 
 #' method to produce general dominance statistics changes.
 #' 
 #' @param .cpt Logical.  
 #' 
-#' If \code{FALSE} then complete dominance matrix is not computed.
+#' If `FALSE` then complete dominance matrix is not computed.
 #' 
 #' @param .rev Logical. 
 #' 
-#' If \code{TRUE} then standardized vector, ranks, and complete dominance 
+#' If `TRUE` then standardized vector, ranks, and complete dominance 
 #' designations are reversed in their interpretation.  
 #' 
 #' @param ... Passes arguments to other methods; passes arguments to 
@@ -338,7 +341,7 @@ domir.formula <- function(
                          length(attr(stats::terms(x), "term.labels"))) > 0 ), 
           collapse = " ")
       
-      stop("Elements id '.set' must not be intercepts-only.\n",
+      stop("Elements in '.set' must not be intercepts-only.\n",
            "Elements ", elements_intercept_only, " have no terms.", call. = FALSE)
       
     }
@@ -397,79 +400,88 @@ domir.formula <- function(
   
   else Set_names <- NULL
   
-  # Total name count
-  Total_RHS_names <- length(RHS_names) + length(Set_names)
-  
   # Too few subsets error
-  if (Total_RHS_names < 2) 
+  if ((length(RHS_names) + length(Set_names)) < 2) 
     stop("At least two subsets are needed for a dominance analysis.",
          call. = FALSE)
   
-  # Define function to call regression models ----
+  # Define meta-function to coordinate .fct calls ----
   
-  # assumes receipt of a logical matrix indicating which IVs to use as 
-  # well as IV list and DV also regression function, metric function, 
-  # with all and consmodel arguments along with an intercept argument 
-  # for reformulate
-  doModel_Fit <- 
-    function(Indep_Var_Combin_lgl, Indep_Vars, Dep_Var, 
-             reg, all, consmodel, intercept, addl_args) { 
+  meta_domir <- 
+    function(Selector_lgl, 
+             RHS, LHS, 
+             .fct, .all, .adj, 
+             intercept, args_2_fct) { 
       
-      Indep_Var_Combination <- unlist(Indep_Vars[Indep_Var_Combin_lgl]) # select vector of IVs
+      # logical vector to select subset of names
+      selected_names <- 
+        unlist(RHS[Selector_lgl])
       
+      # reconstruct formula to submit to '.fct'
       formula_to_use <-
-        stats::reformulate(c(Indep_Var_Combination, all, consmodel), # 'reformulate' formula to submit to .fct
-                           response = Dep_Var, intercept = intercept)
+        stats::reformulate(
+          c(selected_names, .all, .adj), 
+          response = LHS, intercept = intercept)
       
-      Fit_Value <- do.call(reg, append(formula_to_use, addl_args) ) 
+      # submit formula and arguments to '.fct' - expect
+      returned_scalar <- 
+        do.call(.fct, 
+                append(formula_to_use, args_2_fct) ) 
       
-      return(Fit_Value)
+      return(returned_scalar)
       
     }
   
   # Check '.fct' inputs ----
+
+  # does '.fct' work?
   test_model <- 
-    tryCatch(do.call(eval(.fct), append(.obj, list(...))), 
-             error = function(err) 
-               stop("'.fct' produced an error when ", 
-                    "applied to '.obj'.", call. = FALSE))
+    tryCatch(
+      do.call(eval(.fct), append(.obj, list(...))), 
+      error = function(err) 
+        stop("'.fct' produced an error when ", 
+             "applied to '.obj'.", call. = FALSE)
+      )
   
+  # is '.fct's returned value a numeric scalar?
   if (!is.numeric(test_model) && length(test_model) != 1) 
     stop("result of '.fct' is not a numeric, scalar/",
          "length of 1 value.", call. = FALSE)
   
-  ## ~~ build test_metric_sub into domin_scalar call ----
+  # Define arguments to `domir_scalar` ----
   
-  # Define submission to `domin_scalar` ----
+  args_list <-  
+    list(RHS = append(RHS_names, Set_names), 
+         LHS = deparse(LHS_names),
+         .fct = .fct,
+         .all = All_names, 
+         .adj = Adj_names, 
+         intercept = Intercept,
+         args_2_fct = list(...))
   
-  component_list <- 
-    list(fitting_fun = doModel_Fit, 
-         args_list = 
-           list(Indep_Vars = append(RHS_names, Set_names), 
-                Dep_Var = deparse(LHS_names), #this has to be optional - does null deparse right?
-                reg = .fct,
-                all = All_names, 
-                consmodel = Adj_names, 
-                intercept = Intercept,
-                addl_args = list(...)), 
-         cons_args = 
-           list(Indep_Vars = RHS_names, 
-                Dep_Var = deparse(LHS_names), #this has to be optional - does null deparse right?
-                reg = .fct,
-                all = NULL, 
-                consmodel = Adj_names, 
-                intercept = Intercept, 
-                addl_args = list(...)),
-         Total_Combination_N = Total_RHS_names) # this should include `doModel_fit` and arguments to it -- only pass on args directly relevant to `domin_scalar` all other stuff should be passed as encapsulated arguments that `fitting_fun` can 
+  cons_args <-
+    list(RHS = RHS_names, 
+         LHS = deparse(LHS_names),
+         .fct = .fct,
+         .all = NULL, 
+         .adj = Adj_names, 
+         intercept = Intercept, 
+         args_2_fct = list(...))
   
-  return_list <- domin_scalar(component_list, .cdl, .cpt, .rev)
+  # Call `domir_scalar` ----
+  return_list <- 
+    domir_scalar(meta_domir, args_list, cons_args, test_model, 
+                 .cdl, .cpt, .rev)
   
   # Finalize returned values and attributes ----
   
-  if (is.null(.set)) IV_Labels <- RHS_names
+  if (is.null(.set)) 
+    IV_Labels <- RHS_names
+  
   else IV_Labels <- c(RHS_names, Set_labels)
   
   names(return_list$General_Dominance) <- IV_Labels
+  
   names(return_list$General_Dominance_Ranks) <- IV_Labels
   
   if (.cdl)
@@ -508,20 +520,11 @@ domir.formula <- function(
       return_list$All_Result - 
       ifelse(is.null(return_list$Cons_Result), 0, return_list$Cons_Result),
     "Fit_Statistic_Constant_Model" = return_list$Cons_Result,
-    "Call" = match.call() #,
-    # "Subset_Details" = list(
-    #   "Full_Model" = 
-    #     stats::reformulate(c(RHS_names, .all, .adj), 
-    #                        response = LHS_names, intercept = Intercept),
-    #   "Formula" = attr(stats::terms(.obj), "term.labels"),
-    #   "All" = .all,
-    #   "Set" = .set,
-    #   "Constant" = .adj
-    # )
+    "Call" = match.call()
   )
   
-  # apply class 'domin'
-  class(return_list) <- c("domin") 
+  # apply class 'domir'
+  class(return_list) <- c("domir") 
   
   return(return_list)
   
