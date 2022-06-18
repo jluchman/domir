@@ -8,27 +8,23 @@ Authors@R:
            role = c("aut", "cre"),
            email = "jluchman@gmail.com",
            comment = c(ORCID = "0000-0002-8886-9717"))
-Description: Provides tools that support relative importance analysis focusing 
-    on dominance analysis.  Dominance analysis is a methodology for 
-    determining the relative importance of predictors/features/independent
-    variables 
-    (Azen, R., & Budescu, D. V. (2003) <doi:10.1037/1082-989X.8.2.129>; 
-    Groemping, U. (2007) <doi:10.1198/000313007X188252>) 
-    as well as parameter estimates (Luchman, J. N, Lei, X., & Kaplan, S. 
-    (2020) <doi:10.47263/JASEM.4(2)02>). 
-    These tools are intended to extend relative importance analysis to, 
-    effectively, any statistical or machine learning function as defined or 
-    desired by the user-especially those where the user wants to use custom 
-    importance/fit statistic or modeling function.
+Description: Methods to apply decomposition-based relative importance 
+analysis for R functions. This package supports the application of 
+decomposition methods by providing lapply- or Map-like meta-functions that 
+compute dominance analysis (Azen, R., & Budescu, D. V. (2003) 
+<doi:10.1037/1082-989X.8.2.129>; Groemping, U. (2007) 
+<doi:10.1198/000313007X188252>) or Shapley value decomposition (cite) based on 
+the values returned from other functions.
 Imports:
-    Formula,
     stats,
     utils
 Suggests: 
+    Formula,
     knitr,
     parameters,
     performance,
     relaimpo,
+    rlang,
     rmarkdown,
     testthat (>= 3.0.0),
     yhat

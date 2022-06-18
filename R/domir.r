@@ -22,6 +22,8 @@
 #' 
 #' Must be comprised of elements of the same class as `.obj`.  Elements of 
 #' the list can be named.
+#'
+#' @param .wst Not yet used.
 #' 
 #' @param .all A `formula`, `Formula`, or `list`. 
 #' 
@@ -51,21 +53,21 @@
 #' @return Returns an object of [`class`] "domir" which is a list composed of:
 #' 
 #' \describe{
-#'  \item{`General_Dominance`}{Vector of general dominance statistics.}
-#'  \item{`Standardized`}{Vector of general dominance statistics normalized 
+#'  \item{`General_Dominance`}{Vector of general dominance values.}
+#'  \item{`Standardized`}{Vector of general dominance values normalized 
 #'  to sum to 1.}
-#'  \item{`Ranks`}{Vector of ranks applied to the general dominance statistics.}
-#'  \item{`Conditional_Dominance`}{Matrix of Conditional dominance statistics.  
-#'  Each row represents a term; each column represents an order of terms.}
-#'  \item{`Complete_Dominance`}{Logical matrix of Complete dominance 
+#'  \item{`Ranks`}{Vector of ranks applied to the general dominance values.}
+#'  \item{`Conditional_Dominance`}{Matrix of conditional dominance values.  
+#'  Each row represents a name; each column represents a number of names 
+#'  included in `.fct`.}
+#'  \item{`Complete_Dominance`}{Logical matrix of complete dominance 
 #'  designations. The term represented in each row indicates dominance status; 
 #'  the terms represented in each columns indicates dominated-by status.}
-#'  \item{`Fit_Statistic_Overall`}{Value of fit statistic for the full 
-#'  model.}
-#'  \item{`Fit_Statistic_All_Subset`}{Value of fit statistic associated 
-#'  with terms in `.all`.}
-#'  \item{`Fit_Statistic_Constant_Model`}{Value of fit statistic associated 
-#'  with terms in `.adj`.}
+#'  \item{`Value`}{Value returned by `.fct` with all names included.}
+#'  \item{`Value_All`}{Value of `.fct` associated with names included 
+#'  in `.all`.}
+#'  \item{`Value_Adjust`}{Value of `.fct` associated 
+#'  with names in `.adj`.}
 #'  \item{`Call`}{The matched call.}
 #' }
 #'
@@ -166,9 +168,15 @@ domir <- function(.obj, ...) {
 #' @exportS3Method 
 domir.formula <- function(
     .obj, .fct,
-    .set = NULL, .all = NULL, .adj = NULL, 
+    .set = NULL, .wst = NULL, .all = NULL, .adj = NULL, 
     .cdl = TRUE, .cpt = TRUE, .rev = FALSE, 
     ...) {
+  
+  if (!is.null(.wst)) {
+    
+    .NotYetUsed(".wst")
+    
+  }
   
   # Process formula ----
   # obtain rhs name vector from `.obj`
@@ -423,7 +431,7 @@ domir.formula <- function(
           c(selected_names, .all, .adj), 
           response = LHS, intercept = intercept)
       
-      # submit formula and arguments to '.fct' - expect
+      # submit formula and arguments to '.fct'
       returned_scalar <- 
         do.call(.fct, 
                 append(formula_to_use, args_2_fct) ) 
@@ -448,7 +456,7 @@ domir.formula <- function(
     stop("result of '.fct' is not a numeric, scalar/",
          "length of 1 value.", call. = FALSE)
   
-  # Define arguments to `domir_scalar` ----
+  # Define arguments to `dominance_scalar` ----
   
   args_list <-  
     list(RHS = append(RHS_names, Set_names), 
@@ -468,9 +476,9 @@ domir.formula <- function(
          intercept = Intercept, 
          args_2_fct = list(...))
   
-  # Call `domir_scalar` ----
+  # Call `dominance_scalar` ----
   return_list <- 
-    domir_scalar(meta_domir, args_list, cons_args, test_model, 
+    dominance_scalar(meta_domir, args_list, cons_args, test_model, 
                  .cdl, .cpt, .rev)
   
   # Finalize returned values and attributes ----
@@ -480,34 +488,36 @@ domir.formula <- function(
   
   else IV_Labels <- c(RHS_names, Set_labels)
   
-  names(return_list$General_Dominance) <- IV_Labels
+  names(return_list$General_Dominance) <- 
+    IV_Labels
   
-  names(return_list$General_Dominance_Ranks) <- IV_Labels
+  names(return_list$General_Dominance_Ranks) <- 
+    IV_Labels
   
   if (.cdl)
     dimnames(return_list$Conditional_Dominance) <- 
     list(names(return_list$General_Dominance), 
-         paste0("IVs_", 1:length(return_list$General_Dominance)))
+         paste0("subset_size_", 1:length(return_list$General_Dominance)))
   
   if (.cpt)
     dimnames(return_list$Complete_Dominance) <- 
     list(paste0("Dmnates_", names(return_list$General_Dominance)),  
          paste0("Dmnated_", names(return_list$General_Dominance)))
   
-  if (.rev == FALSE) # Standardized if metric increases...
+  if (.rev == FALSE) 
     Standardized <- 
     return_list$General_Dominance / 
     (
-      return_list$FitStat - 
-        ifelse(length(return_list$Cons_Result) > 0, return_list$Cons_Result, 0)
-    ) # ...then use normal standardization...
+      return_list$Value - 
+        ifelse(length(return_list$Adj_result) > 0, return_list$Adj_result, 0)
+    ) 
   
   else Standardized <- 
     -return_list$General_Dominance / 
     -(
-      return_list$FitStat - 
-        ifelse(length(return_list$Cons_Result) > 0, return_list$Cons_Result, 0)
-    ) # ...otherwise reverse the general dominance stats to standardize
+      return_list$Value - 
+        ifelse(length(return_list$Adj_result) > 0, return_list$Adj_result, 0)
+    )
   
   return_list <- list(
     "General_Dominance" = return_list$General_Dominance,
@@ -515,11 +525,11 @@ domir.formula <- function(
     "Ranks" = return_list$General_Dominance_Ranks,
     "Complete_Dominance" = return_list$Complete_Dominance,
     "Conditional_Dominance" = return_list$Conditional_Dominance,
-    "Fit_Statistic_Overall" = return_list$FitStat,
-    "Fit_Statistic_All_Subset" = 
-      return_list$All_Result - 
-      ifelse(is.null(return_list$Cons_Result), 0, return_list$Cons_Result),
-    "Fit_Statistic_Constant_Model" = return_list$Cons_Result,
+    "Value" = return_list$Value,
+    "Value_All" = 
+      return_list$All_result - 
+      ifelse(is.null(return_list$Adj_result), 0, return_list$Adj_result),
+    "Value_Adjust" = return_list$Adj_result,
     "Call" = match.call()
   )
   
@@ -532,57 +542,59 @@ domir.formula <- function(
 
 #' @rdname domir
 #' @exportS3Method 
-domir.Formula <- function(
-    .obj, .fct,
-    .set = NULL, .all = NULL, .adj = NULL, 
-    .cdl = TRUE, .cpt = TRUE, .rev = FALSE, 
-    ...) {
+domir.Formula <- function(...) {
   
-  stop("'domir' 'Formula' method not yet implemented.", call. = FALSE)
+  .NotYetImplemented()
   
 }
 
 #' @rdname domir
 #' @exportS3Method 
-domir.list <- function(
-    .obj, .fct,
-    .set = NULL, .all = NULL, .adj = NULL, 
-    .cdl = TRUE, .cpt = TRUE, .rev = FALSE, 
-    ...) {
+domir.list <- function(...) {
   
-  stop("'domir' 'list' method not yet implemented.", call. = FALSE)
+  .NotYetImplemented()
   
 }
 
-#' @title Print method for \code{domir}
-#' @description Reports formatted results from \code{domir} class object.
-#' @param x an object of class "domin".
-#' @param ... further arguments passed to or from other methods. Not used currently.
-#' @return The "domin" object with altered column and row names for Conditional and Complete dominance results as displayed in the console.
-#' @details The print method for class \code{domin} objects reports out the following results:
+#' @title Print method for `domir`
+#' @description Reports formatted results from `domir` class object.
+#' @param x an object of class "domir".
+#' @param ... further arguments passed to [`print.default`].
+#' @return The submitted "domir" object, invisibly.
+#' @details The print method for class `domir` objects reports out the 
+#' following results:
 #' \itemize{
-#'  \item{Fit statistic for the full model.  The fit statistic for the all subset model is reported here if there are any entries in \code{.all}.  The fit statistic for the constant model is reported here if there are any entries in \code{consmodel}.}
-#'  \item{Matrix describing general dominance statistics, standardized general dominance statistics, and the ranking of the general dominance statistics}
-#'  \item{If \code{.cdl} is \code{TRUE}, matrix describing the Conditional dominance designations}
-#'  \item{If \code{.cpt} is \code{TRUE}, matrix describing the Complete dominance designations}
-#'  \item{If following \code{summary.domin}, matrix describing the strongest dominance designations between all independent variables}
-#'  \item{If there are entries in \code{.set} and/or \code{.all} the terms included in each set as well as the terms in all subset are reported}}
-#'  The \code{domin} print method alters dimension names for readability and they do not display as stored in the original \code{domin} object.
+#'  \item{Value when all names are included in `.fct`.  The value for the 
+#'  names included in all subsets is reported here if there are any entries 
+#'  in `.all`.  The value for names/terms used to adjust the values is 
+#'  reported here if there are any entries in `.adj`.}
+#'  \item{Matrix describing general dominance values, standardized 
+#'  general dominance values, and the ranking of the general 
+#'  dominance values}
+#'  \item{If `.cdl` is `TRUE`, matrix describing the conditional 
+#'  dominance values}
+#'  \item{If `.cpt` is `TRUE`, matrix describing the complete 
+#'  dominance designations}
+#'  \item{If following `summary.domir`, matrix describing the strongest 
+#'  dominance designations between all names}}
+#'  The `domir` print method alters dimension names for readability and they 
+#'  do not display as stored in the original `domir` object.
 #' @exportS3Method 
 
 print.domir <- function(x, ...) {
   
-  cat("Overall Fit Statistic:     ", x[["Fit_Statistic_Overall"]], "\n")
+  cat("Overall Value:     ", x[["Value"]], "\n")
   
-  if (length(x[["Fit_Statistic_All_Subset"]]) > 0) 
-    cat("All Subset Fit Statistic: ", x[["Fit_Statistic_All_Subset"]], "\n")
+  if (length(x[["Value_All"]]) > 0) 
+    cat("All Subset Value: ", x[["Value_All"]], "\n")
   
-  if (length(x[["Fit_Statistic_Constant_Model"]]) > 0) 
-    cat("Constant Model Fit Statistic: ", x[["Fit_Statistic_Constant_Model"]], "\n")
+  if (length(x[["Value_Adjust"]]) > 0) 
+    cat("Adjustment Value: ", 
+        x[["Value_Adjust"]], "\n")
   
   cat("\n")
   
-  cat("General Dominance Statistics:\n")
+  cat("General Dominance Values:\n")
   
   Display_Std <- 
     t(rbind(x[["General_Dominance"]], x[["Standardized"]], x[["Ranks"]]))
@@ -590,18 +602,18 @@ print.domir <- function(x, ...) {
   dimnames(Display_Std) <- 
     list(names(x[["Ranks"]]), c("General Dominance", "Standardized", "Ranks"))
   
-  print(Display_Std)
+  print(Display_Std, ...)
   
   cat("\n")
   
   if (length(x[["Conditional_Dominance"]] > 0)) {
     
-    cat("Conditional Dominance Statistics:\n")
+    cat("Conditional Dominance Values:\n")
     
     colnames(x[["Conditional_Dominance"]]) <- 
-      paste("IVs:", 1:ncol(x[["Conditional_Dominance"]]))
+      paste("Subset Size:", 1:ncol(x[["Conditional_Dominance"]]))
     
-    print(x[["Conditional_Dominance"]])
+    print(x[["Conditional_Dominance"]], ...)
     
     cat("\n")
     
@@ -633,40 +645,27 @@ print.domir <- function(x, ...) {
     
   }
   
-  # if (length(x[["Subset_Details"]][["Set"]]) > 0) {
-  # 
-  #   cat("Components of Set:\n")
-  # 
-  #   for (set in 1:length(x[["Subset_Details"]][["Set"]])) {
-  # 
-  #     cat(paste0("set", set),":", deparse(x[["Subset_Details"]][["Set"]][[set]]), "\n")
-  # 
-  #   }
-  # 
-  #   cat("\n")
-  # 
-  # }
-  
-  # if (length(x[["Subset_Details"]][["All"]]) > 0) {
-  #   
-  #   cat(".all subset variables:", x[["Subset_Details"]][["All"]])
-  #   
-  # }
-  
   invisible(x)
   
 }
 
 
-#' @title Summary method for \code{domin}
-#' @description Reports dominance designation results from the \code{domin} class object.
-#' @param object an object of class "domin".
-#' @param ... further arguments passed to or from other methods. Not used currently.
-#' @return The originally submitted "domin" object with an additional \code{Strongest_Dominance} element added.
+#' @title Summary method for `domir`
+#' @description Reports dominance designation results from the `domir` 
+#' class object.
+#' @param object an object of class "domir".
+#' @param ... further arguments passed to or from other methods. 
+#' Not used currently.
+#' @return The submitted "domir" object with an additional 
+#' `Strongest_Dominance` element added.
 #' \describe{
-#'  \item{\code{Strongest_Dominance}}{Matrix comparing the independent variable in the first row to the independent variable in the third row.  The second row denotes the strongest designation between the two independent variables.}
+#'  \item{\code{Strongest_Dominance}}{Matrix comparing the name in the first 
+#'  row to the name in the third row.  The second row denotes the strongest 
+#'  designation between the two names.}
 #' }
-#' @details The summary method for class \code{domin} is used for obtaining the strongest dominance designations (i.e., general, Conditional, or Complete) among the independent variables.
+#' @details The summary method for class `domir` is used for obtaining the 
+#' strongest dominance designations (i.e., general, conditional, or complete) 
+#' among the names.
 #' @exportS3Method
 
 summary.domir <- function(object, ...) {
@@ -701,7 +700,8 @@ summary.domir <- function(object, ...) {
         
         if (length(object[["Conditional_Dominance"]] > 0)) {
           
-          if (all(object$Conditional_Dominance[IV1,] > object$Conditional_Dominance[IV2,])) { 
+          if (all(object$Conditional_Dominance[IV1,] > 
+                  object$Conditional_Dominance[IV2,])) { 
             
             pairs[2, location] <- "conditionally dominates"
             
@@ -709,7 +709,8 @@ summary.domir <- function(object, ...) {
             
           }
           
-          else if (all(object$Conditional_Dominance[IV1,] < object$Conditional_Dominance[IV2,])) {
+          else if (all(object$Conditional_Dominance[IV1,] < 
+                       object$Conditional_Dominance[IV2,])) {
             
             pairs[2, location] <- "is conditionally dominated by"
             
@@ -720,9 +721,11 @@ summary.domir <- function(object, ...) {
         }
         
         pairs[2, location] <- 
-          ifelse(object$General_Dominance[[IV1]] > object$General_Dominance[[IV2]], 
+          ifelse(object$General_Dominance[[IV1]] > 
+                   object$General_Dominance[[IV2]], 
                  "generally dominates", 
-                 ifelse(object$General_Dominance[[IV1]] < object$General_Dominance[[IV2]],
+                 ifelse(object$General_Dominance[[IV1]] < 
+                          object$General_Dominance[[IV2]],
                         "is generally dominated by", 
                         "has no dominance designation with"))
         

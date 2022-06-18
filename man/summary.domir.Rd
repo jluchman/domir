@@ -2,24 +2,31 @@
 % Please edit documentation in R/domir.r
 \name{summary.domir}
 \alias{summary.domir}
-\title{Summary method for \code{domin}}
+\title{Summary method for \code{domir}}
 \usage{
 \method{summary}{domir}(object, ...)
 }
 \arguments{
-\item{object}{an object of class "domin".}
+\item{object}{an object of class "domir".}
 
-\item{...}{further arguments passed to or from other methods. Not used currently.}
+\item{...}{further arguments passed to or from other methods.
+Not used currently.}
 }
 \value{
-The originally submitted "domin" object with an additional \code{Strongest_Dominance} element added.
+The submitted "domir" object with an additional
+\code{Strongest_Dominance} element added.
 \describe{
-\item{\code{Strongest_Dominance}}{Matrix comparing the independent variable in the first row to the independent variable in the third row.  The second row denotes the strongest designation between the two independent variables.}
+\item{\code{Strongest_Dominance}}{Matrix comparing the name in the first
+row to the name in the third row.  The second row denotes the strongest
+designation between the two names.}
 }
 }
 \description{
-Reports dominance designation results from the \code{domin} class object.
+Reports dominance designation results from the \code{domir}
+class object.
 }
 \details{
-The summary method for class \code{domin} is used for obtaining the strongest dominance designations (i.e., general, Conditional, or Complete) among the independent variables.
+The summary method for class \code{domir} is used for obtaining the
+strongest dominance designations (i.e., general, conditional, or complete)
+among the names.
 }

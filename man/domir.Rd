@@ -13,6 +13,7 @@ domir(.obj, ...)
   .obj,
   .fct,
   .set = NULL,
+  .wst = NULL,
   .all = NULL,
   .adj = NULL,
   .cdl = TRUE,
@@ -21,29 +22,9 @@ domir(.obj, ...)
   ...
 )
 
-\method{domir}{Formula}(
-  .obj,
-  .fct,
-  .set = NULL,
-  .all = NULL,
-  .adj = NULL,
-  .cdl = TRUE,
-  .cpt = TRUE,
-  .rev = FALSE,
-  ...
-)
+\method{domir}{Formula}(...)
 
-\method{domir}{list}(
-  .obj,
-  .fct,
-  .set = NULL,
-  .all = NULL,
-  .adj = NULL,
-  .cdl = TRUE,
-  .cpt = TRUE,
-  .rev = FALSE,
-  ...
-)
+\method{domir}{list}(...)
 }
 \arguments{
 \item{.obj}{A \code{\link{formula}}, \code{\link[=formula]{Formula}}, or \code{\link{list}}.
@@ -63,6 +44,8 @@ Applied to all subsets received from \code{.obj}.  Must return a length 1
 
 Must be comprised of elements of the same class as \code{.obj}.  Elements of
 the list can be named.}
+
+\item{.wst}{Not yet used.}
 
 \item{.all}{A \code{formula}, \code{Formula}, or \code{list}.
 
@@ -90,21 +73,21 @@ designations are reversed in their interpretation.}
 Returns an object of \code{\link{class}} "domir" which is a list composed of:
 
 \describe{
-\item{\code{General_Dominance}}{Vector of general dominance statistics.}
-\item{\code{Standardized}}{Vector of general dominance statistics normalized
+\item{\code{General_Dominance}}{Vector of general dominance values.}
+\item{\code{Standardized}}{Vector of general dominance values normalized
 to sum to 1.}
-\item{\code{Ranks}}{Vector of ranks applied to the general dominance statistics.}
-\item{\code{Conditional_Dominance}}{Matrix of Conditional dominance statistics.
-Each row represents a term; each column represents an order of terms.}
-\item{\code{Complete_Dominance}}{Logical matrix of Complete dominance
+\item{\code{Ranks}}{Vector of ranks applied to the general dominance values.}
+\item{\code{Conditional_Dominance}}{Matrix of conditional dominance values.
+Each row represents a name; each column represents a number of names
+included in \code{.fct}.}
+\item{\code{Complete_Dominance}}{Logical matrix of complete dominance
 designations. The term represented in each row indicates dominance status;
 the terms represented in each columns indicates dominated-by status.}
-\item{\code{Fit_Statistic_Overall}}{Value of fit statistic for the full
-model.}
-\item{\code{Fit_Statistic_All_Subset}}{Value of fit statistic associated
-with terms in \code{.all}.}
-\item{\code{Fit_Statistic_Constant_Model}}{Value of fit statistic associated
-with terms in \code{.adj}.}
+\item{\code{Value}}{Value returned by \code{.fct} with all names included.}
+\item{\code{Value_All}}{Value of \code{.fct} associated with names included
+in \code{.all}.}
+\item{\code{Value_Adjust}}{Value of \code{.fct} associated
+with names in \code{.adj}.}
 \item{\code{Call}}{The matched call.}
 }
 }

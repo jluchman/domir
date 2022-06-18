@@ -7,24 +7,33 @@
 \method{print}{domir}(x, ...)
 }
 \arguments{
-\item{x}{an object of class "domin".}
+\item{x}{an object of class "domir".}
 
-\item{...}{further arguments passed to or from other methods. Not used currently.}
+\item{...}{further arguments passed to \code{\link{print.default}}.}
 }
 \value{
-The "domin" object with altered column and row names for Conditional and Complete dominance results as displayed in the console.
+The submitted "domir" object, invisibly.
 }
 \description{
 Reports formatted results from \code{domir} class object.
 }
 \details{
-The print method for class \code{domin} objects reports out the following results:
+The print method for class \code{domir} objects reports out the
+following results:
 \itemize{
-\item{Fit statistic for the full model.  The fit statistic for the all subset model is reported here if there are any entries in \code{.all}.  The fit statistic for the constant model is reported here if there are any entries in \code{consmodel}.}
-\item{Matrix describing general dominance statistics, standardized general dominance statistics, and the ranking of the general dominance statistics}
-\item{If \code{.cdl} is \code{TRUE}, matrix describing the Conditional dominance designations}
-\item{If \code{.cpt} is \code{TRUE}, matrix describing the Complete dominance designations}
-\item{If following \code{summary.domin}, matrix describing the strongest dominance designations between all independent variables}
-\item{If there are entries in \code{.set} and/or \code{.all} the terms included in each set as well as the terms in all subset are reported}}
-The \code{domin} print method alters dimension names for readability and they do not display as stored in the original \code{domin} object.
+\item{Value when all names are included in \code{.fct}.  The value for the
+names included in all subsets is reported here if there are any entries
+in \code{.all}.  The value for names/terms used to adjust the values is
+reported here if there are any entries in \code{.adj}.}
+\item{Matrix describing general dominance values, standardized
+general dominance values, and the ranking of the general
+dominance values}
+\item{If \code{.cdl} is \code{TRUE}, matrix describing the conditional
+dominance values}
+\item{If \code{.cpt} is \code{TRUE}, matrix describing the complete
+dominance designations}
+\item{If following \code{summary.domir}, matrix describing the strongest
+dominance designations between all names}}
+The \code{domir} print method alters dimension names for readability and they
+do not display as stored in the original \code{domir} object.
 }
