@@ -447,14 +447,20 @@ domir.formula <- function(
     tryCatch(
       do.call(eval(.fct), append(.obj, list(...))), 
       error = function(err) 
-        stop("'.fct' produced an error when ", 
-             "applied to '.obj'.", call. = FALSE)
+        stop("'.fct' produced an error when applied to '.obj'.\n", 
+             "Also, check arguments passed to '.fct'", 
+             call. = FALSE)
       )
   
   # is '.fct's returned value a numeric scalar?
   if (!is.numeric(test_model) && length(test_model) != 1) 
     stop("result of '.fct' is not a numeric, scalar/",
          "length of 1 value.", call. = FALSE)
+  
+  # is '.fct's returned value regarded as a list?
+  if (is.list(test_model)) 
+    stop("result of '.fct' is a list.  It must be flattened/unlisted.", 
+         call. = FALSE)
   
   # Define arguments to `dominance_scalar` ----
   
