@@ -33,15 +33,32 @@ cyl_c <- c(cyl_mgn[[1]], mean(cyl_mgn[2:3]), cyl_mgn[[4]])
 set_c <- c(set_mgn[[1]], mean(set_mgn[2:3]), set_mgn[[4]])
 
 cdl_names <- list(c("vs", "cyl", "set1"), paste0("IVs_", 1:3))
+cdl_names_new <- list(c("vs", "cyl", "set1"), paste0("subset_size_", 1:3))
 
 cdl_test <- matrix(c(vs_c, cyl_c, set_c), nrow = 3, ncol = 3, 
                    byrow = TRUE, dimnames = cdl_names)
 
+cdl_test_new <- matrix(c(vs_c, cyl_c, set_c), nrow = 3, ncol = 3, 
+                   byrow = TRUE, dimnames = cdl_names_new)
+
 test_obj <- domin(mpg ~ vs + cyl, "lm", list("summary", "r.squared"), 
                   data = mtcars, sets = list(c("carb", "am")))
 
-test_that("Test Use of Sets with Conditional Dominance", {
+test_obj_new <- domir(mpg ~ vs + cyl + carb + am, 
+                      function(fml, data) {
+                        res <- summary(lm(fml, data = data))
+                        return(res[["r.squared"]])
+                      },
+                      data = mtcars, 
+                      .set = list(~ carb + am))
+
+test_that("Test Use of Sets with Conditional Dominance: domin", {
   expect_equal(test_obj$Conditional_Dominance, cdl_test
+  )}
+)
+
+test_that("Test Use of Sets with Conditional Dominance: domir", {
+  expect_equal(test_obj_new$Conditional_Dominance, cdl_test_new
   )}
 )
 
@@ -80,30 +97,65 @@ carb_c2 <- c(carb_mgn2[[1]] - all_test, mean(carb_mgn2[2:3]), carb_mgn2[[4]])
 
 cdl_names2 <- list(c("vs", "cyl", "carb"), paste0("IVs_", 1:3))
 
+cdl_names2_new <- list(c("vs", "cyl", "carb"), paste0("subset_size_", 1:3))
+
 cdl_test2 <- matrix(c(vs_c2, cyl_c2, carb_c2), nrow = 3, ncol = 3, 
                    byrow = TRUE, dimnames = cdl_names2)
+
+cdl_test2_new <- matrix(c(vs_c2, cyl_c2, carb_c2), nrow = 3, ncol = 3, 
+                    byrow = TRUE, dimnames = cdl_names2_new)
 
 test_obj2 <- domin(mpg ~ vs + cyl + carb, "lm", list("summary", "r.squared"), 
                   data = mtcars, all = c("am"))
 
-test_that("Test Use of All with Conditional Dominance", {
+test_obj2_new <- domir(mpg ~ vs + cyl + carb + am, 
+                      function(fml, data) {
+                        res <- summary(lm(fml, data = data))
+                        return(res[["r.squared"]])
+                      },
+                      data = mtcars, 
+                      .all = ~ am)
+
+test_that("Test Use of All with Conditional Dominance: domin", {
   expect_equal(test_obj2$Conditional_Dominance, cdl_test2
   )}
 )
 
-test_that("Test All Subsets Fitstat Value", {
+test_that("Test Use of All with Conditional Dominance: domir", {
+  expect_equal(test_obj2_new$Conditional_Dominance, cdl_test2_new
+  )}
+)
+
+test_that("Test All Subsets Fitstat Value: domin", {
   expect_equal(test_obj2$Fit_Statistic_All_Subsets, all_test
+  )}
+)
+
+test_that("Test All Subsets Fitstat Value: domir", {
+  expect_equal(test_obj2_new$Value_All, all_test
   )}
 )
 
 test_obj3 <- domin(mpg ~ vs + cyl, "lm", list("summary", "r.squared"), 
                   data = mtcars, sets = list(c("carb", "am")), complete = FALSE)
 
-test_that("Test Complete Dominance as \"off\"", {
+test_obj3_new <- domir(mpg ~ vs + cyl + carb + am, 
+                      function(fml, data) {
+                        res <- summary(lm(fml, data = data))
+                        return(res[["r.squared"]])
+                      },
+                      data = mtcars, .cpt = FALSE,
+                      .set = list(~ carb + am))
+
+test_that("Test Complete Dominance as \"off\": domin", {
   expect_null(test_obj3$Complete_Dominance
   )})
 
-# here constant model + reverse
+test_that("Test Complete Dominance as \"off\": domir", {
+  expect_null(test_obj3_new$Complete_Dominance
+  )})
+
+# constant model + reverse ----
 
 vs_cns_mgn <- c( extractAIC(lm(mpg ~ vs, data = mtcars))[[2]] - 
                    extractAIC(lm(mpg ~ 1, data = mtcars))[[2]],
@@ -137,21 +189,43 @@ cyl_cns_c <- c(cyl_cns_mgn[[1]], mean(cyl_cns_mgn[2:3]), cyl_cns_mgn[[4]])
 carb_cns_c <- c(carb_cns_mgn[[1]], mean(carb_cns_mgn[2:3]), carb_cns_mgn[[4]])
 
 cdl_cns_names <- list(c("vs", "cyl", "carb"), paste0("IVs_", 1:3))
+cdl_cns_names_new <- list(c("vs", "cyl", "carb"), paste0("subset_size_", 1:3))
 
 cdl_cns_test <- matrix(c(vs_cns_c, cyl_cns_c, carb_cns_c), nrow = 3, ncol = 3, 
                    byrow = TRUE, dimnames = cdl_cns_names)
+
+cdl_cns_test_new <- matrix(c(vs_cns_c, cyl_cns_c, carb_cns_c), nrow = 3, ncol = 3, 
+                       byrow = TRUE, dimnames = cdl_cns_names_new)
 
 test_obj4 <- domin(mpg ~ vs + cyl + carb, lm, 
                    list(function(x) list(AIC = extractAIC(x)[[2]]), "AIC"), 
                    data=mtcars, reverse = TRUE, consmodel = "1") 
 
-test_that("Test Use of Constant Model with Conditional Dominance", {
+test_obj4_new <- domir(mpg ~ vs + cyl + carb, 
+                       function(fml, data) {
+                         res <- lm(fml, data = data)
+                         return(extractAIC(res)[[2]])
+                       },
+                   data=mtcars, .rev = TRUE, .adj = ~ 1) 
+
+test_that("Test Use of Constant Model with Conditional Dominance: domin", {
   expect_equal(test_obj4$Conditional_Dominance, cdl_cns_test
   )}
 )
 
-test_that("Test Constant Model Fitstat Value", {
+test_that("Test Use of Adjustment with Conditional Dominance: domir", {
+  expect_equal(test_obj4_new$Conditional_Dominance, cdl_cns_test_new
+  )}
+)
+
+test_that("Test Constant Model Fitstat Value: domin", {
   expect_equal(test_obj4$Fit_Statistic_Constant_Model, 
+               extractAIC(lm(mpg ~ 1, data = mtcars))[[2]]
+  )}
+)
+
+test_that("Test Adjustment Value: domir", {
+  expect_equal(test_obj4_new$Value_Adjust, 
                extractAIC(lm(mpg ~ 1, data = mtcars))[[2]]
   )}
 )
@@ -175,23 +249,46 @@ dimnames(cpt_rev_test) <- list(
   paste0("Dmnated_", c("vs", "cyl", "carb"))
 )
 
-test_that("Test Reversed Complete Dominance Designation", {
+test_that("Test Reversed Complete Dominance Designation: domin", {
   expect_equal(test_obj4$Complete_Dominance, cpt_rev_test
+  )})
+
+test_that("Test Reversed Complete Dominance Designation: domir", {
+  expect_equal(test_obj4_new$Complete_Dominance, cpt_rev_test
   )})
 
 gen_rev_test <- rank(rowMeans(cdl_cns_test))
 
 names(gen_rev_test) <- cdl_cns_names[[1]]
 
-test_that("Test Reversed General Dominance Ranking", {
+test_that("Test Reversed General Dominance Ranking: domin", {
   expect_equal(test_obj4$Ranks, gen_rev_test
+  )}
+)
+
+test_that("Test Reversed General Dominance Ranking: domir", {
+  expect_equal(test_obj4_new$Ranks, gen_rev_test
   )}
 )
 
 test_obj_nocdl <- domin(mpg ~ vs + cyl, "lm", list("summary", "r.squared"), 
                   data = mtcars, sets = list(c("carb", "am")), conditional = FALSE)
 
-test_that("'Conditional is False' General Dominance Statistics", {
+test_obj_nocdl_new <- domir(mpg ~ vs + cyl + carb + am, 
+                            function(fml, data) {
+                              res <- summary(lm(fml, data = data))
+                              return(res[["r.squared"]])
+                            },
+                            data = mtcars, 
+                            .set = list(~ carb + am), 
+                            .cdl = FALSE)
+
+test_that("'Conditional is False' General Dominance: domin", {
   expect_equal(test_obj_nocdl$General_Dominance, test_obj$General_Dominance
+  )}
+)
+
+test_that("'Conditional is False' General Dominance: domir", {
+  expect_equal(test_obj_nocdl_new$General_Dominance, test_obj_new$General_Dominance
   )}
 )

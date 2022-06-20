@@ -33,15 +33,31 @@ cyl_c <- c(cyl_mgn[[1]], mean(cyl_mgn[2:3]), cyl_mgn[[4]])
 carb_c <- c(carb_mgn[[1]], mean(carb_mgn[2:3]), carb_mgn[[4]])
 
 cdl_names <- list(c("vs", "cyl", "carb"), paste0("IVs_", 1:3))
+cdl_names_new <- list(c("vs", "cyl", "carb"), paste0("subset_size_", 1:3))
 
 cdl_test <- matrix(c(vs_c, cyl_c, carb_c), nrow = 3, ncol = 3, 
                    byrow = TRUE, dimnames = cdl_names)
 
+cdl_test_new <- matrix(c(vs_c, cyl_c, carb_c), nrow = 3, ncol = 3, 
+                   byrow = TRUE, dimnames = cdl_names_new)
+
 test_obj <- domin(mpg ~ vs + cyl + carb, "lm", list("summary", "r.squared"), 
                   data = mtcars)
 
-test_that("Test Conditional Dominance Computation", {
+test_obj_new <- domir(mpg ~ vs + cyl + carb, 
+                      function(fml, data) {
+                        res <- summary(lm(fml, data = data))
+                        return(res[["r.squared"]])
+                      },
+                  data = mtcars)
+
+test_that("Test Conditional Dominance Computation: domin", {
   expect_equal(test_obj$Conditional_Dominance, cdl_test
+  )}
+)
+
+test_that("Test Conditional Dominance Computation: domir", {
+  expect_equal(test_obj_new$Conditional_Dominance, cdl_test_new
   )}
 )
 
@@ -49,8 +65,13 @@ gen_test <- rowMeans(cdl_test)
 
 names(gen_test) <- cdl_names[[1]]
 
-test_that("Test General Dominance Computation", {
+test_that("Test General Dominance Computation: domin", {
   expect_equal(test_obj$General_Dominance, gen_test
+  )}
+)
+
+test_that("Test General Dominance Computation: domir", {
+  expect_equal(test_obj_new$General_Dominance, gen_test
   )}
 )
 
@@ -73,14 +94,21 @@ dimnames(cpt_test) <- list(
   paste0("Dmnated_", c("vs", "cyl", "carb"))
 )
 
-test_that("Test Complete Dominance Designation", {
+test_that("Test Complete Dominance Designation: domin", {
   expect_equal(test_obj$Complete_Dominance, cpt_test
   )})
 
-test_that("Test Overall Fit Statistic Value", {
+test_that("Test Complete Dominance Designation: domir", {
+  expect_equal(test_obj_new$Complete_Dominance, cpt_test
+  )})
+
+test_that("Test Overall Fit Statistic Value: domin", {
   expect_equal(test_obj$Fit_Statistic_Overall, 
                cor(mtcars$mpg, predict(lm(mpg ~ vs + cyl + carb, data = mtcars)))^2
   )})
 
-
+test_that("Test Overall Fit Statistic Value: domir", {
+  expect_equal(test_obj_new$Value,
+               cor(mtcars$mpg, predict(lm(mpg ~ vs + cyl + carb, data = mtcars)))^2
+  )})
 
