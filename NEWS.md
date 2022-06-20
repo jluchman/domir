@@ -1,3 +1,22 @@
+# domir 1.0.0
+
+## breaking/major changes
+
+-   New `domir` function
+    -   Generic function with three S3 methods: `formula`, `Formula`, and `list`
+        -   `Formula` and `list` methods under development
+    -   `.obj` submits object on which S3 method dispatch is based
+    -   `.fct` submits function that accepts result of same type as `.obj` and returns a scalar
+    -   `.set`, `.all` and `.adj` affect `.obj` entries
+        - `.wst` argument under development ('within-set' or Owen decomposition)
+-   `domin` superceded
+    -   Not under active development; bug fixes only
+
+## internal
+
+-   `dominance_scalar` internal function responsible for computation. `domir` is front-end to computational engine.
+    -   Other computational engines planned.  Internal function may be renamed.
+
 # domir 0.3.2
 
 ## bug fixes
@@ -77,7 +96,11 @@
 
 ## bug fixes
 
+<<<<<<< HEAD
 -   `Ensemble_Coordinator` that submitted factor #'s instead of text in R versions \< 4
+=======
+-   `Ensemble_Coordinator` that submitted factor numbers instead of text in R versions \< 4.0
+>>>>>>> 1.0
 
 # domir 0.0.0
 

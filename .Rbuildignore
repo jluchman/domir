@@ -7,8 +7,5 @@ README.Rmd
 ^doc$
 ^Meta$
 
-domme.r
-fit_statistics.r
-do_R2.Rd
 domir_details.Rmd
-fitstat_control.r
+^CRAN-SUBMISSION$
