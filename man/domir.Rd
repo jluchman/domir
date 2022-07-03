@@ -29,31 +29,32 @@ domir(.obj, ...)
 \arguments{
 \item{.obj}{A \code{\link{formula}}, \code{\link[=formula]{Formula}}, or \code{\link{list}}.
 
-Parsed to produce subsets.  Always submits subsets of the same type
-to \code{.fct}.}
+Parsed to produce subsets of elements to submit to \code{.fct}. Always submits
+subsets of \code{.obj} the same type to \code{.fct} as the same type or class as
+the input object.}
 
 \item{...}{Passes arguments to other methods; passes arguments to
 function in \code{.fct}.}
 
 \item{.fct}{A function/closure or string function name.
 
-Applied to all subsets received from \code{.obj}.  Must return a length 1
-(scalar), numeric vector.}
+Applied to all subsets of elements as received from \code{.obj}.
+Must return a length 1 (scalar), numeric, atomic vector.}
 
 \item{.set}{A \code{list}.
 
-Must be comprised of elements of the same class as \code{.obj}.  Elements of
-the list can be named.}
+Must be comprised of elements of the same type or class as \code{.obj}.
+Elements of the list can be named.}
 
 \item{.wst}{Not yet used.}
 
 \item{.all}{A \code{formula}, \code{Formula}, or \code{list}.
 
-Must be the same class as \code{.obj}.}
+Must be the same type or class as \code{.obj}.}
 
 \item{.adj}{A \code{formula}, \code{Formula}, or \code{list}.
 
-Must be the same class as \code{.obj}.}
+Must be the same type or class as \code{.obj}.}
 
 \item{.cdl}{Logical.
 
@@ -70,7 +71,8 @@ If \code{TRUE} then standardized vector, ranks, and complete dominance
 designations are reversed in their interpretation.}
 }
 \value{
-Returns an object of \code{\link{class}} "domir" which is a list composed of:
+Returns an object of \code{\link{class}} "domir" which is a composed of the
+following elements:
 
 \describe{
 \item{\code{General_Dominance}}{Vector of general dominance values.}
@@ -78,49 +80,134 @@ Returns an object of \code{\link{class}} "domir" which is a list composed of:
 to sum to 1.}
 \item{\code{Ranks}}{Vector of ranks applied to the general dominance values.}
 \item{\code{Conditional_Dominance}}{Matrix of conditional dominance values.
-Each row represents a name; each column represents a number of names
-included in \code{.fct}.}
+Each row represents an element in \code{.obj};
+each column represents a number of elements from \code{.obj} in a subset.}
 \item{\code{Complete_Dominance}}{Logical matrix of complete dominance
-designations. The term represented in each row indicates dominance status;
-the terms represented in each columns indicates dominated-by status.}
-\item{\code{Value}}{Value returned by \code{.fct} with all names included.}
-\item{\code{Value_All}}{Value of \code{.fct} associated with names included
-in \code{.all}.}
-\item{\code{Value_Adjust}}{Value of \code{.fct} associated
-with names in \code{.adj}.}
+designations.
+The \code{.obj} elements represented in each row indicates dominance status;
+the \code{.obj} elements represented in each column indicates
+dominated-by status.}
+\item{\code{Value}}{Value returned by \code{.fct} with all elements (i.e.,
+from \code{.obj}, \code{.all}, and \code{.adj}.}
+\item{\code{Value_All}}{Value of \code{.fct} associated with elements included
+in \code{.all};
+when elements are in \code{.adj}, will be adjusted for \code{Value_Adjust}.}
+\item{\code{Value_Adjust}}{Value of \code{.fct} associated with elements in \code{.adj}.}
 \item{\code{Call}}{The matched call.}
 }
 }
 \description{
-Parses input depending on method, computes all valid subsets,
-submits subsets to a function, and computes dominance decomposition
+Parses input object to obtain valid elements, determines all required
+combinations/subsets of elements (depends on input type), submits subsets to
+a function, and computes dominance decomposition
 statistics based on the returned values from the function.
 }
 \details{
-\code{.obj} is used to determine the number of subsets included the
-dominance analysis.  How the subsets are determined depends on \code{.obj}s
-class method.
+\subsection{Element Parsing}{
+
+\code{.obj}s elements are parsed and used to determine the required number of
+subsets included the dominance analysis.  How the elements are parsed is
+determined depends on \code{.obj}s type or class method.
+\subsection{\code{formula}}{
 
 The \code{formula} method applies the standard \code{\link{terms}} function parsing
-which separates elements on the right hand side of the \code{formula}.  All
-elements separated by \code{+} are considered a separate term that contributes to
-determining subsets. The \code{Formula} and \code{list} methods are not
-yet implemented.
+which separates term names on the right hand side of the \code{formula}.  All
+terms separated by \code{+} are considered a separate element for generating
+subsets.
 
-All methods for \code{domir} will submit subsets generated to the
-function in \code{.fct} as the first, unnamed argument.
+Any terms on the left hand side of \code{.obj} are retained and passed through
+to all subsets.
+}
 
-All subset generation methods' default behavior of using all elements
-as separate subset factors can be overriden using \code{.set}, \code{.all},
-and \code{.adj} arguments.
+\subsection{\code{Formula} and \code{list}}{
 
-\code{.set} binds together elements in \code{.obj} such that the form their own term.
+The \code{Formula} and \code{list} methods are not yet implemented.
+}
 
-\code{.all} includes elements in \code{.obj} all subsets including their contribution
-to the result.
+\subsection{Additional Details}{
 
-\code{.adj} includes elements in \code{.obj} all subsets removing their contribution
-to the result.
+By default, each parsed element in \code{.obj} will be used as a separate
+element to generate subsets and will obtain a separate contribution to
+the returned value.
+}
+
+}
+
+\subsection{Changing Element Parsing}{
+
+All methods' default behavior of using all elements to generate subsets
+can be overriden using \code{.set}, \code{.all}, and \code{.adj} arguments.
+
+Elements in \code{.set}, \code{.all}, and \code{.adj} must also be present in \code{.obj}.
+The entries in three arguments change \code{.obj}s parsing behavior but still
+depend on \code{.obj} as the primary input object.
+\subsection{\code{.set}}{
+
+\code{.set} binds together elements in \code{.obj} such that they form
+a single new element. The elements in \code{.obj} bound together contribute
+jointly to the returned value.
+
+If elements in \code{.set} are named, the \code{.set} element's name will be used
+in the "domir" object returned and all printed results.
+
+The \code{formula} method for \code{.set} does not allow any element to have a left
+hand side.
+}
+
+\subsection{\code{.all}}{
+
+\code{.all} binds elements in \code{.obj} to all subsets. The elements in \code{.obj} bound
+together by \code{.all} are given precedence in ascribing the returned value and
+contribute jointly to \code{Value_All}. \code{Value_All} is determined prior to
+conducting the dominance analysis and its value is removed from the returned
+values for all subsets.
+
+The \code{formula} method for \code{.all} does not allow a left hand side.
+}
+
+\subsection{\code{.adj}}{
+
+\code{.adj} binds elements in \code{.obj} to all subsets. The elements in \code{.obj} bound
+together by \code{.adj} are considered external to the dominance analysis but
+are adjusted for given they affect the returned value.  Elements in \code{.adj}
+contribute jointly to \code{Value_Adjust} and have a higher precedence than
+those bound in \code{.all}. \code{Value_Adjust} is determined prior to conducting
+the dominance analysis and its value is removed from the returned
+values for all subsets as well as from \code{Value_All}.
+
+The \code{formula} method for \code{.adj} does not allow a left hand side but
+allows constants/intercepts (i.e., \code{~ 1}) to be included as a valid
+element in the right hand size even when not explicitly included in \code{.obj}.
+}
+
+\subsection{Additional Details}{
+
+All element parsing methods for \code{domir} will submit subsets generated as an
+object of the same type as \code{.obj} (i.e., a \code{formula} in \code{.obj} will be
+submitted as a \code{formula}) to the \code{.fct} as the first, unnamed argument.
+}
+
+}
+
+\subsection{\code{.fct} as Analysis Pipeline}{
+
+The function in \code{.fct} will be called repeatedly, once for each subset
+of elements created from \code{.obj}.
+
+\code{.fct} is expected to be a complete analysis pipeline that receives a
+subset of elements from \code{.obj}, uses the subset of elements from \code{.obj} in
+the type/class as received to generate a predictive model, and
+extracts a returned value of the appropriate type to dominance analyze.
+
+At current, only atomic (i.e., non-\code{list}), numeric scalars (i.e.,
+vectors of length 1) are allowed as returned values.
+
+\code{domir} is intended to be strict about input and output requirements for
+functions in \code{.fct} and applies a series of checks to ensure the input and
+output adhere to these requirements.  In most circumstances,
+the user will have to make their own named or anonymous function to
+supply to \code{.fct} to meet \code{domir}s requirements.
+}
 }
 \examples{
 ## Basic linear model with r-square
@@ -143,7 +230,7 @@ domir(mpg ~ am + vs + cyl + carb + gear + disp + wt,
  data = mtcars)
 
 
-## Multivariate linear model with custom multivariate r-square function 
+## Multivariate linear model with multivariate r-square
 ## and all subsets variable
 
 mlm_rxy <- function(fml, data, dvnames) {

@@ -45,6 +45,10 @@
 #' This argument should be changed to \code{TRUE} if the fit statistic used decreases with better fit to the data (e.g., AIC, BIC). 
 #' @param ... Additional arguments passed to the function call in the \code{reg} argument.
 #'
+#' @section Notes:
+#' 
+#' `domin` has been superseded by [`domir`].
+#'
 #' @return Returns an object of \code{\link{class}} "domin".
 #' An object of class "domin" is a list composed of the following elements:
 #' \describe{
@@ -598,6 +602,16 @@ summary.domin <- function(object, ...) {
   
   if (length(object[["Strongest_Dominance"]]) == 0) {
     
+    reverse <- as.list(object$Call)$reverse
+    if (is.null(reverse)) reverse <- FALSE
+    
+    reverse_cdl <- 
+      ifelse(reverse, 
+             rep(-1, times = length(object$General_Dominance)), 
+             rep(1, times = length(object$General_Dominance)))
+    
+    reverse_gnl <- ifelse(reverse, -1, 1)
+    
     pairs <- utils::combn(names(object$General_Dominance), 2)
     
     pairs <- rbind(pairs[1,], rep("", times = ncol(pairs)), pairs[2,])
@@ -626,7 +640,8 @@ summary.domin <- function(object, ...) {
         
         if (length(object[["Conditional_Dominance"]] > 0)) {
           
-          if (all(object$Conditional_Dominance[IV1,] > object$Conditional_Dominance[IV2,])) { 
+          if (all(object$Conditional_Dominance[IV1,]*reverse_cdl > 
+                  object$Conditional_Dominance[IV2,]*reverse_cdl)) { 
             
             pairs[2, location] <- "conditionally dominates"
             
@@ -634,7 +649,8 @@ summary.domin <- function(object, ...) {
             
           }
           
-          else if (all(object$Conditional_Dominance[IV1,] < object$Conditional_Dominance[IV2,])) {
+          else if (all(object$Conditional_Dominance[IV1,]*reverse_cdl < 
+                       object$Conditional_Dominance[IV2,]*reverse_cdl)) {
             
             pairs[2, location] <- "is conditionally dominated by"
             
@@ -645,9 +661,11 @@ summary.domin <- function(object, ...) {
         }
         
         pairs[2, location] <- 
-          ifelse(object$General_Dominance[[IV1]] > object$General_Dominance[[IV2]], 
+          ifelse(object$General_Dominance[[IV1]]*reverse_gnl > 
+                   object$General_Dominance[[IV2]]*reverse_gnl, 
                  "generally dominates", 
-                 ifelse(object$General_Dominance[[IV1]] < object$General_Dominance[[IV2]],
+                 ifelse(object$General_Dominance[[IV1]]*reverse_gnl < 
+                          object$General_Dominance[[IV2]]*reverse_gnl,
                         "is generally dominated by", 
                         "has no dominance designation with"))
         

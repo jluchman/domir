@@ -16,9 +16,9 @@ Not used currently.}
 The submitted "domir" object with an additional
 \code{Strongest_Dominance} element added.
 \describe{
-\item{\code{Strongest_Dominance}}{Matrix comparing the name in the first
-row to the name in the third row.  The second row denotes the strongest
-designation between the two names.}
+\item{\code{Strongest_Dominance}}{Matrix comparing the element in the first
+row to the element in the third row.  The second row denotes the strongest
+designation between the two elements.}
 }
 }
 \description{
@@ -28,5 +28,5 @@ class object.
 \details{
 The summary method for class \code{domir} is used for obtaining the
 strongest dominance designations (i.e., general, conditional, or complete)
-among the names.
+among the elements.
 }

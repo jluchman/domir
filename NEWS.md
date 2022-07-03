@@ -9,13 +9,17 @@
     -   `.fct` submits function that accepts result of same type as `.obj` and returns a scalar
     -   `.set`, `.all` and `.adj` affect `.obj` entries
         - `.wst` argument under development ('within-set' or Owen decomposition)
--   `domin` superceded
-    -   Not under active development; bug fixes only
+-   `domin` superseded
+    -   No longer under active development; bug fixes only
 
 ## internal
 
 -   `dominance_scalar` internal function responsible for computation. `domir` is front-end to computational engine.
     -   Other computational engines planned.  Internal function may be renamed.
+    
+## bug fixes
+
+-   `summary.domin` not recognizing `reverse = TRUE`.
 
 # domir 0.3.2
 

@@ -42,6 +42,13 @@ knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>"
 )
+
+library(ggplot2)
+library(dplyr)
+library(purrr)
+library(forcats)
+library(tidyr)
+library(stringr)
 ```
 
 # Concepts in Application
@@ -54,7 +61,6 @@ Consider this model using the *mtcars* data in the `{datasets}` package.
 
 ```{r setup_lm}
 library(datasets)
-library(tidyverse)
 
 lm_cars <- 
   lm(mpg ~ am + cyl + carb, data = mtcars)

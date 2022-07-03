@@ -195,7 +195,7 @@ dominance_scalar <-
   
   # Obtain complete dominance statistics ----
   
-  ## ~~ todo: redesign to capture %of models----
+  ## ~~ todo: redesign cpt dom to capture %of models as statistic ----
   
   if (complete) {
     

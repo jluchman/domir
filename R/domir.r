@@ -4,34 +4,36 @@
 #'
 #' @description 
 #' 
-#' Parses input depending on method, computes all valid subsets, 
-#' submits subsets to a function, and computes dominance decomposition 
+#' Parses input object to obtain valid elements, determines all required 
+#' combinations/subsets of elements (depends on input type), submits subsets to 
+#' a function, and computes dominance decomposition 
 #' statistics based on the returned values from the function.
 #' 
 #' @param .obj A [`formula`], [`Formula`], or [`list`]. 
 #' 
-#' Parsed to produce subsets.  Always submits subsets of the same type 
-#' to `.fct`.  
+#' Parsed to produce subsets of elements to submit to `.fct`. Always submits 
+#' subsets of `.obj` the same type to `.fct` as the same type or class as 
+#' the input object.
 #' 
 #' @param .fct A function/closure or string function name.
 #' 
-#' Applied to all subsets received from `.obj`.  Must return a length 1 
-#' (scalar), numeric vector.
+#' Applied to all subsets of elements as received from `.obj`.  
+#' Must return a length 1 (scalar), numeric, atomic vector.
 #' 
 #' @param .set A `list`.
 #' 
-#' Must be comprised of elements of the same class as `.obj`.  Elements of 
-#' the list can be named.
+#' Must be comprised of elements of the same type or class as `.obj`.  
+#' Elements of the list can be named.
 #'
 #' @param .wst Not yet used.
 #' 
 #' @param .all A `formula`, `Formula`, or `list`. 
 #' 
-#' Must be the same class as `.obj`.
+#' Must be the same type or class as `.obj`.
 #' 
 #' @param .adj A `formula`, `Formula`, or `list`.
 #' 
-#' Must be the same class as `.obj`.
+#' Must be the same type or class as `.obj`.
 #' 
 #' @param .cdl Logical.  
 #' 
@@ -50,7 +52,8 @@
 #' @param ... Passes arguments to other methods; passes arguments to 
 #' function in `.fct`.
 #'
-#' @return Returns an object of [`class`] "domir" which is a list composed of:
+#' @return Returns an object of [`class`] "domir" which is a composed of the 
+#' following elements:
 #' 
 #' \describe{
 #'  \item{`General_Dominance`}{Vector of general dominance values.}
@@ -58,45 +61,119 @@
 #'  to sum to 1.}
 #'  \item{`Ranks`}{Vector of ranks applied to the general dominance values.}
 #'  \item{`Conditional_Dominance`}{Matrix of conditional dominance values.  
-#'  Each row represents a name; each column represents a number of names 
-#'  included in `.fct`.}
+#'  Each row represents an element in `.obj`; 
+#'  each column represents a number of elements from `.obj` in a subset.}
 #'  \item{`Complete_Dominance`}{Logical matrix of complete dominance 
-#'  designations. The term represented in each row indicates dominance status; 
-#'  the terms represented in each columns indicates dominated-by status.}
-#'  \item{`Value`}{Value returned by `.fct` with all names included.}
-#'  \item{`Value_All`}{Value of `.fct` associated with names included 
-#'  in `.all`.}
-#'  \item{`Value_Adjust`}{Value of `.fct` associated 
-#'  with names in `.adj`.}
+#'  designations. 
+#'  The `.obj` elements represented in each row indicates dominance status; 
+#'  the `.obj` elements represented in each column indicates 
+#'  dominated-by status.}
+#'  \item{`Value`}{Value returned by `.fct` with all elements (i.e., 
+#'  from `.obj`, `.all`, and `.adj`.}
+#'  \item{`Value_All`}{Value of `.fct` associated with elements included 
+#'  in `.all`; 
+#'  when elements are in `.adj`, will be adjusted for `Value_Adjust`.}
+#'  \item{`Value_Adjust`}{Value of `.fct` associated with elements in `.adj`.}
 #'  \item{`Call`}{The matched call.}
 #' }
 #'
 #' @details 
 #' 
-#' `.obj` is used to determine the number of subsets included the 
-#' dominance analysis.  How the subsets are determined depends on `.obj`s 
-#' class method.
+#' ## Element Parsing
+#' 
+#' `.obj`s elements are parsed and used to determine the required number of 
+#' subsets included the dominance analysis.  How the elements are parsed is 
+#' determined depends on `.obj`s type or class method.
+#' 
+#' ### `formula`
 #' 
 #' The `formula` method applies the standard [`terms`] function parsing 
-#' which separates elements on the right hand side of the `formula`.  All 
-#' elements separated by `+` are considered a separate term that contributes to 
-#' determining subsets. The `Formula` and `list` methods are not 
-#' yet implemented.
+#' which separates term names on the right hand side of the `formula`.  All 
+#' terms separated by `+` are considered a separate element for generating 
+#' subsets.
 #' 
-#' All methods for `domir` will submit subsets generated to the 
-#' function in `.fct` as the first, unnamed argument.
-#'
-#' All subset generation methods' default behavior of using all elements 
-#' as separate subset factors can be overriden using `.set`, `.all`, 
-#' and `.adj` arguments. 
+#' Any terms on the left hand side of `.obj` are retained and passed through 
+#' to all subsets.
 #' 
-#' `.set` binds together elements in `.obj` such that the form their own term. 
+#' ### `Formula` and `list`
 #' 
-#' `.all` includes elements in `.obj` all subsets including their contribution 
-#' to the result.
+#' The `Formula` and `list` methods are not yet implemented.
 #' 
-#' `.adj` includes elements in `.obj` all subsets removing their contribution 
-#' to the result.
+#' ### Additional Details
+#' 
+#' By default, each parsed element in `.obj` will be used as a separate 
+#' element to generate subsets and will obtain a separate contribution to 
+#' the returned value.
+#' 
+#' ## Changing Element Parsing
+#' 
+#' All methods' default behavior of using all elements to generate subsets 
+#' can be overriden using `.set`, `.all`, and `.adj` arguments. 
+#' 
+#' Elements in `.set`, `.all`, and `.adj` must also be present in `.obj`.  
+#' The entries in three arguments change `.obj`s parsing behavior but still 
+#' depend on `.obj` as the primary input object.
+#' 
+#' ### `.set`
+#' 
+#' `.set` binds together elements in `.obj` such that they form 
+#' a single new element. The elements in `.obj` bound together contribute 
+#' jointly to the returned value.
+#' 
+#' If elements in `.set` are named, the `.set` element's name will be used 
+#' in the "domir" object returned and all printed results.
+#' 
+#' The `formula` method for `.set` does not allow any element to have a left 
+#' hand side.
+#' 
+#' ### `.all`
+#' 
+#' `.all` binds elements in `.obj` to all subsets. The elements in `.obj` bound 
+#' together by `.all` are given precedence in ascribing the returned value and 
+#' contribute jointly to `Value_All`. `Value_All` is determined prior to 
+#' conducting the dominance analysis and its value is removed from the returned 
+#' values for all subsets.
+#' 
+#' The `formula` method for `.all` does not allow a left hand side.
+#' 
+#' ### `.adj`
+#' 
+#' `.adj` binds elements in `.obj` to all subsets. The elements in `.obj` bound 
+#' together by `.adj` are considered external to the dominance analysis but 
+#' are adjusted for given they affect the returned value.  Elements in `.adj` 
+#' contribute jointly to `Value_Adjust` and have a higher precedence than 
+#' those bound in `.all`. `Value_Adjust` is determined prior to conducting 
+#' the dominance analysis and its value is removed from the returned 
+#' values for all subsets as well as from `Value_All`.
+#' 
+#' The `formula` method for `.adj` does not allow a left hand side but 
+#' allows constants/intercepts (i.e., `~ 1`) to be included as a valid 
+#' element in the right hand size even when not explicitly included in `.obj`.
+#' 
+#' ### Additional Details
+#' 
+#' All element parsing methods for `domir` will submit subsets generated as an 
+#' object of the same type as `.obj` (i.e., a `formula` in `.obj` will be 
+#' submitted as a `formula`) to the `.fct` as the first, unnamed argument.
+#' 
+#' ## `.fct` as Analysis Pipeline
+#' 
+#' The function in `.fct` will be called repeatedly, once for each subset 
+#' of elements created from `.obj`.
+#' 
+#' `.fct` is expected to be a complete analysis pipeline that receives a 
+#' subset of elements from `.obj`, uses the subset of elements from `.obj` in 
+#' the type/class as received to generate a predictive model, and 
+#' extracts a returned value of the appropriate type to dominance analyze.  
+#' 
+#' At current, only atomic (i.e., non-`list`), numeric scalars (i.e., 
+#' vectors of length 1) are allowed as returned values.
+#' 
+#' `domir` is intended to be strict about input and output requirements for 
+#' functions in `.fct` and applies a series of checks to ensure the input and 
+#' output adhere to these requirements.  In most circumstances, 
+#' the user will have to make their own named or anonymous function to 
+#' supply to `.fct` to meet `domir`s requirements.
 #' 
 #' @export
 #' @examples
@@ -120,7 +197,7 @@
 #'  data = mtcars)
 #'
 #'
-#' ## Multivariate linear model with custom multivariate r-square function 
+#' ## Multivariate linear model with multivariate r-square
 #' ## and all subsets variable
 #' 
 #' mlm_rxy <- function(fml, data, dvnames) {
@@ -330,7 +407,7 @@ domir.formula <- function(
       
       elements_has_response <- 
         paste(which(sapply(.set, 
-                           function(x) attr(terms(x), "response")) > 0 ), 
+                           function(x) attr(stats::terms(x), "response")) > 0 ), 
               collapse = " ")
       
       stop("Elements in '.set' must not have responses/left hand sides.\n",
@@ -452,10 +529,11 @@ domir.formula <- function(
              call. = FALSE)
       )
   
-  # is '.fct's returned value a numeric scalar?
-  if (!is.numeric(test_model) && length(test_model) != 1) 
-    stop("result of '.fct' is not a numeric, scalar/",
-         "length of 1 value.", call. = FALSE)
+  # is '.fct's returned value an atomic numeric scalar?
+  if (!is.numeric(test_model) || !is.vector(test_model) || 
+      !is.atomic(test_model) || length(test_model) != 1) 
+    stop("result of '.fct' is not an atomic numeric, scalar/",
+         "vector of length of 1 value.", call. = FALSE)
   
   # is '.fct's returned value regarded as a list?
   if (is.list(test_model)) 
@@ -570,21 +648,21 @@ domir.list <- function(...) {
 #' @details The print method for class `domir` objects reports out the 
 #' following results:
 #' \itemize{
-#'  \item{Value when all names are included in `.fct`.  The value for the 
-#'  names included in all subsets is reported here if there are any entries 
-#'  in `.all`.  The value for names/terms used to adjust the values is 
-#'  reported here if there are any entries in `.adj`.}
+#'  \item{Value when all elements are included in `obj`.}
+#'  \item{Value for the elements included in `.all` if any.}  
+#'  \item{Value for the elements included in `.adj` if any.}
 #'  \item{Matrix describing general dominance values, standardized 
 #'  general dominance values, and the ranking of the general 
-#'  dominance values}
-#'  \item{If `.cdl` is `TRUE`, matrix describing the conditional 
-#'  dominance values}
-#'  \item{If `.cpt` is `TRUE`, matrix describing the complete 
-#'  dominance designations}
+#'  dominance values.}
+#'  \item{Matrix describing the conditional dominance values; when computed}
+#'  \item{Matrix describing the complete dominance designations; when 
+#'  determined}
 #'  \item{If following `summary.domir`, matrix describing the strongest 
-#'  dominance designations between all names}}
+#'  dominance designations between all elements.}}
+#'  
 #'  The `domir` print method alters dimension names for readability and they 
-#'  do not display as stored in the original `domir` object.
+#'  do not display as stored in the `domir` object.
+#'  
 #' @exportS3Method 
 
 print.domir <- function(x, ...) {
@@ -592,10 +670,10 @@ print.domir <- function(x, ...) {
   cat("Overall Value:     ", x[["Value"]], "\n")
   
   if (length(x[["Value_All"]]) > 0) 
-    cat("All Subset Value: ", x[["Value_All"]], "\n")
+    cat("All Subset Value:  ", x[["Value_All"]], "\n")
   
   if (length(x[["Value_Adjust"]]) > 0) 
-    cat("Adjustment Value: ", 
+    cat("Adjustment Value:  ", 
         x[["Value_Adjust"]], "\n")
   
   cat("\n")
@@ -665,18 +743,30 @@ print.domir <- function(x, ...) {
 #' @return The submitted "domir" object with an additional 
 #' `Strongest_Dominance` element added.
 #' \describe{
-#'  \item{\code{Strongest_Dominance}}{Matrix comparing the name in the first 
-#'  row to the name in the third row.  The second row denotes the strongest 
-#'  designation between the two names.}
+#'  \item{\code{Strongest_Dominance}}{Matrix comparing the element in the first 
+#'  row to the element in the third row.  The second row denotes the strongest 
+#'  designation between the two elements.}
 #' }
+#' 
 #' @details The summary method for class `domir` is used for obtaining the 
 #' strongest dominance designations (i.e., general, conditional, or complete) 
-#' among the names.
+#' among the elements.
+#' 
 #' @exportS3Method
 
 summary.domir <- function(object, ...) {
   
   if (length(object[["Strongest_Dominance"]]) == 0) {
+    
+    reverse <- as.list(object$Call)$.rev
+    if (is.null(reverse)) reverse <- FALSE
+    
+    reverse_cdl <- 
+      ifelse(reverse, 
+             rep(-1, times = length(object$General_Dominance)), 
+             rep(1, times = length(object$General_Dominance)))
+    
+    reverse_gnl <- ifelse(reverse, -1, 1)
     
     pairs <- utils::combn(names(object$General_Dominance), 2)
     
@@ -695,7 +785,7 @@ summary.domir <- function(object, ...) {
           if (!is.na(object$Complete_Dominance[IV1, IV2])) {
             pairs[2, location] <- 
               ifelse(object$Complete_Dominance[IV1, IV2], 
-                     "Completely dominates",
+                     "completely dominates",
                      "is Completely dominated by")
             
             next
@@ -706,8 +796,8 @@ summary.domir <- function(object, ...) {
         
         if (length(object[["Conditional_Dominance"]] > 0)) {
           
-          if (all(object$Conditional_Dominance[IV1,] > 
-                  object$Conditional_Dominance[IV2,])) { 
+          if (all(object$Conditional_Dominance[IV1,]*reverse_cdl > 
+                  object$Conditional_Dominance[IV2,]*reverse_cdl)) { 
             
             pairs[2, location] <- "conditionally dominates"
             
@@ -715,8 +805,8 @@ summary.domir <- function(object, ...) {
             
           }
           
-          else if (all(object$Conditional_Dominance[IV1,] < 
-                       object$Conditional_Dominance[IV2,])) {
+          else if (all(object$Conditional_Dominance[IV1,]*reverse_cdl < 
+                       object$Conditional_Dominance[IV2,]*reverse_cdl)) {
             
             pairs[2, location] <- "is conditionally dominated by"
             
@@ -727,11 +817,11 @@ summary.domir <- function(object, ...) {
         }
         
         pairs[2, location] <- 
-          ifelse(object$General_Dominance[[IV1]] > 
-                   object$General_Dominance[[IV2]], 
+          ifelse(object$General_Dominance[[IV1]]*reverse_gnl > 
+                   object$General_Dominance[[IV2]]*reverse_gnl, 
                  "generally dominates", 
-                 ifelse(object$General_Dominance[[IV1]] < 
-                          object$General_Dominance[[IV2]],
+                 ifelse(object$General_Dominance[[IV1]]*reverse_gnl < 
+                          object$General_Dominance[[IV2]]*reverse_gnl,
                         "is generally dominated by", 
                         "has no dominance designation with"))
         
@@ -745,7 +835,7 @@ summary.domir <- function(object, ...) {
     
     res <- append(object, list(Strongest_Dominance = pairs))
     
-    class(res) <- c("domin", "list")
+    class(res) <- c("domir")
     
     return(res)
     

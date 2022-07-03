@@ -144,6 +144,12 @@ The entries to \code{fitstat} must be as a list and follow a specific structure:
 
 In the case that the model object returned by \code{reg} includes its own fit statistic without the need for an extractor function, the user can apply an anonymous function following the required format to extract it.
 }
+\section{Notes}{
+
+
+\code{domin} has been superseded by \code{\link{domir}}.
+}
+
 \examples{
 ## Basic linear model with r-square
 
