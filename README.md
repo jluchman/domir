@@ -396,10 +396,13 @@ rf_model <-
   randomForest::randomForest(mpg ~ am + qsec + cyl, data = mtcars, 
                              importance = TRUE)
 
-randomForest::varImpPlot(rf_model)
+data.frame(`%IncMSE` = rf_model$importance[,1], `RankIncMSE` = rank(rf_model$importance[,1]*-1), `IncNodePurity` = rf_model$importance[,2], `RankIncPurity` = rank(rf_model$importance[,2]*-1),check.names = FALSE)
 ```
 
-![](README_files/figure-gfm/da_rpart-1.png)<!-- -->
+    ##        %IncMSE RankIncMSE IncNodePurity RankIncPurity
+    ## am   10.121981          2      188.9050             3
+    ## qsec  6.754203          3      281.3496             2
+    ## cyl  20.526554          1      367.8784             1
 
 ``` r
 cor(predict(rf_model), mtcars$mpg)^2

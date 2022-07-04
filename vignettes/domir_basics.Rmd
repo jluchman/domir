@@ -33,9 +33,9 @@ In application, DA determines the relative importance of IVs in a predictive mod
 
 ## DA Implementation with `domir::domin`
 
-The `domin` function of the `{domir}` package is an API for applying DA to predictive modeling functions in R. The sections below will use this function to illustrate how DA is implemented and discuss conceptual details of each computation.
+The `domin` function[^1] of the `{domir}` package is an API for applying DA to predictive modeling functions in R. The sections below will use this function to illustrate how DA is implemented and discuss conceptual details of each computation.
 
-Details on how to work with `domin` in terms of programming and how the API functions will reported on in the *domir details* vignette (under development).
+[^1]: Note that the `domin` function has been superseded by the `domir` function. Despite its programming designation, this vignette's purpose is to illustrate dominance analysis concepts and will use `domin` for this purpose as both functions produce identical results.
 
 ```{r, include = FALSE}
 knitr::opts_chunk$set(

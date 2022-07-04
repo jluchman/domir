@@ -166,7 +166,7 @@ rf_model <-
   randomForest::randomForest(mpg ~ am + qsec + cyl, data = mtcars, 
                              importance = TRUE)
 
-randomForest::varImpPlot(rf_model)
+data.frame(`%IncMSE` = rf_model$importance[,1], `RankIncMSE` = rank(rf_model$importance[,1]*-1), `IncNodePurity` = rf_model$importance[,2], `RankIncPurity` = rank(rf_model$importance[,2]*-1),check.names = FALSE)
 
 cor(predict(rf_model), mtcars$mpg)^2
 

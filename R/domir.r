@@ -9,7 +9,7 @@
 #' a function, and computes dominance decomposition 
 #' statistics based on the returned values from the function.
 #' 
-#' @param .obj A [`formula`], [`Formula`], or [`list`]. 
+#' @param .obj A [`formula`], [`Formula`][Formula::Formula], or [`list`]. 
 #' 
 #' Parsed to produce subsets of elements to submit to `.fct`. Always submits 
 #' subsets of `.obj` the same type to `.fct` as the same type or class as 

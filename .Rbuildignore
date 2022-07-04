@@ -1,11 +1,9 @@
 cran-comments.md
-README.Rmd
 ^.*\.Rproj$
 ^\.Rproj\.user$
 ^CRAN-RELEASE$
 ^LICENSE\.md$
 ^doc$
 ^Meta$
-
-domir_details.Rmd
+README.Rmd
 ^CRAN-SUBMISSION$

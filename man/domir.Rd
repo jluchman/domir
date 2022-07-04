@@ -27,7 +27,7 @@ domir(.obj, ...)
 \method{domir}{list}(...)
 }
 \arguments{
-\item{.obj}{A \code{\link{formula}}, \code{\link[=formula]{Formula}}, or \code{\link{list}}.
+\item{.obj}{A \code{\link{formula}}, \code{\link[Formula:Formula]{Formula}}, or \code{\link{list}}.
 
 Parsed to produce subsets of elements to submit to \code{.fct}. Always submits
 subsets of \code{.obj} the same type to \code{.fct} as the same type or class as
