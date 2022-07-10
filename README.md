@@ -121,7 +121,7 @@ filtered to just the **r.squared** element and returned.
 What `domir` does automate taking subsets of the *formula* and submit
 them, repeatedly until all possible subsets have been submitted, to
 `lm_wrapper` (see this
-[vignette](https://cran.r-project.org/web/packages/domir/vignettes/domir_basics.html)
+[vignette](https://CRAN.R-project.org/package=domir/vignettes/domir_basics.html)
 for a conceptual discussion of dominance analysis). In this way, `domir`
 is a `Map`- or `lapply`-like function as it receives an object on which
 to operate (i.e., the *formula*) and a function to which to apply to it.

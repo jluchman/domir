@@ -65,7 +65,7 @@ domir(mpg ~ am + vs + cyl,
 
 In `domir`, the `lm` model is not submitted directly. Rather, it is wrapped into a function (i.e., `lm_wrapper`) that, in this case, accepts two arguments; *formula* or an R formula and *data* a data frame in which the independent variables in the formula are present. The result of the `lm` is piped (i.e., `|>`) into the `summary` function and the result is captured as the object *result*. The *result* object is then filtered to just the **r.squared** element and returned.
 
-What `domir` does automate taking subsets of the *formula* and submit them, repeatedly until all possible subsets have been submitted, to `lm_wrapper` (see this [vignette](https://cran.r-project.org/web/packages/domir/vignettes/domir_basics.html) for a conceptual discussion of dominance analysis). In this way, `domir` is a `Map`- or `lapply`-like function as it receives an object on which to operate (i.e., the *formula*) and a function to which to apply to it. `domir` expects a numeric scalar to be returned from the function.
+What `domir` does automate taking subsets of the *formula* and submit them, repeatedly until all possible subsets have been submitted, to `lm_wrapper` (see this [vignette](https://CRAN.R-project.org/package=domir/vignettes/domir_basics.html) for a conceptual discussion of dominance analysis). In this way, `domir` is a `Map`- or `lapply`-like function as it receives an object on which to operate (i.e., the *formula*) and a function to which to apply to it. `domir` expects a numeric scalar to be returned from the function.
 
 Like `lapply`, other arguments (`data = mtcars`) can also be passed to each call of the function and must be explicitly built into the wrapper function.
 

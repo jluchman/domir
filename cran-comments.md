@@ -1,4 +1,6 @@
-## Major version update: 1.0.0
+## Resubmission: Major version update: 1.0.0
+
+In this resubmission of major update 1.0.0 I have fixed a web link to a vignette in the README.md file at the request of CRAN maintainers.  This change has also removed one of the check NOTEs in the previous submission.
 
 This major version update includes a new S3 generic function, `domir`, with a `print` and `summary` function and `formula` method.  This new generic function supersedes the `domin` function.
 
@@ -18,12 +20,19 @@ Changes from version 0.3.2 also include:
 
 ## R CMD check results
 
-Oracle Solaris with and without Oracle Developer Studio (rhub): 1 NOTE
+Oracle Solaris with and without Oracle Developer Studio (rhub): 1 ERROR
 
-    * checking top-level files ... NOTE
-    Files ‘README.md’ or ‘NEWS.md’ cannot be checked without ‘pandoc’ being installed.
+    * checking package dependencies ... ERROR
+      Package suggested but not available: ‘testthat’
 
-Comment: Appears to be a platform-specific build issue where the 'pandoc' program is not installed and thus cannot translate the .md formatted files.
+      The suggested packages are required for a complete check.
+      Checking can be attempted without them by setting the environment
+      variable _R_CHECK_FORCE_SUGGESTS_ to a false value.
+
+      See section ‘The DESCRIPTION file’ in the ‘Writing R Extensions’
+      manual.
+
+Comment: Appears to be a platform-specific build issue where the 'testthat' package relied on for unit testing was not available resulting in a failed check on dependencies.
 
 win-builder (devel, release, and old-release) and Oracle Solaris with and without Oracle Developer Studio (rhub): 1 NOTE
 
@@ -34,17 +43,6 @@ win-builder (devel, release, and old-release) and Oracle Solaris with and withou
       Gr�mping (15:36)
 
 Comment: Each word flagged as misspelled is an authors' name from cited literature discussing this methodology.
-
-    Found the following (possibly) invalid URLs:
-      URL: https://cran.r-project.org/web/packages/domir/vignettes/domir_basics.html
-        From: README.md
-        Status: 200
-        Message: OK
-        CRAN URL not in canonical form
-      The canonical URL of the CRAN page for a package is 
-        https://CRAN.R-project.org/package=pkgname
-        
-Comment: The intention of this link is to point specifically at the vignette built and hosted on the CRAN webpage.  It is my understanding that the canonical URL is to be used to point readers to the package broadly.
 
     Found the following (possibly) invalid DOIs:
       DOI: 10.1002/asmb.446
