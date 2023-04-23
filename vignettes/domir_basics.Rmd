@@ -92,7 +92,9 @@ Below I "replay" and discuss each result in turn.
 
 ## Fit Statistic Results
 
-    #> Overall Fit Statistic:      0.8113023 
+```         
+#> Overall Fit Statistic:      0.8113023 
+```
 
 The first result `domin` prints is related to the overall fit statistic value for the model. In game theory terms, this value is the total payoff all players/IVs produced in the cooperative game/model.
 
@@ -102,11 +104,13 @@ Other fit statistic value adjustments are reported in this section as well in pa
 
 ## General Dominance Statistics
 
-    #> General Dominance Statistics:
-    #>      General Dominance Standardized Ranks
-    #> am           0.2156848    0.2658501     2
-    #> cyl          0.4173094    0.5143698     1
-    #> carb         0.1783081    0.2197801     3
+```         
+#> General Dominance Statistics:
+#>      General Dominance Standardized Ranks
+#> am           0.2156848    0.2658501     2
+#> cyl          0.4173094    0.5143698     1
+#> carb         0.1783081    0.2197801     3
+```
 
 The second result printed reports the *general dominance statistics* related to how the overall fit statistic's value is divided up among the IVs. These also represent the Shapley value decompositions of the fit statistic showing how each player/IV is ascribed a component of the payoff/fit statistic from the game/model.
 
@@ -126,11 +130,13 @@ The general dominance statistics, however simple to interpret, are the least str
 
 ## Conditional Dominance Statistics
 
-    #> Conditional Dominance Statistics:
-    #>         IVs: 1    IVs: 2     IVs: 3
-    #> am   0.3597989 0.2164938 0.07076149
-    #> cyl  0.7261800 0.4181185 0.10762967
-    #> carb 0.3035184 0.1791172 0.05228872
+```         
+#> Conditional Dominance Statistics:
+#>         IVs: 1    IVs: 2     IVs: 3
+#> am   0.3597989 0.2164938 0.07076149
+#> cyl  0.7261800 0.4181185 0.10762967
+#> carb 0.3035184 0.1791172 0.05228872
+```
 
 The third section reported on by `domin` prints the *conditional dominance statistics* associated with each IV. Each IV has a separate conditional dominance statistic related to the number of IVs that are in a sub-model; why this matrix is useful delves into the computation of these statistics which is discussed later. For the time being it suffices to note that, conceptually, these values can be thought of as Shapley values for a specific number of players in the game. Thus, the *IVs: 1* column reports on the value of the fit statistic/payoff when the IV is "playing alone" (i.e., by itself in the model with no other IVs). Similarly, the *IVs: 2* column reports on the average value of the fit statistic/payoff when the IV is "playing with one other" (i.e., with another IV irrespective of which) and so on until the column with all IVs in the model (here *IVs: 3*).
 
@@ -148,11 +154,13 @@ Note that conditional dominance implies general dominance--but the reverse is no
 
 ## Complete Dominance Designations
 
-    #> Complete Dominance Designations:
-    #>              Dmnated?am Dmnated?cyl Dmnated?carb
-    #> Dmnates?am           NA       FALSE         TRUE
-    #> Dmnates?cyl        TRUE          NA         TRUE
-    #> Dmnates?carb      FALSE       FALSE           NA
+```         
+#> Complete Dominance Designations:
+#>              Dmnated?am Dmnated?cyl Dmnated?carb
+#> Dmnates?am           NA       FALSE         TRUE
+#> Dmnates?cyl        TRUE          NA         TRUE
+#> Dmnates?carb      FALSE       FALSE           NA
+```
 
 The fourth section reported on by `domin` prints the *complete dominance designations* associated with each IV pair. Each IV is compared to each other IV and has two entries in this matrix. The IV noted in the row labels represent a "completely dominates" relationship with the IV noted in the column label. By contrast, the IV noted in the column labels represent a "is completely dominated by" relationship with the IV in the row label. Each designation is then assigned a logical value or `NA` (i.e., when no complete dominance designation can be made).
 

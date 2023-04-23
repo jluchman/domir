@@ -22,15 +22,14 @@ The print method for class \code{domir} objects reports out the
 following results:
 \itemize{
 \item{Value when all elements are included in \code{obj}.}
-\item{Value for the elements included in \code{.all} if any.}
-\item{Value for the elements included in \code{.adj} if any.}
+\item{Value for the elements included in \code{.all}, if any.}
+\item{Value for the elements included in \code{.adj}, if any.}
 \item{Matrix describing general dominance values, standardized
 general dominance values, and the ranking of the general
 dominance values.}
-\item{Matrix describing the conditional dominance values; when computed}
-\item{Matrix describing the complete dominance designations; when
-determined}
-\item{If following \code{summary.domir}, matrix describing the strongest
+\item{Matrix describing the conditional dominance values, if computed}
+\item{Matrix describing the complete dominance designations, if evaluated}
+\item{If following \code{\link{summary.domir}}, matrix describing the strongest
 dominance designations between all elements.}}
 
 The \code{domir} print method alters dimension names for readability and they

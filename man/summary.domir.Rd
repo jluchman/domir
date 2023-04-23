@@ -26,7 +26,7 @@ Reports dominance designation results from the \code{domir}
 class object.
 }
 \details{
-The summary method for class \code{domir} is used for obtaining the
-strongest dominance designations (i.e., general, conditional, or complete)
-among the elements.
+The summary method for class \code{domir} objects is used for obtaining
+the strongest dominance designations (i.e., general, conditional, or
+complete) among all pairs of dominance analyzed elements.
 }

@@ -30,31 +30,31 @@ domir(.obj, ...)
 \item{.obj}{A \code{\link{formula}}, \code{\link[Formula:Formula]{Formula}}, or \code{\link{list}}.
 
 Parsed to produce subsets of elements to submit to \code{.fct}. Always submits
-subsets of \code{.obj} the same type to \code{.fct} as the same type or class as
-the input object.}
+subsets of \code{.obj} that are of the same \code{\link{class}} to \code{.fct} and are always
+submitted as the first, unnamed argument.}
 
 \item{...}{Passes arguments to other methods; passes arguments to
-function in \code{.fct}.}
+the function in \code{.fct}.}
 
-\item{.fct}{A function/closure or string function name.
+\item{.fct}{A \code{\link{function}}/closure or string function name.
 
 Applied to all subsets of elements as received from \code{.obj}.
 Must return a length 1 (scalar), numeric, atomic vector.}
 
 \item{.set}{A \code{list}.
 
-Must be comprised of elements of the same type or class as \code{.obj}.
+Must be comprised of elements of the same class as \code{.obj}.
 Elements of the list can be named.}
 
 \item{.wst}{Not yet used.}
 
 \item{.all}{A \code{formula}, \code{Formula}, or \code{list}.
 
-Must be the same type or class as \code{.obj}.}
+Must be the same class as \code{.obj}.}
 
 \item{.adj}{A \code{formula}, \code{Formula}, or \code{list}.
 
-Must be the same type or class as \code{.obj}.}
+Must be the same class as \code{.obj}.}
 
 \item{.cdl}{Logical.
 
@@ -107,7 +107,7 @@ statistics based on the returned values from the function.
 
 \code{.obj}s elements are parsed and used to determine the required number of
 subsets included the dominance analysis.  How the elements are parsed is
-determined depends on \code{.obj}s type or class method.
+determined depends on \code{.obj}s class method.
 \subsection{\code{formula}}{
 
 The \code{formula} method applies the standard \code{\link{terms}} function parsing
@@ -176,14 +176,14 @@ the dominance analysis and its value is removed from the returned
 values for all subsets as well as from \code{Value_All}.
 
 The \code{formula} method for \code{.adj} does not allow a left hand side but
-allows constants/intercepts (i.e., \code{~ 1}) to be included as a valid
+allows the intercept (i.e., \code{~ 1}) to be included as a valid
 element in the right hand size even when not explicitly included in \code{.obj}.
 }
 
 \subsection{Additional Details}{
 
 All element parsing methods for \code{domir} will submit subsets generated as an
-object of the same type as \code{.obj} (i.e., a \code{formula} in \code{.obj} will be
+object of the same class as \code{.obj} (i.e., a \code{formula} in \code{.obj} will be
 submitted as a \code{formula}) to the \code{.fct} as the first, unnamed argument.
 }
 
@@ -191,12 +191,12 @@ submitted as a \code{formula}) to the \code{.fct} as the first, unnamed argument
 
 \subsection{\code{.fct} as Analysis Pipeline}{
 
-The function in \code{.fct} will be called repeatedly, once for each subset
+The function in \code{.fct} will be called repeatedly; once for each subset
 of elements created from \code{.obj}.
 
 \code{.fct} is expected to be a complete analysis pipeline that receives a
 subset of elements from \code{.obj}, uses the subset of elements from \code{.obj} in
-the type/class as received to generate a predictive model, and
+the class as received to generate a predictive model, and
 extracts a returned value of the appropriate type to dominance analyze.
 
 At current, only atomic (i.e., non-\code{list}), numeric scalars (i.e.,
@@ -209,6 +209,23 @@ the user will have to make their own named or anonymous function to
 supply to \code{.fct} to meet \code{domir}s requirements.
 }
 }
+\section{Notes}{
+\subsection{\code{formula} method}{
+
+\code{formula} objects and all arguments for the \code{formula} method do not allow
+\code{\link{offset}} terms. When the user needs to include offset terms in their model,
+they could be included by the user in the \code{.fct} as an
+\code{\link[=update.formula]{update}} to the submitted \code{formula} object or through
+other similar means.
+
+\code{formula}s with second-order or higher terms (i.e., interactions like
+\code{~ a*b}) are not, by default, used differently from first-order terms.
+The dominance analysis results from models using such terms may not produce
+useful results unless the user ensures that second-order and higher terms
+are used appropriately in \code{.fct}.
+}
+}
+
 \examples{
 ## Basic linear model with r-square
 
@@ -254,6 +271,7 @@ domir(mpg ~ am + gear + cyl + vs + qsec + drat,
   data = mtcars, 
   .set = list(trns = ~ am + gear, 
     eng = ~ cyl + vs, misc = ~ qsec + drat))
+  
   
 ## Linear model using AIC
 

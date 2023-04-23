@@ -1,24 +1,34 @@
-## Resubmission: Major version update: 1.0.0
+## Patch version update: 1.0.1
 
-In this resubmission of major update 1.0.0 I have fixed a web link to a vignette in the README.md file at the request of CRAN maintainers.  This change has also removed one of the check NOTEs in the previous submission.
-
-This major version update includes a new S3 generic function, `domir`, with a `print` and `summary` function and `formula` method.  This new generic function supersedes the `domin` function.
-
-Changes from version 0.3.2 also include:
-
--   bug fix to `summary` function applied to `domin` for determining strongest dominance.
+This patch update to 1.0.0 has improved the consistency of argument checks 
+and has disallowed the use of `offset()`s in formulas with `domin` and `domir` 
+functions--with a recommendation the user incorporate them in the functions 
+called by both when necessary.
 
 ## Test environments
 
--   pop!OS/ubuntu 22.04, R 4.2.1 (local)
--   Apple Silicon (M1), macOS 11.6 Big Sur, R-release (rhub)
--   macOS 10.13.6 High Sierra, R-release, brew (rhub)
--   macOS 10.13.6 High Sierra, R-release, CRAN's setup (rhub)
--   Oracle Solaris 10, x86, 32 bit, R-release
--   Oracle Solaris 10, x86, 32 bit, R release, Oracle Developer Studio 12.6
+-   pop!OS/ubuntu 22.04, R 4.2.3 (local)
+# -   Apple Silicon (M1), macOS 11.6 Big Sur, R-release (rhub)
+# -   macOS 10.13.6 High Sierra, R-release, brew (rhub)
+# -   macOS 10.13.6 High Sierra, R-release, CRAN's setup (rhub)
 -   win-builder (devel, release, and old-release)
+-   macOS-builder (release)
 
 ## R CMD check results
+
+All checks on all platforms: OK.
+
+win-builder-old-release: 1 NOTE
+
+    Found the following (possibly) invalid DOIs:
+    DOI: 10.1002/asmb.446
+      From: DESCRIPTION
+      Status: Forbidden
+      Message: 403
+      
+Comment: DOI: 10.1002/asmb.446 links reliably to Lipovetsky's and Conklin's 2001 article on relative importance in linear models when followed from a web browser https://doi.org (tested on Mozilla Firefox).
+
+...
 
 Oracle Solaris with and without Oracle Developer Studio (rhub): 1 ERROR
 

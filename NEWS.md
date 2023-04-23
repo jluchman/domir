@@ -1,3 +1,11 @@
+# domir 1.0.1
+
+## bug fixes
+
+-   `formula` method in `domir()` and `domin()` now disallow `offset()` terms
+    - Were silently removed and not replaced during parsing.
+-   Argument checks for `formula` method produced inconsistent results
+
 # domir 1.0.0
 
 ## breaking/major changes

@@ -64,7 +64,7 @@ Typical usage of \code{consmodel} is to pass "1" to set the intercept as the bas
 
 As such, this vector is used to set a baseline for the fit statistic when it is non-0.}
 
-\item{reverse}{Logical. If \code{TRUE} then standardized vector, ranks, and complete dominance Designations are reversed in their interpretation.
+\item{reverse}{Logical. If \code{TRUE} then standardized vector, ranks, and complete dominance designations are reversed in their interpretation.
 
 This argument should be changed to \code{TRUE} if the fit statistic used decreases with better fit to the data (e.g., AIC, BIC).}
 
@@ -112,7 +112,7 @@ This call records three entries and results in seven (i.e., \eqn{2^3 - 1}) diffe
 \item x1, x2, x3, x4
 }
 
-\code{domin} parses \code{formula_overall} to obtain all the terms in it and combines them with \code{sets}.  When parsing \code{formula_overall}, only the processing that is available in the \code{stats} package is applied.  Note that \code{domin} is not programmed to process terms of order > 1 (i.e., interactions/products) appropriately (i.e., only include in the presence of lower order component terms).
+\code{domin} parses \code{formula_overall} to obtain all the terms in it and combines them with \code{sets}.  When parsing \code{formula_overall}, only the processing that is available in the \code{stats} package is applied.  Note that \code{domin} is not programmed to process terms of order > 1 (i.e., interactions/products) appropriately (i.e., only include in the presence of lower order component terms). \code{domin} also does not allow \code{offset} terms.
 
 From these combinations, the predictive models are constructed and called. The predictive model call includes the entries in \code{all}, applies the appropriate formula, and reconstructs the function itself. The seven combinations above imply the following series of predictive model calls:
 
@@ -146,6 +146,8 @@ In the case that the model object returned by \code{reg} includes its own fit st
 }
 \section{Notes}{
 
+
+\code{domin} is an R port of the Stata command with the same name (see Luchman, 2021).
 
 \code{domin} has been superseded by \code{\link{domir}}.
 }
@@ -198,4 +200,8 @@ domin(mpg ~ am + carb + cyl,
   list(function(x) list(aic = extractAIC(x)[[2]]), "aic"), 
   data = mtcars, 
   reverse = TRUE, consmodel = "1")
+}
+\references{
+Luchman, J. N. (2021). Relative importance analysis in Stata using dominance analysis: domin and domme.
+The Stata Journal, 21, 2. doi: 10.1177/1536867X211025837.
 }
