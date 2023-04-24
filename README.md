@@ -26,14 +26,9 @@ To install the most recent stable version of `{domir}` from CRAN use:
 
 `install.packages("domir")`
 
-To install the working, development version of `{domir}` using the
-`{devtools}` package use:
-
-`devtools::install_github("https://github.com/jluchman/domir")`
-
-Coming soon: see the `{domir}`-based `dominance_analysis` function for
-the [{parameters}](https://github.com/easystats/parameters) package from
-the `{easystats}`/easyverse.
+See also the `{domir}`-based `dominance_analysis()` function for the
+[{parameters}](https://github.com/easystats/parameters) package from the
+`{easystats}`/easyverse.
 
 # What `{domir}` Does
 
@@ -66,10 +61,9 @@ are based:
 
 `lm(mpg ~ am + vs + cyl, data = mtcars)`
 
-Classic dominance analysis uses the variance explained
-![R^2](https://latex.codecogs.com/png.image?%5Cdpi%7B110%7D&space;%5Cbg_white&space;R%5E2 "R^2")
-as fit statistic (i.e., as implemented by `lm`’s `summary` method) and
-so will this example.
+Classic dominance analysis uses the variance explained $R^2$ as fit
+statistic (i.e., as implemented by `lm`’s `summary` method) and so will
+this example.
 
 ### `{domir}`’s `domir`
 
@@ -151,9 +145,8 @@ approach to structuring the input pipeline for dominance analysis.
 
 `{relaimpo}` is not a dominance analysis software but does produce
 general dominance value decomposition for linear regression using the
-explained variance
-![R^2](https://latex.codecogs.com/png.image?%5Cdpi%7B110%7D&space;%5Cbg_white&space;R%5E2 "R^2")
-in the `calc.relimp` function with the argument `type = "lmg"`.
+explained variance $R^2$ in the `calc.relimp` function with the argument
+`type = "lmg"`.
 
 ``` r
 relaimpo::calc.relimp(mpg ~ am + vs + cyl, 
@@ -186,20 +179,18 @@ relaimpo::calc.relimp(mpg ~ am + vs + cyl,
 
 `calc.relimp` has a similar to structure to that of `domir` but does not
 require a pipeline function. This is because `{relaimpo}` is specialized
-and works only with `lm` models and the variance explained
-![R^2](https://latex.codecogs.com/png.image?%5Cdpi%7B110%7D&space;%5Cbg_white&space;R%5E2 "R^2")
-as a fit statistic. `calc.relimp` also allows for multiple methods of
+and works only with `lm` models and the variance explained $R^2$ as a
+fit statistic. `calc.relimp` also allows for multiple methods of
 submitting (i.e., correlation matrices, fitted `lm` object, a
 `data.frame`) given that it always implements the same model.
 
 `calc.relimp`’s printed results provide relative importance metric
 values that match those obtained from `domir` (i.e., the general
 dominance values). In addition, `calc.relimp` reports the average `lm`
-coefficients across numbers of independent
-variables/![X](https://latex.codecogs.com/png.image?%5Cdpi%7B110%7D&space;%5Cbg_white&space;X "X")s
-in a way similar to the conditional dominance values reported by
-`domir`—an additional and useful result to show the impact of inclusion
-of different numbers of independent variables on obtained
+coefficients across numbers of independent variables/$X$s in a way
+similar to the conditional dominance values reported by `domir`—an
+additional and useful result to show the impact of inclusion of
+different numbers of independent variables on obtained
 coefficients/predicted values.
 
 Again, note that `{relaimpo}` is not dominance analysis-oriented and
@@ -210,8 +201,7 @@ the general dominance values.
 
 `{dominanceanalysis}` implements dominance analysis for several
 different predictive models including `lm` , `betareg`, and `glm` each
-with its own built-in
-(pseudo-)![R^2](https://latex.codecogs.com/png.image?%5Cdpi%7B110%7D&space;%5Cbg_white&space;R%5E2 "R^2").
+with its own built-in (pseudo-)$R^2$.
 
 ``` r
 lm_model <- lm(mpg ~ am + vs + cyl, 
@@ -237,22 +227,20 @@ dominanceanalysis::dominanceAnalysis(lm_model)
 
 `dominanceAnalysis` has a simpler approach than `domir` to get a
 ‘classic’ dominance analysis as it accepts a fitted `lm` model as input
-and requires use of the explained variance
-![R^2](https://latex.codecogs.com/png.image?%5Cdpi%7B110%7D&space;%5Cbg_white&space;R%5E2 "R^2")
-as the returned value. The object returned by `dominanceAnalysis` is
-large and contains the fit statistic values from all subsets as well as
-computed dominance statistics based on them. Several helper functions
-are available to extract specific dominance and other results for
-printing to the console.
+and requires use of the explained variance $R^2$ as the returned value.
+The object returned by `dominanceAnalysis` is large and contains the fit
+statistic values from all subsets as well as computed dominance
+statistics based on them. Several helper functions are available to
+extract specific dominance and other results for printing to the
+console.
 
 `dominanceAnalysis`’s default printed output is focused on qualitative
 dominance designations but also reports a sorted, average contribution
 metric (i.e., general dominance values).
 
 As mentioned above, `{dominanceanalysis}` can be used with around seven
-different predictive models and implements a
-(pseudo-)![R^2](https://latex.codecogs.com/png.image?%5Cdpi%7B110%7D&space;%5Cbg_white&space;R%5E2 "R^2")
-as returned values for each. Itis worth noting that the upcoming
+different predictive models and implements a (pseudo-)$R^2$ as returned
+values for each. Itis worth noting that the upcoming
 `dominance_analysis` function in the `{parameters}` package takes a
 similar approach as `{dominanceanalysis}` but works from the `{insight}`
 engine linked with `performance::r2` which allows extension to many
@@ -275,12 +263,9 @@ Given that the user supplies the analysis pipeline, one component of
 fit statistic as a returned value for the purposes of relative
 importance analysis.
 
-In the example below, the explained variance
-![R^2](https://latex.codecogs.com/png.image?%5Cdpi%7B110%7D&space;%5Cbg_white&space;R%5E2 "R^2")
-is swapped with an alternative, but nonetheless applicable, fit
-statistic: the McFadden
-pseudo-![R^2](https://latex.codecogs.com/png.image?%5Cdpi%7B110%7D&space;%5Cbg_white&space;R%5E2 "R^2")
-as implemented by the `{pscl}` package.
+In the example below, the explained variance $R^2$ is swapped with an
+alternative, but nonetheless applicable, fit statistic: the McFadden
+pseudo-$R^2$ as implemented by the `{pscl}` package.
 
 The example below is more complex than the previous `domir` call as the
 analysis pipeline is submitted as an anonymous function with a single
@@ -321,12 +306,10 @@ domir(mpg ~ am + vs + cyl,
     ## Dmnates?vs          NA         NA       FALSE
     ## Dmnates?cyl       TRUE       TRUE          NA
 
-The use of the McFadden
-pseudo-![R^2](https://latex.codecogs.com/png.image?%5Cdpi%7B110%7D&space;%5Cbg_white&space;R%5E2 "R^2")
-has produced effectively the same answers, in terms of qualitative
-importance inferences about the independent variables, as that of the
-dominance analysis using the explained variance
-![R^2](https://latex.codecogs.com/png.image?%5Cdpi%7B110%7D&space;%5Cbg_white&space;R%5E2 "R^2").
+The use of the McFadden pseudo-$R^2$ has produced effectively the same
+answers, in terms of qualitative importance inferences about the
+independent variables, as that of the dominance analysis using the
+explained variance $R^2$.
 
 It is also worth noting that the use `capture.output` in the anonymous
 function was not not strictly necessary. If not used, `domir` will print
@@ -386,8 +369,7 @@ independent variables are important.
 
 The dominance analysis here is based on a squared correlation of the
 predicted values with the dependent variable (i.e., the explained
-variance
-![R^2](https://latex.codecogs.com/png.image?%5Cdpi%7B110%7D&space;%5Cbg_white&space;R%5E2 "R^2")).
+variance $R^2$).
 
 ``` r
 set.seed(5621)
@@ -445,9 +427,8 @@ domir(mpg ~ am + qsec + cyl,
 
 Note the use of `set.seed` prior to all calls to `randomForest`. These
 ensure that the random processes within the `randomForest` function
-result in a reproducible set of predicted values (and
-![R^2](https://latex.codecogs.com/png.image?%5Cdpi%7B110%7D&space;%5Cbg_white&space;R%5E2 "R^2")
-metric). The calls to individual `randomForest`s also had to use the
+result in a reproducible set of predicted values (and $R^2$ metric). The
+calls to individual `randomForest`s also had to use the
 `importance = TRUE` argument (though they are not used) to ensure
 matching with the original result as they affect the state of the random
 number generator.
