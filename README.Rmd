@@ -13,7 +13,7 @@ devtools::load_all()
 
 The `{domir}` package contains functions that apply decomposition-based relative importance analysis methods (*dominance analysis* or *Shapley value decomposition*) to predictive modeling functions in R.
 
-The intention of this package is to provide a flexible user interface to dominance analysis—a popular relative importance analysis method that extends on the rigorous solution concept of Shapley value decomposition in cooperative game theory. The user interface is structured such that `{domir}` automates the decomposition of the returned value and comparisons between model inputs and the user provides the model inputs, the predictive model into which they are entered, and returned value from the model to decompose.
+The intention of this package is to provide a flexible user interface to dominance analysis---a popular relative importance analysis method that extends on the rigorous solution concept of Shapley value decomposition in cooperative game theory. The user interface is structured such that `{domir}` automates the decomposition of the returned value and comparisons between model inputs and the user provides the model inputs, the predictive model into which they are entered, and returned value from the model to decompose.
 
 # Installation
 
@@ -21,11 +21,7 @@ To install the most recent stable version of `{domir}` from CRAN use:
 
 `install.packages("domir")`
 
-To install the working, development version of `{domir}` using the `{devtools}` package use:
-
-`devtools::install_github("https://github.com/jluchman/domir")`
-
-Coming soon: see the `{domir}`-based `dominance_analysis` function for the [{parameters}](https://github.com/easystats/parameters) package from the `{easystats}`/easyverse.
+See also the `{domir}`-based `dominance_analysis()` function for the [{parameters}](https://github.com/easystats/parameters) package from the `{easystats}`/easyverse.
 
 # What `{domir}` Does
 
@@ -87,7 +83,7 @@ relaimpo::calc.relimp(mpg ~ am + vs + cyl,
 
 `calc.relimp` has a similar to structure to that of `domir` but does not require a pipeline function. This is because `{relaimpo}` is specialized and works only with `lm` models and the variance explained $R^2$ as a fit statistic. `calc.relimp` also allows for multiple methods of submitting (i.e., correlation matrices, fitted `lm` object, a `data.frame`) given that it always implements the same model.
 
-`calc.relimp`'s printed results provide relative importance metric values that match those obtained from `domir` (i.e., the general dominance values). In addition, `calc.relimp` reports the average `lm` coefficients across numbers of independent variables/$X$s in a way similar to the conditional dominance values reported by `domir`—an additional and useful result to show the impact of inclusion of different numbers of independent variables on obtained coefficients/predicted values.
+`calc.relimp`'s printed results provide relative importance metric values that match those obtained from `domir` (i.e., the general dominance values). In addition, `calc.relimp` reports the average `lm` coefficients across numbers of independent variables/$X$s in a way similar to the conditional dominance values reported by `domir`---an additional and useful result to show the impact of inclusion of different numbers of independent variables on obtained coefficients/predicted values.
 
 Again, note that `{relaimpo}` is not dominance analysis-oriented and does not report on dominance designations or dominance values other than the general dominance values.
 

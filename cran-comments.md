@@ -22,7 +22,7 @@ win-builder-old-release: 1 NOTE
       Status: Forbidden
       Message: 403
       
-Comment: DOI: 10.1002/asmb.446 links reliably to Lipovetsky's and Conklin's 2001 article on relative importance in linear models when followed from a web browser https://doi.org (tested on Mozilla Firefox).
+Comment: DOI: 10.1002/asmb.446 links reliably to Lipovetsky's and Conklin's 2001 article on relative importance in linear models when followed from a web browser (tested on Mozilla Firefox).
 
 Windows Server 2022, R-devel, 64 bit: 2 NOTES
 
