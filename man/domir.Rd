@@ -3,7 +3,6 @@
 \name{domir}
 \alias{domir}
 \alias{domir.formula}
-\alias{domir.Formula}
 \alias{domir.list}
 \title{Dominance analysis methods}
 \usage{
@@ -21,8 +20,6 @@ domir(.obj, ...)
   .rev = FALSE,
   ...
 )
-
-\method{domir}{Formula}(...)
 
 \method{domir}{list}(...)
 }

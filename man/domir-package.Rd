@@ -22,7 +22,7 @@ This package supports applying decomposition methods using
 (Grömping, 2007; Lipovetsky & Conklin, 2001) based on the values returned
 from other, predictive modeling, functions.
 
-The user interface is structured such that {domir} automates the
+The user interface is structured such that \code{{domir}} automates the
 decomposition of the returned value and comparisons between model inputs
 and the user provides the analysis pipeline including model inputs, the
 predictive modeling function into which they are entered, and returned

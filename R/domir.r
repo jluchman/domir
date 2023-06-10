@@ -609,14 +609,6 @@ domir.formula <- function(
 
 #' @rdname domir
 #' @exportS3Method 
-domir.Formula <- function(...) {
-  
-  .NotYetImplemented()
-  
-}
-
-#' @rdname domir
-#' @exportS3Method 
 domir.list <- function(...) {
   
   .NotYetImplemented()
