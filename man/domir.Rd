@@ -21,10 +21,10 @@ domir(.obj, ...)
   ...
 )
 
-\method{domir}{list}(...)
+\method{domir}{list}(.obj, .fct, ...)
 }
 \arguments{
-\item{.obj}{A \code{\link{formula}}, \code{\link[Formula:Formula]{Formula}}, or \code{\link{list}}.
+\item{.obj}{A \code{\link{formula}} or \code{\link{list}}.
 
 Parsed to produce subsets of elements to submit to \code{.fct}. Always submits
 subsets of \code{.obj} that are of the same \code{\link{class}} to \code{.fct} and are always
@@ -45,11 +45,11 @@ Elements of the list can be named.}
 
 \item{.wst}{Not yet used.}
 
-\item{.all}{A \code{formula}, \code{Formula}, or \code{list}.
+\item{.all}{A \code{formula} or \code{list}.
 
 Must be the same class as \code{.obj}.}
 
-\item{.adj}{A \code{formula}, \code{Formula}, or \code{list}.
+\item{.adj}{A \code{formula} or \code{list}.
 
 Must be the same class as \code{.obj}.}
 

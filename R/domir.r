@@ -9,7 +9,7 @@
 #' a function, and computes dominance decomposition 
 #' statistics based on the returned values from the function.
 #' 
-#' @param .obj A [`formula`], [`Formula`][Formula::Formula], or [`list`]. 
+#' @param .obj A [`formula`] or [`list`]. 
 #' 
 #' Parsed to produce subsets of elements to submit to `.fct`. Always submits 
 #' subsets of `.obj` that are of the same [`class`] to `.fct` and are always 
@@ -27,11 +27,11 @@
 #'
 #' @param .wst Not yet used.
 #' 
-#' @param .all A `formula`, `Formula`, or `list`. 
+#' @param .all A `formula` or `list`. 
 #' 
 #' Must be the same class as `.obj`.
 #' 
-#' @param .adj A `formula`, `Formula`, or `list`.
+#' @param .adj A `formula` or `list`.
 #' 
 #' Must be the same class as `.obj`.
 #' 
@@ -610,7 +610,8 @@ domir.formula <- function(
 #' @rdname domir
 #' @exportS3Method 
 domir.list <- function(
-    .obj, ...) {
+    .obj, .fct, 
+    ...) {
   
   # Check all list elements are formulas
   not_fml <- 
@@ -624,14 +625,18 @@ domir.list <- function(
     )
   
   list_parsed <- 
-    lapply(.obj, fml_parse)
+    lapply(.obj, formula_parse)
+  
+  test_model <- 
+    function_checker(.obj, .fct, ...)
   
   return(list_parsed)
     
 }
 
-# Define formula parsing function ----
-fml_parse <- function(.obj) {
+# `domir` helper functions ----
+# Define formula parsing function
+formula_parse <- function(.obj) {
   
   # if (!is.null(.wst)) {
   #   
@@ -670,78 +675,19 @@ fml_parse <- function(.obj) {
 
   else LHS_names <- NULL
 
-  # # Define formula argument checks function ----
-  # fml_check <- function(fml, name, chk_int) {
-  #   
-  #   # enforce formula class
-  #   if (!inherits(fml, "formula")) {
-  #     
-  #     stop(name, " must be a 'formula'.", call. = FALSE)
-  #     
-  #   }
-  #   
-  #   # enforce no response/lhs
-  #   if (attr(stats::terms(fml), "response") == 1) {
-  #     
-  #     stop(name, " must not have a response/left hand side.", call. = FALSE)
-  #     
-  #   }
-  #   
-  #   # enforce no offset term
-  #   if (!is.null(attr(stats::terms(fml), "offset"))) {
-  #     
-  #     stop("'offset()' terms not allowed in ", name, ".", 
-  #          call. = FALSE)
-  #     
-  #   }
-  #   
-  #   # enforce no empty model - when applicable
-  #   if ((length(attr(stats::terms(fml), "term.labels")) == 0) && chk_int) {
-  #     
-  #     stop(name, " cannot be an intercept-only/empty formula.", 
-  #          call. = FALSE)
-  #     
-  #   }
-  #   
-  # }
-  # 
-  # # Define function to remove rhs names
-  # rhs_name_remover <- function(obj, rhs, name) {
-  #   
-  #   # find locations of names to remove (if any)
-  #   remove_loc <- 
-  #     unlist( lapply(obj, 
-  #                    function(x) which(rhs %in% x)) )
-  #   
-  #   # error if some of the names did not match 
-  #   if (length(remove_loc) != length(unlist(obj))) {
-  #     
-  #     wrong_terms <- 
-  #       paste( unlist(obj)[ which(!(unlist(obj) %in% rhs)) ], 
-  #              collapse = " ")
-  #     
-  #     stop("Names ", wrong_terms, " in ", name, 
-  #          " do not match any names in '.obj'.", 
-  #          call. = FALSE)
-  #   }
-  #   
-  #   return(rhs[-remove_loc])
-  #   
-  # }
-  # 
   # # Process '.all' ----
   # if (!is.null(.all)) {
-  #   
+  # 
   #   # apply checks to '.all' argument
   #   fml_check(.all, "'.all'", TRUE)
-  #   
+  # 
   #   # name vector from '.all'
   #   All_names <- attr(stats::terms(.all), "term.labels")
-  #   
+  # 
   #   # check names in '.all' and remove from rhs
-  #   RHS_names <- 
+  #   RHS_names <-
   #     rhs_name_remover(All_names, RHS_names, "'.all'")
-  #   
+  # 
   # }
   # 
   # else All_names <- NULL
@@ -850,6 +796,99 @@ fml_parse <- function(.obj) {
   )
   
 }
+
+# Define formula argument checks function
+formula_check <- function(fml, name, chk_int) {
+
+  # enforce formula class
+  if (!inherits(fml, "formula")) {
+
+    stop(name, " must be a 'formula'.", call. = FALSE)
+
+  }
+
+  # enforce no response/lhs
+  if (attr(stats::terms(fml), "response") == 1) {
+
+    stop(name, " must not have a response/left hand side.", call. = FALSE)
+
+  }
+
+  # enforce no offset term
+  if (!is.null(attr(stats::terms(fml), "offset"))) {
+
+    stop("'offset()' terms not allowed in ", name, ".",
+         call. = FALSE)
+
+  }
+
+  # enforce no empty model - when applicable
+  if ((length(attr(stats::terms(fml), "term.labels")) == 0) && chk_int) {
+
+    stop(name, " cannot be an intercept-only/empty formula.",
+         call. = FALSE)
+
+  }
+
+}
+
+# Define function to remove rhs names
+rhs_fml_name_remover <- function(obj, rhs, name) {
+
+  # find locations of names to remove (if any)
+  remove_loc <-
+    unlist( lapply(obj,
+                   function(x) which(rhs %in% x)) )
+
+  # error if some of the names did not match
+  if (length(remove_loc) != length(unlist(obj))) {
+
+    wrong_terms <-
+      paste( unlist(obj)[ which(!(unlist(obj) %in% rhs)) ],
+             collapse = " ")
+
+    stop("Names ", wrong_terms, " in ", name,
+         " do not match any names in '.obj'.",
+         call. = FALSE)
+  }
+
+  return(rhs[-remove_loc])
+
+}
+
+function_checker <- function(.obj, .fct, ...) { # make function checker a generic for 'formula' and 'list'? -- or make formula a list then simplify it before submitting?
+  
+  obj_submit <- 
+    switch(class(.obj)[[1]],
+      "list" = list(.obj),
+      "formula" = .obj
+    )
+  
+  # does '.fct' work?
+  test_model <- 
+    tryCatch(
+      do.call(eval(.fct), append(obj_submit, list(...))), # need to use list(.obj) for list method and just .obj for fml?
+      error = function(err) 
+        stop("'.fct' produced an error when applied to '.obj'.\n", 
+             "Have you checked the arguments passed to '.fct'?", 
+             call. = FALSE)
+    )
+  
+  # is '.fct's returned value an atomic numeric scalar?
+  if (!is.numeric(test_model) || !is.vector(test_model) || 
+      !is.atomic(test_model) || length(test_model) != 1) 
+    stop("Result of '.fct' is not an atomic numeric, scalar/",
+         "vector of length of 1 value.", call. = FALSE)
+  
+  # is '.fct's returned value regarded as a list?
+  if (is.list(test_model)) 
+    stop("result of '.fct' is a list.  It must be flattened/unlisted.", 
+         call. = FALSE)
+  
+  return(test_model)
+  
+}
+
 
 #' @title Print method for `domir`
 #' @description Reports formatted results from `domir` class object.

@@ -31,8 +31,7 @@ value from the model to decompose.
 This package's user interface accepts inputs as names on the right hand
 side of a \code{\link{formula}} which can be passed on to the predictive model
 directly or further processed in the analysis pipeline.  The interface
-is also planned to be extended to \code{\link[Formula:Formula]{Formula}} from the
-package \code{{Formula}} as well as \code{\link{list}} types as inputs.
+is also planned to be extended to \code{\link{list}}'s of \code{formula}s as inputs.
 }
 \references{
 \itemize{
