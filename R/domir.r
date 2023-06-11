@@ -609,9 +609,245 @@ domir.formula <- function(
 
 #' @rdname domir
 #' @exportS3Method 
-domir.list <- function(...) {
+domir.list <- function(
+    .obj, ...) {
   
-  .NotYetImplemented()
+  # Check all list elements are formulas
+  not_fml <- 
+    sapply(.obj, Negate(inherits), what = "formula")
+  
+  if ( any(not_fml) )
+    stop(
+      paste(c("List positions", which(not_fml), "in '.obj' are not class 'formula'."), 
+            collapse = " "),
+      call. = FALSE
+    )
+  
+  list_parsed <- 
+    lapply(.obj, fml_parse)
+  
+  return(list_parsed)
+    
+}
+
+# Define formula parsing function ----
+fml_parse <- function(.obj) {
+  
+  # if (!is.null(.wst)) {
+  #   
+  #   .NotYetUsed(".wst")
+  #   
+  # }
+
+  # Obtain 'right hand side'/RHS name vector from `.obj`
+  RHS_names <-
+    attr(stats::terms(.obj), "term.labels")
+
+  # Intercept logical - for `reformulate` later
+  Intercept <-
+    as.logical(
+      attr(stats::terms(.obj), "intercept")
+    )
+
+  # Obtain offsets 
+  if (!is.null(attr(stats::terms(.obj), "offset"))) {
+
+    Offset <-
+      rownames(attr(stats::terms(.obj), "factors"))[
+        attr(stats::terms(.obj), "offset")
+      ]
+
+  }
+  
+  else Offset <- NULL
+
+  # Obtain 'left hand side'/LHS (if included)
+  if (attr(stats::terms(.obj), "response") == 1)
+    LHS_names <-
+    rownames(attr(stats::terms(.obj), "factors"))[[
+      attr(stats::terms(.obj), "response")
+    ]]
+
+  else LHS_names <- NULL
+
+  # # Define formula argument checks function ----
+  # fml_check <- function(fml, name, chk_int) {
+  #   
+  #   # enforce formula class
+  #   if (!inherits(fml, "formula")) {
+  #     
+  #     stop(name, " must be a 'formula'.", call. = FALSE)
+  #     
+  #   }
+  #   
+  #   # enforce no response/lhs
+  #   if (attr(stats::terms(fml), "response") == 1) {
+  #     
+  #     stop(name, " must not have a response/left hand side.", call. = FALSE)
+  #     
+  #   }
+  #   
+  #   # enforce no offset term
+  #   if (!is.null(attr(stats::terms(fml), "offset"))) {
+  #     
+  #     stop("'offset()' terms not allowed in ", name, ".", 
+  #          call. = FALSE)
+  #     
+  #   }
+  #   
+  #   # enforce no empty model - when applicable
+  #   if ((length(attr(stats::terms(fml), "term.labels")) == 0) && chk_int) {
+  #     
+  #     stop(name, " cannot be an intercept-only/empty formula.", 
+  #          call. = FALSE)
+  #     
+  #   }
+  #   
+  # }
+  # 
+  # # Define function to remove rhs names
+  # rhs_name_remover <- function(obj, rhs, name) {
+  #   
+  #   # find locations of names to remove (if any)
+  #   remove_loc <- 
+  #     unlist( lapply(obj, 
+  #                    function(x) which(rhs %in% x)) )
+  #   
+  #   # error if some of the names did not match 
+  #   if (length(remove_loc) != length(unlist(obj))) {
+  #     
+  #     wrong_terms <- 
+  #       paste( unlist(obj)[ which(!(unlist(obj) %in% rhs)) ], 
+  #              collapse = " ")
+  #     
+  #     stop("Names ", wrong_terms, " in ", name, 
+  #          " do not match any names in '.obj'.", 
+  #          call. = FALSE)
+  #   }
+  #   
+  #   return(rhs[-remove_loc])
+  #   
+  # }
+  # 
+  # # Process '.all' ----
+  # if (!is.null(.all)) {
+  #   
+  #   # apply checks to '.all' argument
+  #   fml_check(.all, "'.all'", TRUE)
+  #   
+  #   # name vector from '.all'
+  #   All_names <- attr(stats::terms(.all), "term.labels")
+  #   
+  #   # check names in '.all' and remove from rhs
+  #   RHS_names <- 
+  #     rhs_name_remover(All_names, RHS_names, "'.all'")
+  #   
+  # }
+  # 
+  # else All_names <- NULL
+  # 
+  # # Process '.adj' ----
+  # if (!is.null(.adj)) {
+  #   
+  #   # apply checks to '.adj' argument
+  #   fml_check(.adj, "'.adj'", FALSE)
+  #   
+  #   # if '.adj' is an intercept-only model - checks/include
+  #   if (
+  #     (length(attr(stats::terms(.adj), "term.labels")) == 0) && 
+  #     (attr(stats::terms(.adj), "intercept") == 1) && Intercept
+  #   ) Adj_names <- "1"
+  #   
+  #   else if (
+  #     (length(attr(stats::terms(.adj), "term.labels")) == 0) && 
+  #     (attr(stats::terms(.adj), "intercept") == 1) && !Intercept
+  #   ) stop("'.adj' cannot add an intercept when it is removed \n", 
+  #          "from the formula in '.obj'.", 
+  #          call. = FALSE)
+  #   
+  #   else if (
+  #     (length(attr(stats::terms(.adj), "term.labels")) == 0) && 
+  #     (attr(stats::terms(.adj), "intercept") == 0)
+  #   ) stop("'.adj' cannot be an empty formula.", call. = FALSE)
+  #   
+  #   else {
+  #     
+  #     # name vector in '.adj'
+  #     Adj_names <- attr(stats::terms(.adj), "term.labels")
+  #     
+  #     # check names in '.adj' and remove from rhs
+  #     RHS_names <- 
+  #       rhs_name_remover(Adj_names, RHS_names, "'.adj'")
+  #     
+  #   }
+  #   
+  # }
+  # 
+  # else Adj_names <- NULL
+  # 
+  # # Process '.set' ----
+  # if (!is.null(.set)) {
+  #   
+  #   if (!is.list(.set)) {
+  #     stop("'.set' must be a 'list'.", call. = FALSE)
+  #   }
+  #   
+  #   # apply checks to all elements of '.set' argument
+  #   .mapply(fml_check, list(.set, 
+  #                           paste0("Position ", 1:(length(.set)), " of '.set'."), 
+  #                           rep(TRUE, times = length(.set))),
+  #           NULL)
+  #   
+  #   # name vectors from each element of '.set'
+  #   Set_names <- 
+  #     lapply(.set, 
+  #            function(x) attr(stats::terms(x), "term.labels"))
+  #   
+  #   # recursively check names in '.set'-s and remove from rhs
+  #   for (set in 1:length(Set_names)) {
+  #     
+  #     RHS_names <- 
+  #       rhs_name_remover(Set_names[[set]], RHS_names, 
+  #                        paste0("Position ", set, " of '.set'."))
+  #     
+  #   }
+  #   
+  #   # apply labels to '.set'
+  #   if (!is.null(names(.set))) 
+  #     Set_labels <- names(.set)
+  #   
+  #   else Set_labels <- paste0("set", 1:length(.set))
+  #   
+  #   missing_Set_labels <- which(Set_labels == "")
+  #   
+  #   if (length(missing_Set_labels) > 0)
+  #     Set_labels[missing_Set_labels] <- paste0("set", missing_Set_labels)
+  #   
+  #   if (any(Set_labels %in% RHS_names)) {
+  #     
+  #     repeat_names <- Set_labels[which(Set_labels %in% RHS_names)]
+  #     
+  #     stop("Set element names ",
+  #          paste(repeat_names, collapse = " "), 
+  #          " are also the names of elements in '.obj'.\n",
+  #          "Please rename these '.set' elements.", call. = FALSE)
+  #   }
+  #   
+  # }
+  # 
+  # else Set_names <- NULL
+  # 
+  # # Too few subsets error
+  # if ((length(RHS_names) + length(Set_names)) < 2) 
+  #   stop("At least two subsets are needed for a dominance analysis.",
+  #        call. = FALSE)
+  # 
+  return(
+    list(RHS_names = RHS_names, 
+         LHS_names = LHS_names,
+         Intercept = Intercept,
+         Offset = Offset)
+  )
   
 }
 

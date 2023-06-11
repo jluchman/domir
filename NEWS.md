@@ -1,3 +1,10 @@
+# domir 1.1.0
+
+## visible
+-   `list` method implemented
+    - `Formula` method abandoned
+-   `offset()`s in model `formula`s allowed
+
 # domir 1.0.1
 
 ## bug fixes
