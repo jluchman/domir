@@ -3,7 +3,7 @@
 \name{domir}
 \alias{domir}
 \alias{domir.formula}
-\alias{domir.list}
+\alias{domir.formula_list}
 \title{Dominance analysis methods}
 \usage{
 domir(.obj, ...)
@@ -21,10 +21,10 @@ domir(.obj, ...)
   ...
 )
 
-\method{domir}{list}(.obj, .fct, ...)
+\method{domir}{formula_list}(.obj, .fct, ...)
 }
 \arguments{
-\item{.obj}{A \code{\link{formula}} or \code{\link{list}}.
+\item{.obj}{A \code{\link{formula}} or \code{\link{formula_list}}.
 
 Parsed to produce subsets of elements to submit to \code{.fct}. Always submits
 subsets of \code{.obj} that are of the same \code{\link{class}} to \code{.fct} and are always
@@ -45,11 +45,11 @@ Elements of the list can be named.}
 
 \item{.wst}{Not yet used.}
 
-\item{.all}{A \code{formula} or \code{list}.
+\item{.all}{A \code{formula} or \code{formula_list}.
 
 Must be the same class as \code{.obj}.}
 
-\item{.adj}{A \code{formula} or \code{list}.
+\item{.adj}{A \code{formula} or \code{formula_list}.
 
 Must be the same class as \code{.obj}.}
 
@@ -116,9 +116,9 @@ Any terms on the left hand side of \code{.obj} are retained and passed through
 to all subsets.
 }
 
-\subsection{\code{Formula} and \code{list}}{
+\subsection{\code{formula_list}}{
 
-The \code{Formula} and \code{list} methods are not yet implemented.
+The \code{formula_list} method is not yet implemented.
 }
 
 \subsection{Additional Details}{

@@ -9,7 +9,7 @@
 #' a function, and computes dominance decomposition 
 #' statistics based on the returned values from the function.
 #' 
-#' @param .obj A [`formula`] or [`list`]. 
+#' @param .obj A [`formula`] or [`formula_list`]. 
 #' 
 #' Parsed to produce subsets of elements to submit to `.fct`. Always submits 
 #' subsets of `.obj` that are of the same [`class`] to `.fct` and are always 
@@ -27,11 +27,11 @@
 #'
 #' @param .wst Not yet used.
 #' 
-#' @param .all A `formula` or `list`. 
+#' @param .all A `formula` or `formula_list`. 
 #' 
 #' Must be the same class as `.obj`.
 #' 
-#' @param .adj A `formula` or `list`.
+#' @param .adj A `formula` or `formula_list`. 
 #' 
 #' Must be the same class as `.obj`.
 #' 
@@ -95,9 +95,9 @@
 #' Any terms on the left hand side of `.obj` are retained and passed through 
 #' to all subsets.
 #' 
-#' ### `Formula` and `list`
+#' ### `formula_list`
 #' 
-#' The `Formula` and `list` methods are not yet implemented.
+#' The `formula_list` method is not yet implemented.
 #' 
 #' ### Additional Details
 #' 
@@ -253,6 +253,12 @@
 #'   data = mtcars)
 
 domir <- function(.obj, ...) {
+  
+  if (inherits(.obj, "list")) {
+    
+    warning("Did you mean to submit '.obj' as a 'formula_list'?", call. = FALSE)
+    
+  }
   
   UseMethod("domir")
   
@@ -609,20 +615,9 @@ domir.formula <- function(
 
 #' @rdname domir
 #' @exportS3Method 
-domir.list <- function(
+domir.formula_list <- function(
     .obj, .fct, 
     ...) {
-  
-  # Check all list elements are formulas
-  not_fml <- 
-    sapply(.obj, Negate(inherits), what = "formula")
-  
-  if ( any(not_fml) )
-    stop(
-      paste(c("List positions", which(not_fml), "in '.obj' are not class 'formula'."), 
-            collapse = " "),
-      call. = FALSE
-    )
   
   list_parsed <- 
     lapply(.obj, formula_parse)
@@ -860,7 +855,7 @@ function_checker <- function(.obj, .fct, ...) { # make function checker a generi
   
   obj_submit <- 
     switch(class(.obj)[[1]],
-      "list" = list(.obj),
+      "formula_list" = list(.obj),
       "formula" = .obj
     )
   
