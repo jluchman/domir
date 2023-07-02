@@ -254,12 +254,6 @@
 
 domir <- function(.obj, ...) {
   
-  if (inherits(.obj, "list")) {
-    
-    warning("Did you mean to submit '.obj' as a 'formula_list'?", call. = FALSE)
-    
-  }
-  
   UseMethod("domir")
   
 }
@@ -625,7 +619,79 @@ domir.formula_list <- function(
   test_model <- 
     function_checker(.obj, .fct, ...)
   
-  return(list_parsed)
+  # Define meta-function to coordinate .fct calls ----
+
+  ## Note that formula_list submits as 'list' classed object secondarily so 
+  ## it can work with lists of forumulas like systemfit
+  
+  meta_domir <- 
+    function(Selector_lgl, 
+             list_parsed, .fct, 
+             ...) { 
+
+      # distribute logical vector to elements of formula_list
+      dom_len <- 1
+      
+      list_parsed <- 
+        lapply(
+          list_parsed, 
+          function(elem) {
+            elem$selector <- 
+              Selector_lgl[
+                get("dom_len"):( get("dom_len")+( length(elem$RHS_names) - 1) )
+              ] 
+            assign("dom_len", get("dom_len")+length(elem$RHS_names), inherits = TRUE)
+            return(elem)
+          }
+        )
+      
+      # reconstruct the selected formula_list
+      fml_lst <- 
+        lapply(
+          list_parsed, 
+          function(elem) {
+            if ( all(!elem$selector) )
+              reformulate(c("1", elem$Offset), response = elem$LHS_names, intercept = elem$Intercept)
+            else
+              reformulate(
+                c(elem$RHS_name[elem$selector], elem$Offset),
+                response = elem$LHS_names, intercept = elem$Intercept)
+          }
+        )
+      
+      # submit formula_list to '.fct' ~~ still needs to add in arguments
+      returned_scalar <-
+        do.call(.fct,
+                list(fml_lst) 
+                ) # missing arguments to function
+      
+      return(returned_scalar)
+      
+    }
+  
+  # Define arguments to `dominance_scalar` ----
+  args_list <- 
+    list(RHS = # this argument is really only useful for domir.formula but necessary to get combos - alter internals
+           1:sum(
+             sapply(
+               list_parsed, 
+               function(elem) {
+                 return( length(elem$RHS_names) )
+               }
+             )
+           ),
+         list_parsed = list_parsed,
+         .fct = .fct
+    )
+  
+  return_list <-
+    dominance_scalar(
+      meta_domir,
+      args_list,
+      NULL, test_model,
+      FALSE, FALSE, FALSE)
+  
+  return(list(list_parsed, return_list))
     
 }
 
@@ -872,13 +938,8 @@ function_checker <- function(.obj, .fct, ...) { # make function checker a generi
   # is '.fct's returned value an atomic numeric scalar?
   if (!is.numeric(test_model) || !is.vector(test_model) || 
       !is.atomic(test_model) || length(test_model) != 1) 
-    stop("Result of '.fct' is not an atomic numeric, scalar/",
-         "vector of length of 1 value.", call. = FALSE)
-  
-  # is '.fct's returned value regarded as a list?
-  if (is.list(test_model)) 
-    stop("result of '.fct' is a list.  It must be flattened/unlisted.", 
-         call. = FALSE)
+    stop("Result of '.fct' is not an atomic, numeric, scalar object ",
+         "(vector with a 'length()' value of 1).", call. = FALSE)
   
   return(test_model)
   

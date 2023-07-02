@@ -1,9 +1,10 @@
 # domir 1.1.0
 
 ## visible
--   `list` method implemented
-    - `Formula` method abandoned
--   `offset()`s in model `formula`s allowed
+-   `formula_list` method implemented
+    - merger of planned `list` and `Formula::Formula` methods
+    - `fmllst2Fml` can be used to translate `formula_list`s to `Formula::Formula`s
+-   `offset()`s allowed
 
 # domir 1.0.1
 

@@ -11,7 +11,7 @@
 dominance_scalar <- 
   function(fitting_fun, args_list, cons_args, full_fit, 
            conditional, complete, reverse) {
-    
+  
   # Subset processing ----
   
   # total number of models to be run (assuming a .adj model)

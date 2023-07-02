@@ -26,13 +26,72 @@ formula_list <- function(...) {
   
   if ( any(not_fml) )
     stop(
-      paste(c("List positions", which(not_fml), "in are not of class 'formula'."), 
+      paste(c("List element", which(not_fml), "not of class 'formula'."), 
             collapse = " "),
-      call. = FALSE
+      call. = TRUE
     )
   
-  class(.obj) <- "formula_list"
+  class(.obj) <- c("formula_list", "list")
 
   return(.obj)
+  
+}
+
+#' @title ATranslate `formula_list` into `Formula::Formula`
+#'
+#' @name fmllst2Fml
+#' 
+#' @description
+#' Translates `{domir}`s `formula_list` objects into an a [`Formula::Formula`]
+#' 
+#' @param fmllst A `formula_list` classed object.
+#' 
+#' @return A `Formula::Formula` object.
+#' 
+#' @rdname fmllst2Fml
+#' 
+#' @export
+fmllst2Fml <- function(fmllst) {
+  if (!inherits(fmllst, "formula_list")) 
+    stop("Object is not of class 'formula_list'.", call. = FALSE)
+  
+  if (!require("Formula")) 
+    stop("Package '{Formula}' not available.", call. = FALSE)
+  
+  list_parsed <- 
+    lapply(fmllst, domir:::formula_parse)
+  
+  Fml <- 
+    paste(
+      sapply(
+        list_parsed,
+        function(elem) {
+          return(elem$LHS_names)
+        }
+      ),
+      collapse = "|"
+    )
+  
+  Fml <- 
+    paste(
+      c(Fml, " ~ ", 
+        paste(
+          sapply(
+            list_parsed,
+            function(elem) {
+              rhs_sum <- 
+                paste(elem$RHS_names, collapse = "+")
+              return( rhs_sum )
+            }
+          ),
+          collapse = "|"
+        )
+      ),
+      collapse = ""
+    )
+  
+  return(
+    Formula::as.Formula(Fml)
+  )
   
 }
