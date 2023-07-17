@@ -2,7 +2,7 @@
 % Please edit documentation in R/formula_list.R
 \name{fmllst2Fml}
 \alias{fmllst2Fml}
-\title{ATranslate \code{formula_list} into \code{Formula::Formula}}
+\title{Translate \code{formula_list} into \code{Formula::Formula}}
 \usage{
 fmllst2Fml(fmllst)
 }

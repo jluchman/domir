@@ -9,7 +9,8 @@
 #' 
 #' @details  
 #' All `formula_list`s enforces requirements that the list are composed of 
-#' individual `formula`s.
+#' individual `formula`s and that each formula is unique with its own, 
+#' different, non-`NULL` dependent variable/response.
 #' 
 #' @return A `list` of class `formula_list`.
 #' 
@@ -31,13 +32,36 @@ formula_list <- function(...) {
       call. = TRUE
     )
   
+  # Check all elements are unique formulas
+  DV_list <-
+    sapply(.obj, 
+           function(elem) {
+             if (attr(stats::terms(elem), "response")==1)
+               rownames(attr(stats::terms(elem), "factors"))[[
+                 attr(stats::terms(elem), "response")
+               ]] 
+             else NA
+           } 
+    )
+  
+  DV_problem <- 
+    ( is.na(DV_list) | duplicated(DV_list, incomparables = c(NA)) ) 
+  
+  if ( any( DV_problem ) ) 
+    stop(
+      paste(c("List element", which(DV_problem), 
+              "missing a response or duplicated a response."), 
+            collapse = " "),
+      call. = TRUE
+    )
+  
   class(.obj) <- c("formula_list", "list")
 
   return(.obj)
   
 }
 
-#' @title ATranslate `formula_list` into `Formula::Formula`
+#' @title Translate `formula_list` into `Formula::Formula`
 #'
 #' @name fmllst2Fml
 #' 

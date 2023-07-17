@@ -272,7 +272,7 @@ domir.formula <- function(
     
   }
   
-  # Process formula ----
+  # Process 'formula' ----
   # Obtain 'right hand side'/RHS name vector from `.obj`
   RHS_names <- 
     attr(stats::terms(.obj), "term.labels") 
@@ -611,59 +611,144 @@ domir.formula <- function(
 #' @exportS3Method 
 domir.formula_list <- function(
     .obj, .fct, 
+    .set = NULL,
     ...) {
   
+  # Process 'formula_list' ----
+    # Obtain RHS, LHS, intercepts, and offsets in list
   list_parsed <- 
     lapply(.obj, formula_parse)
   
+  # ~~ check any single equation is not constant-only/look at `formula_check()`
+  
+    # Record locations the .$Select elements for all sub-lists
+  element_count <- 
+    sum( 
+      sapply(
+        1:length(list_parsed),
+        function(elem) {
+          length( list_parsed[[elem]][["Select"]] )
+        } ) )
+  selector_locations <- 
+    vector(mode = "list", length = element_count)
+  pos = 1
+  for ( elem in 1:length(list_parsed) ) {
+    for ( loc in 1:length( list_parsed[[elem]][["Select"]] ) ) {
+      selector_locations[[pos]] <- c(elem, 5, loc)
+      pos <- pos + 1
+    } }
+  
+    # LHS ~ RHS pair list
+  LHS_RHS_pairlist <- # use this when printing - also to check against sets
+    unlist( lapply(
+      list_parsed, 
+      function(elem) {
+        paste(elem$LHS_names, "~", elem$RHS_names)
+      } ) )
+  
+  remove_loc <- rep(FALSE, times = length(LHS_RHS_pairlist))
+    
+  # Process '.set' ----
+  if (!is.null(.set)) {
+    
+    # .set must be list
+    if (!is.list(.set)) {
+      stop("'.set' must be a 'list'.", call. = FALSE)
+    }
+    
+    # .set must be comrised of 'formula_list's
+    set_fmllst <- 
+      sapply(.set, 
+             function(elem) {
+               inherits(elem, "formula_list")
+             } )
+    
+    if (!all(set_fmllst)) 
+      stop("'.set' element ", paste( which(!set_fmllst), collapse = " " ), 
+           " not of class 'formula_list'.", call. = FALSE)
+    
+    # Obtain RHS, LHS, intercept, and offsets from .set
+    sets_parsed <- 
+      lapply(.set, 
+             function(set) {
+               lapply(set, formula_parse)
+             } )
+    
+    # Check validity of LHS-RHS pairs in .set
+    set_pairs <-
+      lapply(
+        sets_parsed,
+        function(sublist) {
+          unlist( lapply(
+            sublist, 
+            function(elem) {
+              paste(elem$LHS_names, "~", elem$RHS_names)
+            } ) ) } )
+    is_valid_pair <- 
+      unlist(set_pairs) %in% LHS_RHS_pairlist
+    if ( !all(is_valid_pair) ) 
+      stop("Pair ", paste(unlist(set_pairs)[!is_valid_pair], collapse = " "), 
+                 " not found among those in '.obj'.", call. = FALSE)
+    
+    # ~~ more .set checks needed
+
+    # Group together locations of the .$Select elements for sets
+    selector_locations_sets <- 
+      vector(mode = "list", length = length(.set))
+    pos = 1
+    for ( elem in 1:length(sets_parsed) ) {
+      selector_locations_sets[[pos]] <- 
+        lapply( set_pairs[[elem]] , 
+                function(loc) {
+                  selector_locations[[ which(LHS_RHS_pairlist %in% loc) ]]
+                } )
+      remove_loc[which(LHS_RHS_pairlist %in% set_pairs[[elem]])] <- TRUE
+      pos <- pos + 1
+    }
+    
+  }
+  else selector_locations_sets <- NULL
+  
+  # Update selector locations with .set
+  selector_locations <- 
+    append(selector_locations[!remove_loc], selector_locations_sets)
+  
+  # Confirm .fct works as applied to .obj - fits full-model
   test_model <- 
     function_checker(.obj, .fct, ...)
   
   # Define meta-function to coordinate .fct calls ----
-
-  ## Note that formula_list submits as 'list' classed object secondarily so 
-  ## it can work with lists of forumulas like systemfit
-  
   meta_domir <- 
     function(Selector_lgl, 
-             list_parsed, .fct, 
+             list_parsed, .fct, selector_locations,
              ...) { 
 
       # distribute logical vector to elements of formula_list
-      dom_len <- 1
-      
-      list_parsed <- 
-        lapply(
-          list_parsed, 
-          function(elem) {
-            elem$selector <- 
-              Selector_lgl[
-                get("dom_len"):( get("dom_len")+( length(elem$RHS_names) - 1) )
-              ] 
-            assign("dom_len", get("dom_len")+length(elem$RHS_names), inherits = TRUE)
-            return(elem)
-          }
-        )
+      for (elem in selector_locations[Selector_lgl]) {
+        
+        if ( is.list(elem) ) {
+          for (pos in 1:length(elem)) {
+            list_parsed[[ elem[[pos]] ]] <- TRUE
+          } }
+        else list_parsed[[elem]] <- TRUE
+      }
       
       # reconstruct the selected formula_list
       fml_lst <- 
         lapply(
           list_parsed, 
           function(elem) {
-            if ( all(!elem$selector) )
+            if ( all(!elem$Select) )
               reformulate(c("1", elem$Offset), response = elem$LHS_names, intercept = elem$Intercept)
             else
               reformulate(
-                c(elem$RHS_name[elem$selector], elem$Offset),
-                response = elem$LHS_names, intercept = elem$Intercept)
-          }
-        )
+                c(elem$RHS_name[elem$Select], elem$Offset),
+                response = elem$LHS_names, intercept = elem$Intercept) } )
       
       # submit formula_list to '.fct' ~~ still needs to add in arguments
       returned_scalar <-
         do.call(.fct,
-                list(fml_lst) 
-                ) # missing arguments to function
+                list(fml_lst) ) #~~ missing arguments to function
       
       return(returned_scalar)
       
@@ -671,25 +756,17 @@ domir.formula_list <- function(
   
   # Define arguments to `dominance_scalar` ----
   args_list <- 
-    list(RHS = # this argument is really only useful for domir.formula but necessary to get combos - alter internals
-           1:sum(
-             sapply(
-               list_parsed, 
-               function(elem) {
-                 return( length(elem$RHS_names) )
-               }
-             )
-           ),
+    list(RHS = selector_locations,
          list_parsed = list_parsed,
-         .fct = .fct
-    )
+         .fct = .fct,
+         selector_locations = selector_locations )
   
   return_list <-
     dominance_scalar(
       meta_domir,
       args_list,
       NULL, test_model,
-      FALSE, FALSE, FALSE)
+      FALSE, FALSE, FALSE )
   
   return(list(list_parsed, return_list))
     
@@ -699,12 +776,6 @@ domir.formula_list <- function(
 # Define formula parsing function
 formula_parse <- function(.obj) {
   
-  # if (!is.null(.wst)) {
-  #   
-  #   .NotYetUsed(".wst")
-  #   
-  # }
-
   # Obtain 'right hand side'/RHS name vector from `.obj`
   RHS_names <-
     attr(stats::terms(.obj), "term.labels")
@@ -712,8 +783,7 @@ formula_parse <- function(.obj) {
   # Intercept logical - for `reformulate` later
   Intercept <-
     as.logical(
-      attr(stats::terms(.obj), "intercept")
-    )
+      attr(stats::terms(.obj), "intercept") )
 
   # Obtain offsets 
   if (!is.null(attr(stats::terms(.obj), "offset"))) {
@@ -735,125 +805,15 @@ formula_parse <- function(.obj) {
     ]]
 
   else LHS_names <- NULL
+  
+  Select <- rep(FALSE, times = length(RHS_names))
 
-  # # Process '.all' ----
-  # if (!is.null(.all)) {
-  # 
-  #   # apply checks to '.all' argument
-  #   fml_check(.all, "'.all'", TRUE)
-  # 
-  #   # name vector from '.all'
-  #   All_names <- attr(stats::terms(.all), "term.labels")
-  # 
-  #   # check names in '.all' and remove from rhs
-  #   RHS_names <-
-  #     rhs_name_remover(All_names, RHS_names, "'.all'")
-  # 
-  # }
-  # 
-  # else All_names <- NULL
-  # 
-  # # Process '.adj' ----
-  # if (!is.null(.adj)) {
-  #   
-  #   # apply checks to '.adj' argument
-  #   fml_check(.adj, "'.adj'", FALSE)
-  #   
-  #   # if '.adj' is an intercept-only model - checks/include
-  #   if (
-  #     (length(attr(stats::terms(.adj), "term.labels")) == 0) && 
-  #     (attr(stats::terms(.adj), "intercept") == 1) && Intercept
-  #   ) Adj_names <- "1"
-  #   
-  #   else if (
-  #     (length(attr(stats::terms(.adj), "term.labels")) == 0) && 
-  #     (attr(stats::terms(.adj), "intercept") == 1) && !Intercept
-  #   ) stop("'.adj' cannot add an intercept when it is removed \n", 
-  #          "from the formula in '.obj'.", 
-  #          call. = FALSE)
-  #   
-  #   else if (
-  #     (length(attr(stats::terms(.adj), "term.labels")) == 0) && 
-  #     (attr(stats::terms(.adj), "intercept") == 0)
-  #   ) stop("'.adj' cannot be an empty formula.", call. = FALSE)
-  #   
-  #   else {
-  #     
-  #     # name vector in '.adj'
-  #     Adj_names <- attr(stats::terms(.adj), "term.labels")
-  #     
-  #     # check names in '.adj' and remove from rhs
-  #     RHS_names <- 
-  #       rhs_name_remover(Adj_names, RHS_names, "'.adj'")
-  #     
-  #   }
-  #   
-  # }
-  # 
-  # else Adj_names <- NULL
-  # 
-  # # Process '.set' ----
-  # if (!is.null(.set)) {
-  #   
-  #   if (!is.list(.set)) {
-  #     stop("'.set' must be a 'list'.", call. = FALSE)
-  #   }
-  #   
-  #   # apply checks to all elements of '.set' argument
-  #   .mapply(fml_check, list(.set, 
-  #                           paste0("Position ", 1:(length(.set)), " of '.set'."), 
-  #                           rep(TRUE, times = length(.set))),
-  #           NULL)
-  #   
-  #   # name vectors from each element of '.set'
-  #   Set_names <- 
-  #     lapply(.set, 
-  #            function(x) attr(stats::terms(x), "term.labels"))
-  #   
-  #   # recursively check names in '.set'-s and remove from rhs
-  #   for (set in 1:length(Set_names)) {
-  #     
-  #     RHS_names <- 
-  #       rhs_name_remover(Set_names[[set]], RHS_names, 
-  #                        paste0("Position ", set, " of '.set'."))
-  #     
-  #   }
-  #   
-  #   # apply labels to '.set'
-  #   if (!is.null(names(.set))) 
-  #     Set_labels <- names(.set)
-  #   
-  #   else Set_labels <- paste0("set", 1:length(.set))
-  #   
-  #   missing_Set_labels <- which(Set_labels == "")
-  #   
-  #   if (length(missing_Set_labels) > 0)
-  #     Set_labels[missing_Set_labels] <- paste0("set", missing_Set_labels)
-  #   
-  #   if (any(Set_labels %in% RHS_names)) {
-  #     
-  #     repeat_names <- Set_labels[which(Set_labels %in% RHS_names)]
-  #     
-  #     stop("Set element names ",
-  #          paste(repeat_names, collapse = " "), 
-  #          " are also the names of elements in '.obj'.\n",
-  #          "Please rename these '.set' elements.", call. = FALSE)
-  #   }
-  #   
-  # }
-  # 
-  # else Set_names <- NULL
-  # 
-  # # Too few subsets error
-  # if ((length(RHS_names) + length(Set_names)) < 2) 
-  #   stop("At least two subsets are needed for a dominance analysis.",
-  #        call. = FALSE)
-  # 
   return(
     list(RHS_names = RHS_names, 
          LHS_names = LHS_names,
          Intercept = Intercept,
-         Offset = Offset)
+         Offset = Offset,
+         Select = Select)
   )
   
 }
