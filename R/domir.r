@@ -611,17 +611,17 @@ domir.formula <- function(
 #' @exportS3Method 
 domir.formula_list <- function(
     .obj, .fct, 
-    .set = NULL,
+    .set = NULL, .all = NULL,
     ...) {
   
   # Process 'formula_list' ----
-    # Obtain RHS, LHS, intercepts, and offsets in list
+  # Obtain RHS, LHS, intercepts, and offsets in list
   list_parsed <- 
     lapply(.obj, formula_parse)
   
   # ~~ check any single equation is not constant-only/look at `formula_check()`
   
-    # Record locations the .$Select elements for all sub-lists
+  # Record locations the .$Select elements for all sub-lists
   element_count <- 
     sum( 
       sapply(
@@ -638,7 +638,7 @@ domir.formula_list <- function(
       pos <- pos + 1
     } }
   
-    # LHS ~ RHS pair list
+  # LHS ~ RHS pair list
   LHS_RHS_pairlist <- # use this when printing - also to check against sets
     unlist( lapply(
       list_parsed, 
@@ -647,16 +647,52 @@ domir.formula_list <- function(
       } ) )
   
   remove_loc <- rep(FALSE, times = length(LHS_RHS_pairlist))
+  
+  # Process '.all' ----
+  if (!is.null(.all)) {
     
+    # '.all' must be 'formula_list'
+    if (!inherits(.all, "formula_list")) {
+      stop("'.all' must be a 'formula_list'.", call. = FALSE)
+    }
+    
+    # Obtain RHS, LHS, intercept, and offsets from '.all'
+    all_parsed <- 
+      lapply(.all, formula_parse)
+    
+    # Check validity of LHS-RHS pairs in '.all'
+    all_pairs <-
+      lapply(
+        all_parsed,
+        function(elem) {
+          paste(elem$LHS_names, "~", elem$RHS_names)
+        } )
+    is_valid_pair <- 
+      unlist(all_pairs) %in% LHS_RHS_pairlist
+    if ( !all(is_valid_pair) ) 
+      stop("Pair ", paste(unlist(all_pairs)[!is_valid_pair], collapse = " "), 
+           " in '.all' not found among those in '.obj'.", call. = FALSE)
+    
+    # ~~ more .all checks needed
+
+    # Activate '.all' pairs and remove as candidate subset
+    for ( elem in unlist(all_pairs) ) {
+      list_parsed[[ selector_locations[[ which(LHS_RHS_pairlist %in% elem) ]] ]] <- 
+        TRUE
+    }
+    remove_loc[ which(LHS_RHS_pairlist %in% unlist(all_pairs) )] <- TRUE
+
+  }
+  
   # Process '.set' ----
   if (!is.null(.set)) {
     
-    # .set must be list
+    # '.set' must be list
     if (!is.list(.set)) {
       stop("'.set' must be a 'list'.", call. = FALSE)
     }
     
-    # .set must be comrised of 'formula_list's
+    # '.set' must be comprised of 'formula_list's
     set_fmllst <- 
       sapply(.set, 
              function(elem) {
@@ -667,14 +703,14 @@ domir.formula_list <- function(
       stop("'.set' element ", paste( which(!set_fmllst), collapse = " " ), 
            " not of class 'formula_list'.", call. = FALSE)
     
-    # Obtain RHS, LHS, intercept, and offsets from .set
+    # Obtain RHS, LHS, intercept, and offsets from '.set'
     sets_parsed <- 
       lapply(.set, 
              function(set) {
                lapply(set, formula_parse)
              } )
     
-    # Check validity of LHS-RHS pairs in .set
+    # Check validity of LHS-RHS pairs in '.set'
     set_pairs <-
       lapply(
         sets_parsed,
@@ -688,11 +724,11 @@ domir.formula_list <- function(
       unlist(set_pairs) %in% LHS_RHS_pairlist
     if ( !all(is_valid_pair) ) 
       stop("Pair ", paste(unlist(set_pairs)[!is_valid_pair], collapse = " "), 
-                 " not found among those in '.obj'.", call. = FALSE)
+                 " in '.set' not found among those in '.obj'.", call. = FALSE)
     
     # ~~ more .set checks needed
 
-    # Group together locations of the .$Select elements for sets
+    # Group together locations of the .$Select elements for '.set's
     selector_locations_sets <- 
       vector(mode = "list", length = length(.set))
     pos = 1
@@ -714,8 +750,14 @@ domir.formula_list <- function(
     append(selector_locations[!remove_loc], selector_locations_sets)
   
   # Confirm .fct works as applied to .obj - fits full-model
-  test_model <- 
-    function_checker(.obj, .fct, ...)
+  test_model <- function_checker(.obj, .fct, ...)
+  
+  # Estimate .all model if applicable - !!update 'dominance_internals'!!
+  if (!is.null(.all))
+    all_model <- function_checker(.all, .fct, ...) # !!will have to include .adj!!
+  else all_model <- NULL # !! adjust for .adj when implemented !!
+  
+  # Estimate .adj model if applicable - !!update 'dominance_internals'!!
   
   # Define meta-function to coordinate .fct calls ----
   meta_domir <- 
@@ -725,7 +767,6 @@ domir.formula_list <- function(
 
       # distribute logical vector to elements of formula_list
       for (elem in selector_locations[Selector_lgl]) {
-        
         if ( is.list(elem) ) {
           for (pos in 1:length(elem)) {
             list_parsed[[ elem[[pos]] ]] <- TRUE
@@ -739,16 +780,17 @@ domir.formula_list <- function(
           list_parsed, 
           function(elem) {
             if ( all(!elem$Select) )
-              reformulate(c("1", elem$Offset), response = elem$LHS_names, intercept = elem$Intercept)
+              reformulate(c("1", elem$Offset), response = elem$LHS_names, 
+                          intercept = elem$Intercept)
             else
               reformulate(
                 c(elem$RHS_name[elem$Select], elem$Offset),
                 response = elem$LHS_names, intercept = elem$Intercept) } )
       
-      # submit formula_list to '.fct' ~~ still needs to add in arguments
+      # submit formula_list to '.fct' - !!still needs to add in arguments!!
       returned_scalar <-
         do.call(.fct,
-                list(fml_lst) ) #~~ missing arguments to function
+                list(fml_lst) ) # !!missing arguments to function!!
       
       return(returned_scalar)
       
@@ -759,7 +801,8 @@ domir.formula_list <- function(
     list(RHS = selector_locations,
          list_parsed = list_parsed,
          .fct = .fct,
-         selector_locations = selector_locations )
+         selector_locations = selector_locations,
+         .all = all_model)
   
   return_list <-
     dominance_scalar(
@@ -767,6 +810,8 @@ domir.formula_list <- function(
       args_list,
       NULL, test_model,
       FALSE, FALSE, FALSE )
+  
+  #return_list$All_result <- all_model # adjust for '.all' - fix in internals
   
   return(list(list_parsed, return_list))
     

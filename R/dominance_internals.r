@@ -53,17 +53,20 @@ dominance_scalar <-
   
   # All subsets adjustment ----
   
-  if (length(args_list$.all) > 0) {
-    
-    result_adjustment <- 
-      All_result <- 
-      do.call(fitting_fun, 
-              append(list(Selector_lgl = NULL), 
-                     args_list))
-    
-  }
-  
-  else All_result <- NULL 
+  # if (length(args_list$.all) > 0) {
+  #   
+  #   result_adjustment <- 
+  #     All_result <- 
+  #     do.call(fitting_fun, 
+  #             append(list(Selector_lgl = NULL), 
+  #                    args_list))
+  #   
+  # }
+  # 
+  # else All_result <- NULL 
+  All_result <- args_list$.all # !! update?? !!
+  result_adjustment <- 
+    ifelse(is.null(All_result), 0, All_result) # !! update?? !!
   
   # Obtain all subsets regression results ----
   
