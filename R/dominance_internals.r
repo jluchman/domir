@@ -33,23 +33,26 @@ dominance_scalar <-
   
   # Constant model adjustments ----
   
-  if (length(args_list$.adj) > 0) {
-    
-    result_adjustment <- 
-      Adj_result <- 
-      do.call(fitting_fun, 
-              append(list(Selector_lgl = NULL), 
-                     cons_args))
-    
-  }
-  
-  else {
-    
-    Adj_result <- NULL
-    
-    result_adjustment <- 0
-    
-  }
+  # if (length(args_list$.adj) > 0) {
+  #   
+  #   result_adjustment <- 
+  #     Adj_result <- 
+  #     do.call(fitting_fun, 
+  #             append(list(Selector_lgl = NULL), 
+  #                    cons_args))
+  #   
+  # }
+  # 
+  # else {
+  #   
+  #   Adj_result <- NULL
+  #   
+  #   result_adjustment <- 0
+  #   
+  # }
+  Adj_result <- args_list$.adj # !! update?? !!
+  result_adjustment <- 
+    ifelse(is.null(Adj_result), 0, Adj_result) # !! update?? !!
   
   # All subsets adjustment ----
   
@@ -66,7 +69,8 @@ dominance_scalar <-
   # else All_result <- NULL 
   All_result <- args_list$.all # !! update?? !!
   result_adjustment <- 
-    ifelse(is.null(All_result), 0, All_result) # !! update?? !!
+    ifelse(is.null(All_result), 
+           result_adjustment, All_result) # !! update?? !!
   
   # Obtain all subsets regression results ----
   

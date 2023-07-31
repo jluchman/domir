@@ -24,7 +24,7 @@ formula_list <- function(...) {
   # Check all list elements are formulas
   not_fml <- 
     sapply(.obj, Negate(inherits), what = "formula")
-  
+ 
   if ( any(not_fml) )
     stop(
       paste(c("List element", which(not_fml), "not of class 'formula'."), 
@@ -37,8 +37,8 @@ formula_list <- function(...) {
     sapply(.obj, 
            function(elem) {
              if (attr(stats::terms(elem), "response")==1)
-               rownames(attr(stats::terms(elem), "factors"))[[
-                 attr(stats::terms(elem), "response")
+               as.list(attr(stats::terms(elem), "variables"))[[
+                 attr(stats::terms(elem), "response")+1
                ]] 
              else NA
            } 

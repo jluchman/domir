@@ -21,7 +21,7 @@ domir(.obj, ...)
   ...
 )
 
-\method{domir}{formula_list}(.obj, .fct, ...)
+\method{domir}{formula_list}(.obj, .fct, .set = NULL, .all = NULL, .adj = FALSE, ...)
 }
 \arguments{
 \item{.obj}{A \code{\link{formula}} or \code{\link{formula_list}}.

@@ -251,6 +251,7 @@
 #'   .adj = ~ 1,
 #'   .rev = TRUE,
 #'   data = mtcars)
+#'   
 
 domir <- function(.obj, ...) {
   
@@ -611,7 +612,7 @@ domir.formula <- function(
 #' @exportS3Method 
 domir.formula_list <- function(
     .obj, .fct, 
-    .set = NULL, .all = NULL,
+    .set = NULL, .all = NULL, .adj = FALSE, # disallowing '.adj' as a model - will be logical - anything more complex may not be parse-able - put it in function!
     ...) {
   
   # Process 'formula_list' ----
@@ -647,6 +648,21 @@ domir.formula_list <- function(
       } ) )
   
   remove_loc <- rep(FALSE, times = length(LHS_RHS_pairlist))
+  
+  # Apply '.adj' ----
+  if (.adj) {
+    
+    # Generate '.adj' 'formula_list'
+    adj_fml_lst <- 
+      lapply(
+        list_parsed, 
+        function(elem) {
+          reformulate("1", response = elem$LHS_names, 
+                      intercept = elem$Intercept)
+        }
+      ) 
+    class(adj_fml_lst) <- c("formula_list", "list")
+  }
   
   # Process '.all' ----
   if (!is.null(.all)) {
@@ -752,12 +768,16 @@ domir.formula_list <- function(
   # Confirm .fct works as applied to .obj - fits full-model
   test_model <- function_checker(.obj, .fct, ...)
   
+  # Estimate .adj model if applicable - !!update 'dominance_internals'!!
+  if (.adj) {
+    adj_model <- function_checker(adj_fml_lst, .fct, ...) # !!will have to include .all!!
+  }
+  else adj_model <- NULL
+  
   # Estimate .all model if applicable - !!update 'dominance_internals'!!
   if (!is.null(.all))
     all_model <- function_checker(.all, .fct, ...) # !!will have to include .adj!!
   else all_model <- NULL # !! adjust for .adj when implemented !!
-  
-  # Estimate .adj model if applicable - !!update 'dominance_internals'!!
   
   # Define meta-function to coordinate .fct calls ----
   meta_domir <- 
@@ -802,7 +822,7 @@ domir.formula_list <- function(
          list_parsed = list_parsed,
          .fct = .fct,
          selector_locations = selector_locations,
-         .all = all_model)
+         .all = all_model, .adj = adj_model)
   
   return_list <-
     dominance_scalar(

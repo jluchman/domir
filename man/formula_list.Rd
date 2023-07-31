@@ -17,5 +17,6 @@ Structures \code{formula} inputs for \code{domir} to obtain RHS-LHS pairs.
 }
 \details{
 All \code{formula_list}s enforces requirements that the list are composed of
-individual \code{formula}s.
+individual \code{formula}s and that each formula is unique with its own,
+different, non-\code{NULL} dependent variable/response.
 }
