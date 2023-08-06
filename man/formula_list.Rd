@@ -13,10 +13,10 @@ formula_list(...)
 A \code{list} of class \code{formula_list}.
 }
 \description{
-Structures \code{formula} inputs for \code{domir} to obtain RHS-LHS pairs.
+Structures \code{formula} inputs to obtain RHS-LHS pairs.
 }
 \details{
-All \code{formula_list}s enforces requirements that the list are composed of
+All \code{formula_list}s enforce requirements that the list are composed of
 individual \code{formula}s and that each formula is unique with its own,
 different, non-\code{NULL} dependent variable/response.
 }

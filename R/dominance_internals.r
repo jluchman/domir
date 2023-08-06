@@ -33,44 +33,50 @@ dominance_scalar <-
   
   # Constant model adjustments ----
   
-  # if (length(args_list$.adj) > 0) {
-  #   
-  #   result_adjustment <- 
-  #     Adj_result <- 
-  #     do.call(fitting_fun, 
-  #             append(list(Selector_lgl = NULL), 
-  #                    cons_args))
-  #   
-  # }
-  # 
-  # else {
-  #   
-  #   Adj_result <- NULL
-  #   
-  #   result_adjustment <- 0
-  #   
-  # }
-  Adj_result <- args_list$.adj # !! update?? !!
-  result_adjustment <- 
-    ifelse(is.null(Adj_result), 0, Adj_result) # !! update?? !!
+  if ( (length(args_list$.adj) > 0) & !is.null(cons_args)) { # formula method
+
+    result_adjustment <-
+      Adj_result <-
+      do.call(fitting_fun,
+              append(list(Selector_lgl = NULL),
+                     cons_args))
+
+  }
+  else if (!is.null(cons_args)) { #formula method with no args
+    
+    Adj_result <- NULL
+    
+    result_adjustment <- 0
+    
+  }
+  else { # formula_list method
+    
+    Adj_result <- args_list$.adj # !! update?? !!
+    
+    result_adjustment <- 
+      ifelse(is.null(Adj_result), 0, Adj_result) # !! update?? !!
+    
+  }
   
   # All subsets adjustment ----
   
-  # if (length(args_list$.all) > 0) {
-  #   
-  #   result_adjustment <- 
-  #     All_result <- 
-  #     do.call(fitting_fun, 
-  #             append(list(Selector_lgl = NULL), 
-  #                    args_list))
-  #   
-  # }
-  # 
-  # else All_result <- NULL 
-  All_result <- args_list$.all # !! update?? !!
-  result_adjustment <- 
-    ifelse(is.null(All_result), 
-           result_adjustment, All_result) # !! update?? !!
+  if ((length(args_list$.all) > 0) & !is.null(cons_args)) { # formula method
+
+    result_adjustment <-
+      All_result <-
+      do.call(fitting_fun,
+              append(list(Selector_lgl = NULL),
+                     args_list))
+
+  }
+
+  else if (!is.null(cons_args)) All_result <- NULL # formula method
+  else { # formula_list method
+    All_result <- args_list$.all # !! update?? !!
+    result_adjustment <- 
+      ifelse(is.null(All_result), 
+             result_adjustment, All_result) # !! update?? !!
+  }
   
   # Obtain all subsets regression results ----
   
@@ -149,7 +155,7 @@ dominance_scalar <-
     # 'Inf' values created above are replaced as 0
     Weighted_result_matrix <-
       replace(Weighted_result_matrix, 
-              Weighted_result_matrix==Inf, 0)
+              abs(Weighted_result_matrix)==Inf, 0)
     
     # Identical in intention to 'Weighted_result_matrix' but associated with 
     # 'Results_vector' for values of results not included in 
@@ -166,7 +172,7 @@ dominance_scalar <-
     # 'Inf' values created above are replaced as 0
     Weighted_result_matrix_decrement <-
       replace(Weighted_result_matrix_decrement, 
-              Weighted_result_matrix_decrement==Inf, 0)
+              abs(Weighted_result_matrix_decrement)==Inf, 0)
     
     # across names (represented in rows); sum weighted results by number of 
     # names in models

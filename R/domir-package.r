@@ -5,32 +5,32 @@
 #' 
 #' @description 
 #' Methods to apply decomposition-based relative importance analysis for 
-#' R functions.
+#' predictive modeling functions.
 #' 
 #' @details
-#' Determining the relative importance of inputs to (i.e., independent 
+#' Determining the relative importance of inputs (i.e., independent 
 #' variables, predictors, features) to a predictive model is topic 
 #' of interest to scientists and analysts. Decomposing a returned value, such 
 #' as a model fit metric or statistic, into parts attributable to each input 
 #' is a commonly applied method for determining relative importance in 
 #' predictive models. 
 #' 
-#' This package supports applying decomposition methods using 
-#' [`lapply`]- or [`Map`]-like functions that compute dominance analysis 
-#' (Azen & Budescu, 2004; Budescu, 1993)/Shapley value decomposition 
-#' (Grömping, 2007; Lipovetsky & Conklin, 2001) based on the values returned 
-#' from other, predictive modeling, functions.
+#' This package supports relative importance analysis by implementing several 
+#' interfaces compute dominance analysis (Azen & Budescu, 2004; Budescu, 1993) 
+#' or Shapley value decomposition (Grömping, 2007; Lipovetsky & Conklin, 2001). 
+#' These decomposition methods subdivide the fit statistic values returned by 
+#' other, predictive modeling, functions.
 #' 
-#' The user interface is structured such that `{domir}` automates the 
-#' decomposition of the returned value and comparisons between model inputs 
-#' and the user provides the analysis pipeline including model inputs, the 
+#' The user interface is structured such that the methods applied automate the 
+#' decomposition of the returned value and comparisons between model inputs. 
+#' The user provides the analysis pipeline including model inputs, the 
 #' predictive modeling function into which they are entered, and returned 
 #' value from the model to decompose.
 #' 
 #' This package's user interface accepts inputs as names on the right hand 
-#' side of a [`formula`] which can be passed on to the predictive model 
-#' directly or further processed in the analysis pipeline.  The interface 
-#' is also planned to be extended to [`list`]'s of `formula`s as inputs.
+#' side of a [`formula`] as well as list of response-term pairs in formulas 
+#' defined as an object called a [`formula_list`] which can be passed on to 
+#' the predictive model directly or further processed in the analysis pipeline.
 #'
 #' @references
 #' \itemize{

@@ -3,12 +3,12 @@
 #' @name formula_list
 #' 
 #' @description
-#' Structures `formula` inputs for `domir` to obtain RHS-LHS pairs.
+#' Structures `formula` inputs to obtain RHS-LHS pairs.
 #' 
 #' @param ... `formula`s, possibly named
 #' 
 #' @details  
-#' All `formula_list`s enforces requirements that the list are composed of 
+#' All `formula_list`s enforce requirements that the list are composed of 
 #' individual `formula`s and that each formula is unique with its own, 
 #' different, non-`NULL` dependent variable/response.
 #' 
@@ -83,7 +83,7 @@ fmllst2Fml <- function(fmllst) {
     stop("Package '{Formula}' not available.", call. = FALSE)
   
   list_parsed <- 
-    lapply(fmllst, domir:::formula_parse)
+    lapply(fmllst, domir::formula_parse)
   
   Fml <- 
     paste(

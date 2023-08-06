@@ -32,6 +32,7 @@ Suggests:
     rlang,
     rmarkdown,
     stringr,
+    systemfit,
     testthat (>= 3.0.0),
     tidyr
 License: GPL (>= 3)
