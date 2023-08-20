@@ -70,27 +70,57 @@ formula_list <- function(...) {
 #' 
 #' @param fmllst A `formula_list` classed object.
 #' 
+#' @param drop_lhs An integer vector. 
+#' 
+#' Used as a selection vector to remove left hand side names prior to 
+#' generating the `Formula` object. This vector must be composed of 
+#' integers (e.g., 1L and not 1).
+#' 
 #' @return A `Formula::Formula` object.
 #' 
 #' @rdname fmllst2Fml
 #' 
 #' @export
-fmllst2Fml <- function(fmllst) {
+fmllst2Fml <- function(fmllst, drop_lhs = NULL) {
   if (!inherits(fmllst, "formula_list")) 
-    stop("Object is not of class 'formula_list'.", call. = FALSE)
+    stop("Submitted object is not of class 'formula_list'.", call. = FALSE)
   
-  if (!require("Formula")) 
+  if (!requireNamespace("Formula")) 
     stop("Package '{Formula}' not available.", call. = FALSE)
   
   list_parsed <- 
     lapply(fmllst, domir::formula_parse)
   
+  if (!is.null(drop_lhs)) {
+    if (!is.atomic(drop_lhs) || !is.integer(drop_lhs) || !length(drop_lhs)) {
+      stop(paste(
+        "'drop_lhs' is not a integer vector.", 
+        "'drop_lhs' is a(n)", class(drop_lhs), "of mode", mode(drop_lhs), 
+        "with a length of", length(drop_lhs), "."
+      ),
+      call. = FALSE)
+    }
+    
+    if ( !all(drop_lhs %in% 1:length(list_parsed)) ) {
+      bad_drop_lhs <- 
+        drop_lhs[which(!(drop_lhs %in% 1:length(list_parsed)))]
+      stop(paste("Values", 
+                 paste(bad_drop_lhs, collapse = " "),
+                 "in 'drop_lhs' are not valid element positions."), 
+           call. = FALSE)
+    }
+    
+    keep_lhs <- which(!(1:length(list_parsed) %in% drop_lhs))
+  } else {
+    keep_lhs <- 1:length(list_parsed)
+  }
+  
   Fml <- 
     paste(
       sapply(
-        list_parsed,
+        list_parsed[keep_lhs],
         function(elem) {
-          return(elem$LHS_names)
+          elem$LHS_names
         }
       ),
       collapse = "|"
@@ -105,7 +135,8 @@ fmllst2Fml <- function(fmllst) {
             function(elem) {
               rhs_sum <- 
                 paste(elem$RHS_names, collapse = "+")
-              return( rhs_sum )
+              if (rhs_sum == "") rhs_sum <- "1"
+              rhs_sum
             }
           ),
           collapse = "|"
@@ -114,8 +145,6 @@ fmllst2Fml <- function(fmllst) {
       collapse = ""
     )
   
-  return(
-    Formula::as.Formula(Fml)
-  )
+  Formula::as.Formula(Fml)
   
 }

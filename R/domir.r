@@ -842,20 +842,6 @@ domir.formula_list <- function(
          "Please rename these '.set' elements.", call. = FALSE)
   }
   
-  # Confirm .fct works as applied to .obj - fits full-model
-  test_model <- function_checker(.obj, .fct, ...)
-  
-  # Estimate .adj model if applicable - !!update 'dominance_internals'!!
-  if (.adj) {
-    adj_model <- function_checker(adj_fml_lst, .fct, ...) # !!will have to include .all!!
-  }
-  else adj_model <- NULL
-  
-  # Estimate .all model if applicable - !!update 'dominance_internals'!!
-  if (!is.null(.all))
-    all_model <- function_checker(.all, .fct, ...) # !!will have to include .adj!!
-  else all_model <- NULL # !! adjust for .adj when implemented !!
-  
   # Define meta-function to coordinate .fct calls ----
   meta_domir <- 
     function(Selector_lgl, 
@@ -877,12 +863,14 @@ domir.formula_list <- function(
           list_parsed, 
           function(elem) {
             if ( all(!elem$Select) )
-              reformulate(c("1", elem$Offset), response = elem$LHS_names, 
+              stats::reformulate(c("1", elem$Offset), response = elem$LHS_names, 
                           intercept = elem$Intercept)
             else
-              reformulate(
+              stats::reformulate(
                 c(elem$RHS_name[elem$Select], elem$Offset),
                 response = elem$LHS_names, intercept = elem$Intercept) } )
+      
+      class(fml_lst) <- c("formula_list", "list")
       
       # submit formula_list to '.fct'
       returned_scalar <-
@@ -892,6 +880,23 @@ domir.formula_list <- function(
       return(returned_scalar)
       
     }
+  
+  # Confirm .fct works as applied to .obj - fits full-model
+  test_model <- function_checker(.obj, .fct, ...)
+  
+  # Estimate .adj model if applicable - !!update 'dominance_internals'!!
+  if (.adj) {
+    adj_model <- function_checker(adj_fml_lst, .fct, ...) # !!will have to include .all!!
+  }
+  else adj_model <- NULL
+  
+  # Estimate .all model if applicable - !!update 'dominance_internals'!!
+  if (!is.null(.all))
+    all_model <- 
+    meta_domir(rep(FALSE, times = length(selector_locations)),
+               list_parsed, .fct, selector_locations, 
+               args_2_fct = list(...)) # !!will have to include .adj!!
+  else all_model <- NULL # !! adjust for .adj when implemented !!
   
   # Define arguments to `dominance_scalar` ----
   args_list <- 
@@ -966,15 +971,19 @@ domir.formula_list <- function(
   # apply class 'domir'
   class(return_list) <- c("domir") 
   
-  return(return_list)
-  
-  
-  return(list(list_parsed, return_list))
+  return_list
     
 }
 
 # `domir` helper functions ----
-# Define formula parsing function
+#' @title Internal formula parsing function
+#' @keywords internal
+#'
+#' @name formula_parse
+#'
+#' @rdname formula_parse
+#'
+#' @export
 formula_parse <- function(.obj) {
   
   # Obtain 'right hand side'/RHS name vector from `.obj`
@@ -1001,9 +1010,7 @@ formula_parse <- function(.obj) {
   # Obtain 'left hand side'/LHS (if included)
   if (attr(stats::terms(.obj), "response") == 1)
     LHS_names <-
-    rownames(attr(stats::terms(.obj), "factors"))[[
-      attr(stats::terms(.obj), "response")
-    ]]
+    attr(stats::terms(.obj), "variables")[[2]]
 
   else LHS_names <- NULL
   

@@ -4,10 +4,16 @@
 \alias{fmllst2Fml}
 \title{Translate \code{formula_list} into \code{Formula::Formula}}
 \usage{
-fmllst2Fml(fmllst)
+fmllst2Fml(fmllst, drop_lhs = NULL)
 }
 \arguments{
 \item{fmllst}{A \code{formula_list} classed object.}
+
+\item{drop_lhs}{An integer vector.
+
+Used as a selection vector to remove left hand side names prior to
+generating the \code{Formula} object. This vector must be composed of
+integers (e.g., 1L and not 1).}
 }
 \value{
 A \code{Formula::Formula} object.

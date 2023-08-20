@@ -27,6 +27,7 @@ Suggests:
     knitr,
     parameters,
     performance,
+    pscl,
     purrr,
     relaimpo,
     rlang,
