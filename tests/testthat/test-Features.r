@@ -413,7 +413,7 @@ vsdrat_fl_c <- c(vsdrat_fl_mgn[[1]] - all_val, mean(vsdrat_fl_mgn[2:3]), vsdrat_
 cylhp_fl_c <- c(cylhp_fl_mgn[[1]] - all_val, mean(cylhp_fl_mgn[2:3]), cylhp_fl_mgn[[4]])
 carbi_fl_c <- c(carbi_fl_mgn[[1]] - all_val, mean(carbi_fl_mgn[2:3]), carbi_fl_mgn[[4]])
 
-cdl_fl_names_set <- list(c("infert ~ carb", "set1", "set2"), paste0("subset_size_", 1:3))
+cdl_fl_names_set <- list(c("infert~carb", "set1", "set2"), paste0("subset_size_", 1:3))
 
 cdl_fl_test_set <- matrix(c(carbi_fl_c, vsdrat_fl_c, cylhp_fl_c), nrow = 3, ncol = 3, 
                           byrow = TRUE, dimnames = cdl_fl_names_set)

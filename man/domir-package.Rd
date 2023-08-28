@@ -5,33 +5,24 @@
 \alias{domir-package}
 \title{Tools to Support Relative Importance Analysis}
 \description{
-Methods to apply decomposition-based relative importance analysis for
+Methods to apply dominance analysis-based relative importance analysis for
 predictive modeling functions.
 }
 \details{
 Determining the relative importance of inputs (i.e., independent
-variables, predictors, features) to a predictive model is topic
-of interest to scientists and analysts. Decomposing a returned value, such
-as a model fit metric or statistic, into parts attributable to each input
-is a commonly applied method for determining relative importance in
+variables, predictors, features, parameter estimates) to a predictive model
+summarize predicted values and separate the effects of correlated inputs
+on the output (i.e., dependent variables, outcomes, responses).
+Comparing the returned value, such as a model fit metric or statistic,
+associated with each input is a common, and generally
+well accepted, method for determining the relative importance of inputs to
 predictive models.
 
 This package supports relative importance analysis by implementing several
-interfaces compute dominance analysis (Azen & Budescu, 2004; Budescu, 1993)
-or Shapley value decomposition (Grömping, 2007; Lipovetsky & Conklin, 2001).
-These decomposition methods subdivide the fit statistic values returned by
-other, predictive modeling, functions.
-
-The user interface is structured such that the methods applied automate the
-decomposition of the returned value and comparisons between model inputs.
-The user provides the analysis pipeline including model inputs, the
-predictive modeling function into which they are entered, and returned
-value from the model to decompose.
-
-This package's user interface accepts inputs as names on the right hand
-side of a \code{\link{formula}} as well as list of response-term pairs in formulas
-defined as an object called a \code{\link{formula_list}} which can be passed on to
-the predictive model directly or further processed in the analysis pipeline.
+functions that compute dominance analysis (Azen & Budescu, 2004;
+Budescu, 1993). Dominance analysis produces the well-known Shapley value
+decomposition (Grömping, 2007; Lipovetsky & Conklin, 2001) as one of its
+methods called general dominance statistics.
 }
 \references{
 \itemize{

@@ -150,7 +150,7 @@ vs_fl_c <- c(vs_fl_mgn[[1]], mean(vs_fl_mgn[2:3]), vs_fl_mgn[[4]])
 cyl_fl_c <- c(cyl_fl_mgn[[1]], mean(cyl_fl_mgn[2:3]), cyl_fl_mgn[[4]])
 carb_fl_c <- c(carb_fl_mgn[[1]], mean(carb_fl_mgn[2:3]), carb_fl_mgn[[4]])
 
-cdl_fl_names_new <- list(c("mpg ~ vs", "mpg ~ cyl", "qsec ~ carb"), paste0("subset_size_", 1:3))
+cdl_fl_names_new <- list(c("mpg~vs", "mpg~cyl", "qsec~carb"), paste0("subset_size_", 1:3))
 
 cdl_fl_test_new <- matrix(c(vs_fl_c, cyl_fl_c, carb_fl_c), nrow = 3, ncol = 3, 
                        byrow = TRUE, dimnames = cdl_fl_names_new)

@@ -180,7 +180,7 @@ Rxy <- function(obj, names, data) {
        
 domin(cbind(wt, mpg) ~ vs + cyl + am, 
   lm, 
-  list("Rxy", "r2", c("mpg", "wt"), mtcars), 
+  list(Rxy, "r2", c("mpg", "wt"), mtcars), 
   data = mtcars, 
   all = c("carb"))
 

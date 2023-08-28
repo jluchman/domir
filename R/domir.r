@@ -4,18 +4,20 @@
 #'
 #' @description 
 #' 
-#' Parses input object to obtain valid elements, determines all required 
-#' combinations/subsets of elements (depends on input type), submits subsets to 
-#' a function, and computes dominance decomposition 
+#' Parses input object to obtain list of names, determines all required 
+#' combinations of subsets of the name list, submits name list subsets to 
+#' a function as the input type, and computes dominance decomposition 
 #' statistics based on the returned values from the function.
 #' 
 #' @param .obj A `formula` or `formula_list`. 
 #' 
-#' Parsed to produce subsets of elements to submit to `.fct`. Always submits 
-#' subsets of `.obj` that are of the same [`class`] to `.fct` and are always 
-#' submitted as the first, unnamed argument.
+#' Parsed to produce list of names. Combinations of subsets the name list are
+#' [`sapply`]-ed to `.fct`. 
+#' The name list subsets submitted to `.fct` are formatted to be of
+#' the same [`class`] as `.obj` and are submitted to
+#' `.fct` as the first, unnamed argument.
 #' 
-#' @param .fct A [`function`]/closure or string function name.
+#' @param .fct A [`function`] or string function name.
 #' 
 #' Applied to all subsets of elements as received from `.obj`.  
 #' Must return a length 1/scalar, numeric, atomic vector.
@@ -51,11 +53,10 @@
 #' If `TRUE` then standardized vector, ranks, and complete dominance 
 #' designations are reversed in their interpretation.  
 #' 
-#' @param ... Passes arguments to other methods; passes arguments to 
-#' the function in `.fct`.
+#' @param ... Passes arguments to other methods during method dispatch; 
+#' passes arguments to the function in `.fct` during function execution.
 #'
-#' @return Returns an object of [`class`] "domir" which is a composed of the 
-#' following elements:
+#' @return Returns an object of [`class`] "domir" composed of:
 #' 
 #' \describe{
 #'  \item{`General_Dominance`}{Vector of general dominance values.}
@@ -83,113 +84,118 @@
 #' 
 #' ## Element Parsing
 #' 
-#' `.obj`s elements are parsed and used to determine the required number of 
-#' subsets included the dominance analysis.  How the elements are parsed is 
-#' determined depends on `.obj`s class method.
+#' `.obj`s is parsed into a name list that is used to determine
+#' the required number of combinations of subsets of the name list
+#' included the dominance analysis.  How the name list is obtained 
+#' depends on `.obj`'s class.
 #' 
 #' ### `formula`
 #' 
-#' The `formula` method separates all terms in the formula using standard 
-#' parsing rules for the right hand side (see [`formula`] documentation). 
-#' Each parsed term is considered a separate element in the dominance analysis.
+#' The `formula` creates a name list using all terms in the formula.
+#' The terms are obtained using [`terms.formula`]. All processing
+#' that is normally applied to the right hand side of a formula is
+#' implemented (see [`formula`]). 
 #' 
 #' A response/left hand side is not required but, if present, is retained and 
-#' used as the response for all `formula` subsets in the dominance analysis.
+#' passed to all the formulas submitted to `.fct`.
 #' 
 #' ### `formula_list`
 #' 
-#' The `formula_list` works the same way as the `formula` method except that 
-#' the elements from each `formula` in the `formula_list` are considered 
-#' a different response-term element in the dominance analysis.
-#' 
-#' A response/left hand side is required for each different `formula` and each 
-#' response must be unique.
+#' The [`formula_list`] creates a name list out of response-term pairs. 
+#' The terms are obtained using `terms.formula` applied to each individual
+#' formula in the list.
 #' 
 #' ### Additional Details
 #' 
-#' By default, each parsed element in `.obj` will be used as a separate 
-#' element to generate subsets and will obtain a separate contribution to 
-#' the returned value.
+#' By default, names obtained from `.obj` are all considered separate 
+#' 'value-generating names' with the same priority.
+#' Each value-generating name will be a separate element when 
+#' computing combination subsets and will be compared to all other 
+#' value-generating names.
 #' 
-#' The presence or absence of an intercept is recorded an passed along to 
-#' each subset for both `formula`s and `formula_list`s.
+#' `formula`s and `formula_list` elements are assumed to have an intercept 
+#' except if excplicitly removed with a `- 1` in the `formula`(s) in `.obj`. 
+#' If removed, the intercept will be removed in all `formula`(s) in each 
+#' `sapply`-ed subset to `.fct`.
 #' 
-#' [`offset`]s are allowed in `formula`s and `formula_list`s. `offsets` are 
-#' parsed and passed along to each subset like the response. `offset`s are 
-#' then not considered a part of the dominance analysis subsets but an extension 
-#' of the model intercept.
+#' If [`offset`]s are included, they are passed, like intercepts, while 
+#' `sapply`-ing subsets to `.fct`. Currently, only the `formula_list` method 
+#' allows `offsets`.
 #' 
 #' ## Changing Element Parsing
 #' 
-#' All methods' default behavior of using all elements to generate subsets 
-#' can be overriden using `.set` and `.all` arguments. 
+#' All methods' default behavior that considers all value-generating names
+#' to be of equal priority can be overriden using `.set` and `.all` arguments. 
 #' 
-#' Elements in `.set` and `.all` must also be present in `.obj`.  The entries 
-#' these two arguments change `.obj`s parsing behavior but depend on `.obj` 
-#' as the primary input object and will check entries against those in`.obj`.
+#' Names in `.set` and `.all` must also be present in `.obj`.
 #' 
 #' ### `.set`
 #' 
-#' `.set` binds together elements in `.obj` such that they form a single new 
-#' element. The elements in `.obj` bound together contribute jointly to the 
-#' returned value.
+#' `.set` binds together value-generating names such that 
+#' they are of equal priority and are never separated when submitted to 
+#' `.fct`
+#' Thus, the elements in `.obj` bound together contribute jointly to the 
+#' returned value and are considered, effectively, a single 
+#' value-generating name.
 #' 
-#' If elements in `.set` are named, the `.set` element's name will be used 
-#' in the "domir" object returned and all printed results.
-#' 
-#' The `formula` method for `.set` requires the user to submit a list of 
-#' `formula`s and does not allow any of the `formula`s to have a left hand side. 
-#' The terms in each `formula` are bound together as a set.
-#' The `formula_list` method for `.set` requires the user to submit a list of 
-#' `formula_list`s. The response-term pairs in each `formula_list` are bound 
-#' together as a set.
+#' If list elements in `.set` are named, this name will be used in all 
+#' returned results as the name of the set of value-generating names bound 
+#' together.
 #' 
 #' ### `.all`
 #' 
-#' `.all` binds elements in `.obj` to all subsets. The elements in `.obj` bound 
-#' together by `.all` are given precedence in ascribing the returned value and 
-#' contribute jointly to `Value_All`. `Value_All` is determined prior to 
-#' conducting the dominance analysis and its value is removed from the returned 
-#' values for all subsets.
+#' `.all` gives immediate priority to value-generating names.
+#' The value-generating names in `.all` are bound together, are 
+#' ascribed their full amount of the returned value from `.fct`, and 
+#' are not adjusted for contribution of other value-generating names.
+#' 
+#' The value of `.fct` ascribed to the value-generating names bound
+#' together in `.all` is returned separately from, and not directly
+#' compared to, the other value-generating names.
 #' 
 #' The `formula` method for `.all` does not allow a left hand side.
 #' 
 #' ### `.adj`
 #' 
-#' `.adj` indicates that an intercept-only model should be supplied to `.fct` 
-#' and that this intercept-only subset should be given highest precedence in the 
-#' dominance analysis. The value ascribed to the intercept-only subset is 
-#' returned as `Value_Adjust` and its value is removed from the returned 
-#' values for all subsets as well as from `Value_All`.
+#' `.adj` indicates that an intercept-only model should be supplied to `.fct`. 
+#' This intercept-only subset is given most immediate priority and the 
+#' value of `.fct` ascribed to it is removed from all other 
+#' value-generating names and groups including those in `.all`.
 #' 
+#' The `formula` method will submit an intercept-only formula to `.fct`.
 #' The `formula_list` method creates a separate, intercept-only subset for each 
-#' of the `formula`s in the list. Both `formula` and `formula_list` methods 
-#' will respect the user's inclusion of an `offset` and removal of an intercept. 
-#' `offsets` and removed intercepts will be applied in the `.adj` subset's
-#' result. 
+#' of the `formula`s in the list. 
+#' Both the `formula` and `formula_list` methods will respect the user's
+#' removal of an intercept. The `formula_list` method will also respect the
+#' user's inclusion of an `offset` and will include them in the submission to 
+#' `.fct`.
 #' 
 #' ### Additional Details
 #' 
-#' All element parsing methods will submit subsets generated as an 
-#' object of the same class as `.obj`. Thus a `formula` in `.obj` will be 
-#' submitted as a `formula` and a `formula_list` in `.obj` will be 
-#' submitted as a `formula_list`. In the case that the predictive model in 
-#' `.fct` requires a different format (i.e., a vector of names, a 
-#' [`Formula::Formula`] see [`fmllst2Fml`]) the subset will have to be processed in `.fct` to 
-#' obtain the correct format.
+#' All methods submit combinations of subsets of names as an 
+#' object of the same class as `.obj`. 
+#' A `formula` in `.obj` will submit all combinations of subsets of names 
+#' as `formula`s to `.fct`.
+#' A `formula_list` in `.obj` will submit all combinations of subsets of names 
+#' as `formula_list`s to `.fct`.
+#' In the case that `.fct` requires a different `class` (i.e., 
+#' a vector of names, a [`Formula::Formula`] see [`fmllst2Fml`]) the 
+#' subsets of names will have to be processed in `.fct` to 
+#' obtain the correct `class`.
 #' 
-#' The subsets will always be submitted to `.fct` as the first, unnamed 
+#' The all subsets of names will be submitted to `.fct` as the first, unnamed 
 #' argument.
 #' 
 #' ## `.fct` as Analysis Pipeline
 #' 
-#' The function in `.fct` will be called repeatedly; once for each subset 
-#' of elements created from `.obj`.
+#' The function `sapply`-ed and to which the combinations of subsets of 
+#' names will be applied.
 #' 
 #' `.fct` is expected to be a complete analysis pipeline that receives a 
-#' subset of elements from `.obj`, uses the subset of elements from `.obj` in 
-#' the class as received to generate a predictive model, and 
-#' extracts a returned value of the appropriate type to dominance analyze.  
+#' subset of names of the same `class` as `.obj`, uses the names in the
+#' `class` as submitted to generate a returned value of the appropriate 
+#' type to dominance analyze. Typically, this returned value is a 
+#' fit statistic extracted from a predictive model.
 #' 
 #' At current, only atomic (i.e., non-`list`), numeric scalars (i.e., 
 #' vectors of length 1) are allowed as returned values.
@@ -206,20 +212,25 @@
 #' 
 #' ## `formula` method
 #' 
-#' Prior to version 1.1.0, the `formula` method for `.adj` allowed a `formula` 
-#' to be submitted. Submitting an intercept-only `formula` as opposed to a 
-#' logical has been depreciated and submitting a formula with more than an 
+#' Prior to version 1.1.0, the `formula` method allowed a `formula` 
+#' to be submitted to `.adj`.
+#' Submitting an intercept-only `formula` as opposed to a 
+#' logical has been depreciated and submitting a `formula` with more than an 
 #' intercept is defunct.
 #' 
-#' If the user seeks to include factors other than an intercept and `offset`, 
-#' the user could include the additional term in `.fct` as an 
+#' The `formula` and `formula_list` methods can be used to pass responses, 
+#' intercepts, and in some cases, `offset`s to all combinations of subsets 
+#' of names. 
+#' If the user seeks to include other model components integral to 
+#' estimation 
+#' (i.e., a random effect term in [`lme4::glmer()`]) include them as 
 #' [`update`][update.formula] to the submitted `formula` or `formula_list` 
-#' element object or through other similar means.
+#' imbedded in `.fct`.
 #' 
 #' Second-order or higher terms (i.e., interactions like`~ a*b`) are parsed 
 #' by default but not used differently from first-order terms for producing 
-#' subsets. The dominance analysis results from models using such terms may 
-#' not produce useful results unless the user ensures that second-order and 
+#' subsets. The values ascribed to such terms may not be valid unless 
+#' the user ensures that second-order and 
 #' higher terms are used appropriately in `.fct`.
 #' 
 #' @export
@@ -279,9 +290,22 @@
 #' 
 #' domir(mpg ~ am + carb + cyl, 
 #'   lm_aic, 
-#'   .adj = ~ 1,
+#'   .adj = TRUE,
 #'   .rev = TRUE,
 #'   data = mtcars)
+#'   
+#' ## 'formula_list'
+#' 
+#' if (requireNamespace("systemfit", quietly = TRUE)) {
+#'   domir(
+#'     formula_list(mpg ~ am + cyl + carb, qsec ~ wt + cyl + carb),
+#'     function(fml) {
+#'       res <- systemfit::systemfit(fml, data = mtcars)
+#'       AIC(res)
+#'     }, 
+#'     .adj = TRUE, .rev = TRUE
+#'    )
+#' }
 #'   
 
 domir <- function(.obj, ...) {
@@ -294,7 +318,7 @@ domir <- function(.obj, ...) {
 #' @exportS3Method 
 domir.formula <- function(
     .obj, .fct,
-    .set = NULL, .wst = NULL, .all = NULL, .adj = FALSE, # need to update '.adj' to be logical in future
+    .set = NULL, .wst = NULL, .all = NULL, .adj = FALSE, 
     .cdl = TRUE, .cpt = TRUE, .rev = FALSE, 
     ...) {
   
@@ -659,11 +683,11 @@ domir.formula <- function(
 #' @exportS3Method 
 domir.formula_list <- function(
     .obj, .fct, 
-    .set = NULL, .wst = NULL, .all = NULL, .adj = FALSE, # disallowing '.adj' as a model - will be logical - anything more complex may not be parse-able - put it in function!
+    .set = NULL, .wst = NULL, .all = NULL, .adj = FALSE,
     .cdl = TRUE, .cpt = TRUE, .rev = FALSE,
     ...) {
   
-  # TODO: Unify domir.formula_list and domir.formula interfaces
+  # TODO: Unify domir.formula_list and domir.formula interfaces ----
 
   if (!is.null(.wst)) {
     
@@ -676,7 +700,18 @@ domir.formula_list <- function(
   list_parsed <- 
     lapply(.obj, formula_parse)
   
-  # ~~ check any single equation is not constant-only/look at `formula_check()`
+  # no empty formulas check
+  rhs_counts <- 
+    sapply(list_parsed, 
+         function(elem) {
+           length(elem$RHS_names)
+         })
+  
+  if (any(rhs_counts == 0)) {
+    stop(paste("Each formula in '.obj' must have one or more terms.",
+                "Formulas", paste(which(rhs_counts == 0), collapse = " "), "have no terms."),
+               call. = FALSE)
+  }
   
   # Record locations the .$Select elements for all sub-lists
   element_count <- 
@@ -700,7 +735,7 @@ domir.formula_list <- function(
     unlist( lapply(
       list_parsed, 
       function(elem) {
-        paste(elem$LHS_names, "~", elem$RHS_names)
+        paste0(elem$LHS_names, "~", elem$RHS_names)
       } ) )
   
   remove_loc <- rep(FALSE, times = length(LHS_RHS_pairlist))
@@ -732,20 +767,31 @@ domir.formula_list <- function(
     all_parsed <- 
       lapply(.all, formula_parse)
     
+    # no empty formulas check
+    rhs_counts_all <- 
+      sapply(all_parsed, 
+             function(elem) {
+               length(elem$RHS_names)
+             })
+    
+    if (any(rhs_counts_all == 0)) {
+      stop(paste("Each formula in '.all' must have one or more terms.",
+                 "Formulas", paste(which(rhs_counts_all == 0), collapse = " "), "have no terms."),
+           call. = FALSE)
+    }
+    
     # Check validity of LHS-RHS pairs in '.all'
     all_pairs <-
       lapply(
         all_parsed,
         function(elem) {
-          paste(elem$LHS_names, "~", elem$RHS_names)
+          paste0(elem$LHS_names, "~", elem$RHS_names)
         } )
     is_valid_pair <- 
       unlist(all_pairs) %in% LHS_RHS_pairlist
     if ( !all(is_valid_pair) ) 
       stop("Pair ", paste(unlist(all_pairs)[!is_valid_pair], collapse = " "), 
            " in '.all' not found among those in '.obj'.", call. = FALSE)
-    
-    # ~~ more .all checks needed
 
     # Activate '.all' pairs and remove as candidate subset
     for ( elem in unlist(all_pairs) ) {
@@ -782,6 +828,32 @@ domir.formula_list <- function(
                lapply(set, formula_parse)
              } )
     
+    # no empty formulas check
+    rhs_counts_sets <- 
+      lapply(sets_parsed, 
+             function(set) {
+               sapply(set, 
+                      function(elem) {
+                        length(elem$RHS_names)
+                      })
+             })
+    
+    if (any(unlist(rhs_counts_sets) == 0)) {
+      stop(paste("Each formula in '.set' must have one or more terms.",
+                 "The following:", 
+                 paste(sapply(seq_len(length(rhs_counts_sets)), 
+                              function(elem) {
+                                no_term <- 
+                                  which(rhs_counts_sets[[elem]] == 0)
+                                if (length(no_term) > 0) 
+                                  paste("list", elem, "formulas", 
+                                        paste0(paste(no_term, collapse = " "), ","))
+                                else NULL
+                              }),
+                       collapse = " "), " have no terms."),
+           call. = FALSE)
+    }
+    
     # Check validity of LHS-RHS pairs in '.set'
     set_pairs <-
       lapply(
@@ -790,15 +862,13 @@ domir.formula_list <- function(
           unlist( lapply(
             sublist, 
             function(elem) {
-              paste(elem$LHS_names, "~", elem$RHS_names)
+              paste0(elem$LHS_names, "~", elem$RHS_names)
             } ) ) } )
     is_valid_pair <- 
       unlist(set_pairs) %in% LHS_RHS_pairlist
     if ( !all(is_valid_pair) ) 
       stop("Pair ", paste(unlist(set_pairs)[!is_valid_pair], collapse = " "), 
                  " in '.set' not found among those in '.obj'.", call. = FALSE)
-    
-    # ~~ more .set checks needed
 
     # Group together locations of the .$Select elements for '.set's
     selector_locations_sets <- 
@@ -846,7 +916,7 @@ domir.formula_list <- function(
   meta_domir <- 
     function(Selector_lgl, 
              list_parsed, .fct, selector_locations,
-             args_2_fct, ...) { # <-- does this need to be cleaned up?  implications of random args?
+             args_2_fct, ...) {
 
       # distribute logical vector to elements of formula_list
       for (elem in selector_locations[Selector_lgl]) {
@@ -884,19 +954,19 @@ domir.formula_list <- function(
   # Confirm .fct works as applied to .obj - fits full-model
   test_model <- function_checker(.obj, .fct, ...)
   
-  # Estimate .adj model if applicable - !!update 'dominance_internals'!!
+  # Estimate .adj model if applicable
   if (.adj) {
-    adj_model <- function_checker(adj_fml_lst, .fct, ...) # !!will have to include .all!!
+    adj_model <- function_checker(adj_fml_lst, .fct, ...)
   }
   else adj_model <- NULL
   
-  # Estimate .all model if applicable - !!update 'dominance_internals'!!
+  # Estimate .all model if applicable
   if (!is.null(.all))
     all_model <- 
     meta_domir(rep(FALSE, times = length(selector_locations)),
                list_parsed, .fct, selector_locations, 
-               args_2_fct = list(...)) # !!will have to include .adj!!
-  else all_model <- NULL # !! adjust for .adj when implemented !!
+               args_2_fct = list(...))
+  else all_model <- NULL 
   
   # Define arguments to `dominance_scalar` ----
   args_list <- 
@@ -913,8 +983,6 @@ domir.formula_list <- function(
       args_list,
       NULL, test_model,
       .cdl, .cpt, .rev)
-  
-  #return_list$All_result <- all_model # adjust for '.all' - fix in internals
   
   # Finalize returned values and attributes ----
   
