@@ -96,8 +96,8 @@
 #' that is normally applied to the right hand side of a formula is
 #' implemented (see [`formula`]). 
 #' 
-#' A response/left hand side is not required but, if present, is retained and 
-#' passed to all the formulas submitted to `.fct`.
+#' A response/left hand side is not required but, if present, is
+#' included in all `formula`s passed to `.fct`.
 #' 
 #' ### `formula_list`
 #' 
@@ -114,7 +114,7 @@
 #' value-generating names.
 #' 
 #' `formula`s and `formula_list` elements are assumed to have an intercept 
-#' except if excplicitly removed with a `- 1` in the `formula`(s) in `.obj`. 
+#' except if explicitly removed with a `- 1` in the `formula`(s) in `.obj`. 
 #' If removed, the intercept will be removed in all `formula`(s) in each 
 #' `sapply`-ed subset to `.fct`.
 #' 
@@ -133,7 +133,7 @@
 #' 
 #' `.set` binds together value-generating names such that 
 #' they are of equal priority and are never separated when submitted to 
-#' `.fct`
+#' `.fct`.
 #' Thus, the elements in `.obj` bound together contribute jointly to the 
 #' returned value and are considered, effectively, a single 
 #' value-generating name.
@@ -141,6 +141,9 @@
 #' If list elements in `.set` are named, this name will be used in all 
 #' returned results as the name of the set of value-generating names bound 
 #' together.
+#' 
+#' `.set` thus considers the value-generating names an 'inseparable set' in the 
+#' dominance analysis and are always included or excluded together.
 #' 
 #' ### `.all`
 #' 
@@ -154,6 +157,10 @@
 #' compared to, the other value-generating names.
 #' 
 #' The `formula` method for `.all` does not allow a left hand side.
+#' 
+#' `.all` includes the value-generating names in 'all subsets' submitted to 
+#' the dominance analysis which effectively removes the value associated with 
+#' this set of names.
 #' 
 #' ### `.adj`
 #' 
@@ -169,6 +176,9 @@
 #' removal of an intercept. The `formula_list` method will also respect the
 #' user's inclusion of an `offset` and will include them in the submission to 
 #' `.fct`.
+#'
+#' `.adj` then 'adjusts' the returned value for a non-0 value-returning
+#' null model when no value generating names are included.
 #' 
 #' ### Additional Details
 #' 
@@ -200,10 +210,11 @@
 #' At current, only atomic (i.e., non-`list`), numeric scalars (i.e., 
 #' vectors of length 1) are allowed as returned values.
 #' 
-#' The `.fct` argument is strict about input and output requirements for 
-#' functions used and applies a series of checks to ensure the input and 
-#' output adhere to these requirements. The checks include whether the `.obj` 
-#' can be submitted to `.fct` without producing an error and whether the 
+#' The `.fct` argument is strict about names submitted and returned value
+#' requirements for functions used and applies a series of checks to
+#' ensure the submitted names and returned value adhere to these requirements. 
+#' The checks include whether the `.obj` can be submitted to `.fct` without
+#' producing an error and whether the 
 #' returned value from `.fct` is a length 1, atomic, numeric vector.
 #' In most circumstances, the user will have to make their own named or 
 #' anonymous function to supply as `.fct` to satisfy the checks.
@@ -235,67 +246,72 @@
 #' 
 #' @export
 #' @examples
-#' ## Basic linear model with r-square
-#' 
-#' lm_r2 <- function(fml, data) { 
-#'   lm_res <- lm(fml, data = data)
-#'   r2 <- summary(lm_res)[["r.squared"]]
-#'   return(r2) }
-#' 
-#' domir(mpg ~ am + vs + cyl, 
-#'   lm_r2,
-#'   data = mtcars)
-#' 
-#' 
+#' ## Linear model returning r-square
+#' lm_r2 <- 
+#'   function(fml, data) { 
+#'     lm_res <- lm(fml, data = data)
+#'     summary(lm_res)[["r.squared"]]
+#'  }
+#'
+#' domir(mpg ~ am + vs + cyl, lm_r2, data = mtcars)
+#'
+#'
 #' ## Linear model including set
-#' 
-#' domir(mpg ~ am + vs + cyl + carb + gear + disp + wt,
-#'  lm_r2,
-#'  .set = list(~ carb + gear, ~ disp + wt),
-#'  data = mtcars)
+#' domir(
+#'   mpg ~ am + vs + cyl + carb + gear + disp + wt,
+#'   lm_r2,
+#'   .set = list(~ carb + gear, ~ disp + wt),
+#'   data = mtcars
+#' )
 #'
 #'
-#' ## Multivariate linear model with multivariate r-square
-#' ## and all subsets variable
-#' 
-#' mlm_rxy <- function(fml, data, dvnames) {
-#'   mlm_res <- lm(fml, data = data)
-#'   mlm_pred <- predict(mlm_res)
-#'   mlm_rxy <- cancor(mlm_pred, data[dvnames])$cor[[1]]^2
-#'   return(mlm_rxy)
+#' ## Multivariate regression with multivariate r-square and 
+#' ## all subsets variable
+#' mlm_rxy <- 
+#'   function(fml, data, dvnames) {
+#'     mlm_res <- lm(fml, data = data)
+#'     mlm_pred <- predict(mlm_res)
+#'     cancor(mlm_pred, data[dvnames])$cor[[1]]^2
 #'   }
 #'        
-#' domir(cbind(wt, mpg) ~ vs + cyl + am + carb,
+#' domir(
+#'   cbind(wt, mpg) ~ vs + cyl + am + carb,
 #'   mlm_rxy, 
 #'   .all = ~ carb,
 #'   data = mtcars, 
-#'   dvnames = c("wt", "mpg"))
+#'   dvnames = c("wt", "mpg")
+#' )
 #'
 #'
 #' ## Named sets
-#' 
-#' domir(mpg ~ am + gear + cyl + vs + qsec + drat,
+#' domir(
+#'   mpg ~ am + gear + cyl + vs + qsec + drat,
 #'   lm_r2,
 #'   data = mtcars, 
-#'   .set = list(trns = ~ am + gear, 
-#'     eng = ~ cyl + vs, misc = ~ qsec + drat))
+#'   .set = 
+#'     list( trns = ~ am + gear, 
+#'           eng = ~ cyl + vs, misc = ~ qsec + drat
+#'     )
+#' )
 #'   
 #'   
-#' ## Linear model using AIC
+#' ## Linear model returning AIC
+#' lm_aic <- 
+#'   function(fml, data) { 
+#'     lm_res <- lm(fml, data = data)
+#'     AIC(lm_res)
+#'  }
 #' 
-#' lm_aic <- function(fml, data) { 
-#'   lm_res <- lm(fml, data = data)
-#'   aic <- AIC(lm_res)
-#'   return(aic) }
-#' 
-#' domir(mpg ~ am + carb + cyl, 
+#' domir(
+#'   mpg ~ am + carb + cyl, 
 #'   lm_aic, 
 #'   .adj = TRUE,
 #'   .rev = TRUE,
-#'   data = mtcars)
-#'   
-#' ## 'formula_list'
-#' 
+#'   data = mtcars
+#'  )
+#'
+#'
+#' ## 'systemfit' with 'formula_list' method returning AIC
 #' if (requireNamespace("systemfit", quietly = TRUE)) {
 #'   domir(
 #'     formula_list(mpg ~ am + cyl + carb, qsec ~ wt + cyl + carb),
@@ -304,7 +320,7 @@
 #'       AIC(res)
 #'     }, 
 #'     .adj = TRUE, .rev = TRUE
-#'    )
+#'   )
 #' }
 #'   
 

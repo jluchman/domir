@@ -1,30 +1,13 @@
-## Resubmission of patch version update: 1.0.1
+## Minor version update: 1.1.0
 
-This resubmission corrects the issue noted by the CRAN maintainers related to the /revdep/ directory and it's contents. I had neglected to add this directory to the .Rbuildignore. This has been fixed in the re-submission.
-
-## Reiteration of CRAN Automatic Checks
-
-    Flavor: r-devel-linux-x86_64-debian-gcc, r-devel-windows-x86_64
-    Check: top-level files, Result: NOTE
-      Non-standard file/directory found at top level:
-        'revdep'
-
-    Flavor: r-devel-linux-x86_64-debian-gcc
-    Check: if this is a source package, Result: NOTE
-      Subdirectory 'revdep/library/domir/new/domir' seems to contain an installed version of the package.
-      
-Comment: This was an error of omission related to an unfortunate sequence of checks using the `{devtools}` software that I did not catch. This directory has now been added to .Rbuildignore and passes all checks.
-
-## Additional Release Notes
-
-This patch update to 1.0.0 has improved the consistency of argument checks 
-and has disallowed the use of `offset()`s in formulas with `domin` and `domir` 
-functions--with a recommendation the user incorporate them in the functions 
-called by both when necessary.
+This minor update has added a new S3 method the the primary `domir()` function
+that parses a list of formulas by RHS~LHS name pairs. This update has also
+begun an extensive code linting process to improve its readability and 
+complexity.
 
 ## Test environments
 
--   pop!OS/ubuntu 22.04, R 4.3.0 (local)
+-   pop!OS/ubuntu 22.04, R 4.3.1 (local)
 -   Windows Server 2022, R-devel, 64 bit (rhub)
 -   Fedora Linux, R-devel, clang, gfortran (rhub)
 -   Ubuntu Linux 20.04.1 LTS, R-release, GCC (rhub)
@@ -43,12 +26,18 @@ win-builder-old-release: 1 NOTE
       
 Comment: DOI: 10.1002/asmb.446 links reliably to Lipovetsky's and Conklin's 2001 article on relative importance in linear models when followed from a web browser (tested on Mozilla Firefox).
 
-Windows Server 2022, R-devel, 64 bit: 2 NOTES
+Windows Server 2022, R-devel, 64 bit: 3 NOTES
 
     * checking HTML version of manual ... NOTE
     Skipping checking math rendering: package 'V8' unavailable
  
 Comment: Assume the note stems from a temporary issue with package `{V8}` on the RHub platform and is not reproducible in many other platforms.
+
+    * checking for non-standard things in the check directory ... NOTE
+    Found the following files/directories:
+    ''NULL''
+
+Comment: Commentary on StackOverflow suggests this is a problem with loading one or more packages on the RHub platform for the Windows server.
     
     * checking for detritus in the temp directory ... NOTE
     Found the following files/directories:
@@ -56,27 +45,13 @@ Comment: Assume the note stems from a temporary issue with package `{V8}` on the
       
 Comment: Appears to be a Windows LaTeX/MikTek cleanup issue and does not appear/is not reproducible in win-builder.
 
-Fedora Linux, R-devel, clang, gfortran: 1 NOTE
+Fedora Linux, R-devel, clang, gfortran and Ubuntu Linux 20.04.1 LTS, R-release, GCC: 1 NOTE
 
     * checking HTML version of manual ... NOTE
     Skipping checking HTML validation: no command 'tidy' found
     Skipping checking math rendering: package 'V8' unavailable
     
-Comment: Assume the note stems from a temporary issue with package `{V8}` and `{broom}` on the RHub platform and is not reproducible in many other platforms.
-
-Ubuntu Linux 20.04.1 LTS, R-release, GCC: 1 NOTE
-
-    Found the following (possibly) invalid DOIs:
-      DOI: 10.1002/asmb.446
-        From: DESCRIPTION
-        Status: Forbidden
-        Message: 403
-      DOI: 10.1037/1082-989X.8.2.129
-        From: DESCRIPTION
-        Status: Forbidden
-        Message: 403
-
-Comment: DOI: 10.1002/asmb.446 links reliably to Lipovetsky's and Conklin's 2001 article on relative importance in linear models when followed from a web browser (tested on Mozilla Firefox). In addition, DOI: links reliably to Azen and Budescu's 2003 article on dominance analysis when followed from a web browser (again tested on Mozilla Firefox).
+Comment: Assume the note stems from an issue with package `{V8}` and `{broom}` on the RHub platform and is not reproducible in many other platforms.
 
 ## Downstream dependencies
 

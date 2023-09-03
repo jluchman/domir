@@ -13,7 +13,8 @@ formula_list(...)
 A \code{list} of class \code{formula_list}.
 }
 \description{
-Structures \code{formula} inputs to obtain RHS-LHS pairs.
+Defines a list object class composed of \code{formula} objects that
+is used to obtain RHS-LHS pairs in its \code{\link{domir}} S3 method.
 }
 \details{
 All \code{formula_list}s enforce requirements that the list are composed of

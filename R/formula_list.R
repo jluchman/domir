@@ -1,12 +1,13 @@
 #' @title A [`list`] composed of `formulas`
 #'
 #' @name formula_list
-#' 
+#'
 #' @description
-#' Structures `formula` inputs to obtain RHS-LHS pairs.
-#' 
+#' Defines a list object class composed of `formula` objects that
+#' is used to obtain RHS-LHS pairs in its [`domir`] S3 method.
+#'
 #' @param ... `formula`s, possibly named
-#' 
+#'
 #' @details  
 #' All `formula_list`s enforce requirements that the list are composed of 
 #' individual `formula`s and that each formula is unique with its own, 
@@ -64,22 +65,26 @@ formula_list <- function(...) {
 #' @title Translate `formula_list` into `Formula::Formula`
 #'
 #' @name fmllst2Fml
-#' 
+#'
 #' @description
-#' Translates `{domir}`s `formula_list` objects into an a [`Formula::Formula`]
-#' 
+#' Translates [`formula_list`] objects into a [`Formula::Formula`]
+#'
 #' @param fmllst A `formula_list` classed object.
-#' 
-#' @param drop_lhs An integer vector. 
-#' 
-#' Used as a selection vector to remove left hand side names prior to 
-#' generating the `Formula` object. This vector must be composed of 
+#'
+#' @param drop_lhs An integer vector.
+#'
+#' Used as a selection vector to remove left hand side names prior to
+#' generating the `Formula` object. This vector must be composed of
 #' integers (e.g., 1L and not 1).
-#' 
+#'
+#' This is useful for some `Formulas` that do not have a separate
+#' LHS for each LHS model part (e.g., [`pscl::zeroinfl`]) but are required
+#' to have separte LHS parts by `formula_list`.
+#'
 #' @return A `Formula::Formula` object.
-#' 
+#'
 #' @rdname fmllst2Fml
-#' 
+#'
 #' @export
 fmllst2Fml <- function(fmllst, drop_lhs = NULL) {
   if (!inherits(fmllst, "formula_list")) 

@@ -13,11 +13,15 @@ fmllst2Fml(fmllst, drop_lhs = NULL)
 
 Used as a selection vector to remove left hand side names prior to
 generating the \code{Formula} object. This vector must be composed of
-integers (e.g., 1L and not 1).}
+integers (e.g., 1L and not 1).
+
+This is useful for some \code{Formulas} that do not have a separate
+LHS for each LHS model part (e.g., \code{\link[pscl:zeroinfl]{pscl::zeroinfl}}) but are required
+to have separte LHS parts by \code{formula_list}.}
 }
 \value{
 A \code{Formula::Formula} object.
 }
 \description{
-Translates \code{{domir}}s \code{formula_list} objects into an a \code{\link[Formula:Formula]{Formula::Formula}}
+Translates \code{\link{formula_list}} objects into a \code{\link[Formula:Formula]{Formula::Formula}}
 }

@@ -16,7 +16,7 @@ dominance_scalar(
 }
 \description{
 Internal dominance analysis computation function assuming scalar
-or vector of length 1 output.
+or vector of length 1 returned value.
 
 Not intended to be called by the user.
 }
