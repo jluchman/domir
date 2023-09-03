@@ -2,7 +2,6 @@
 ^.*\.Rproj$
 .Rhistory
 .Rproj.user
-domir.Rproj
 inst/doc
 /doc/
 /Meta/
