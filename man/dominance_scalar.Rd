@@ -2,21 +2,22 @@
 % Please edit documentation in R/dominance_internals.r
 \name{dominance_scalar}
 \alias{dominance_scalar}
-\title{Internal dominance analysis computation function assuming scalar
-output}
+\title{Scalar-returning internal dominance analysis meta-function}
 \usage{
 dominance_scalar(
-  fitting_fun,
+  function2call,
   args_list,
-  cons_args,
-  full_fit,
-  conditional,
-  complete,
+  adj_model_args,
+  value_w_all_names,
+  do_cdl,
+  do_cpt,
   reverse
 )
 }
 \description{
 Internal dominance analysis computation function assuming scalar
-output
+or vector of length 1 returned value.
+
+Not intended to be called by the user.
 }
 \keyword{internal}

@@ -1,390 +1,274 @@
-#' @title Internal dominance analysis computation function assuming scalar 
-#' output
+#' @title Scalar-returning internal dominance analysis meta-function
+#'
+#' @description Internal dominance analysis computation function assuming scalar
+#' or vector of length 1 returned value.
+#'
+#' Not intended to be called by the user.
 #'
 #' @keywords internal
 #'
 #' @name dominance_scalar
-#' 
+#'
 #' @rdname dominance_scalar
-#' 
+#'
 #' @export
-dominance_scalar <- 
-  function(fitting_fun, args_list, cons_args, full_fit, 
-           conditional, complete, reverse) {
-    
-  # Subset processing ----
-  
-  # total number of models to be run (assuming a .adj model)
-  subsets_total <- 2^(length(args_list$RHS))
-  
-  # number of subset producing names
-  name_count <-length(args_list$RHS)
-    
-  # Create subset selection matrix ----
-  
-  # generate logical matrix indicating selection of subset producing name;
-  # rows are separate subsets; columns are subset names;
-  # empty subset is removed - conceptually is .adj model
-  Subset_matrix <- 
-    expand.grid(
-      lapply(1:name_count, 
-             function(name) c(FALSE, TRUE)), 
-      KEEP.OUT.ATTRS = FALSE)[-1,]
-  
-  # Constant model adjustments ----
-  
-  if (length(args_list$.adj) > 0) {
-    
-    result_adjustment <- 
-      Adj_result <- 
-      do.call(fitting_fun, 
-              append(list(Selector_lgl = NULL), 
-                     cons_args))
-    
-  }
-  
-  else {
-    
-    Adj_result <- NULL
-    
-    result_adjustment <- 0
-    
-  }
-  
-  # All subsets adjustment ----
-  
-  if (length(args_list$.all) > 0) {
-    
-    result_adjustment <- 
-      All_result <- 
-      do.call(fitting_fun, 
-              append(list(Selector_lgl = NULL), 
-                     args_list))
-    
-  }
-  
-  else All_result <- NULL 
-  
-  # Obtain all subsets regression results ----
-  
-  # `sapply` constructs vector of results from '.fct' from `domir`; proceeds 
-  # selecting row from 'Subset_matrix' to submit to `fitting_fun`, with 
-  # required arguments called in `do.call`; all subsets save the subset 
-  # with all names (which was estimated as a check in `domir` and passed)
-  Result_vector <- 
-    sapply(1:(nrow(Subset_matrix) - 1),
-           function(subset) { 
-             do.call(fitting_fun, 
-                     append(list(Selector_lgl = unlist(Subset_matrix[subset,])),
-                            args_list))
-           },
-           simplify = TRUE, USE.NAMES = FALSE
-    )
-  
-  # append full model's result
-  Result_vector <- 
-    append(Result_vector, full_fit)
-  
-  # Obtain conditional dominance statistics ----
-  
-  if (conditional) {
-    
-    # allocate conditional dominance matrix for all names
-    Conditional_Dominance <- 
-      matrix(nrow = name_count, 
-             ncol = name_count) 
-    
-    # compliment subsets matrix (used for computing increments below)
-    Subset_matrix_complement <-!Subset_matrix 
-    
-    # vector of number of names in a subset (used to arrange values)
-    # assumes coercion of logicals to integers
-    Names_per_subset <- rowSums(Subset_matrix)
-    
-    # vector of number of combinations total associated with each subset
-    # each element in 'result_vector' receives a value associated with the 
-    # number of combinations possible given the number of names in that 
-    # specific subset - note that this is used in averaging later
-    How_many_combins_at_name_count <- 
-      sapply(Names_per_subset, 
-             function(number_of_names_in_subset) 
-               choose(name_count, number_of_names_in_subset),
-             simplify = TRUE, USE.NAMES = FALSE)
-    
-    # Identical to 'How_many_combins_at_name_count' but associated with the 
-    # number of combinations possible given the number of names in that 
-    # from a subset that would be subtracted from/is an increment beyond that 
-    # element - hence, is the number of combinations at a 'decrement' to name 
-    # count - note that this is also used in averaging later
-    How_many_combins_at_name_count_decrement <- 
-      sapply(Names_per_subset, 
-             function(number_of_names_in_subset) 
-               choose(name_count - 1, number_of_names_in_subset),
-             simplify = TRUE, USE.NAMES = FALSE)
-    
-    # creates a matrix for each 'TRUE' in 'Subset_matrix' the value of 
-    # 'Result_vector' is plugged in.  This value from 'Result_vector' is 
-    # divided by (i.e., **-1) the difference between the number of combinations 
-    # at the number of names in the current model and the number of combinations 
-    # at the number of names in the 'decrement' number of names model--which 
-    # corresponds with the number of models that need to be averaged for that 
-    # name with that number of names in the model
-    # Can be thought of as a set of weighted results associated with each 
-    # name in the 'Subset_matrix'
-    # Note that these results are used in summing below
-    Weighted_result_matrix <- 
-      (
-        (Subset_matrix*(
-          How_many_combins_at_name_count - 
-            How_many_combins_at_name_count_decrement))**-1
-        )*Result_vector
-    
-    # 'Inf' values created above are replaced as 0
-    Weighted_result_matrix <-
-      replace(Weighted_result_matrix, 
-              Weighted_result_matrix==Inf, 0)
-    
-    # Identical in intention to 'Weighted_result_matrix' but associated with 
-    # 'Results_vector' for values of results not included in 
-    # the number of combinations at the number of names in the 'decrement' 
-    # number of names model
-    # Can also be thought of as a set of weighted results associated with each 
-    # name in the 'Subset_matrix'
-    # Note that these results are also used in summing below
-    Weighted_result_matrix_decrement <- 
-      (
-        (Subset_matrix_complement*How_many_combins_at_name_count_decrement)**-1
-      )*Result_vector
-    
-    # 'Inf' values created above are replaced as 0
-    Weighted_result_matrix_decrement <-
-      replace(Weighted_result_matrix_decrement, 
-              Weighted_result_matrix_decrement==Inf, 0)
-    
-    # across names (represented in rows); sum weighted results by number of 
-    # names in models
-    # the 'Weighted_result_matrix' sum represents the contribution the focal 
-    # name has to the value
-    # the 'Weighted_result_matrix_decrement' adjusts the 
-    # 'Weighted_result_matrix' sum for value associated with the other names
-    # Result is transposed to ensure rows correspond with names (cols 
-    # correspond with names in 'Weighted_result...' matrices)
-    for (names_in_model in 1:name_count) {
-      
-      Conditional_Dominance[, names_in_model] <- 
-        t( 
-          colSums(
-            Weighted_result_matrix[Names_per_subset==names_in_model,]
-            ) - 
-            colSums(
-              Weighted_result_matrix_decrement[Names_per_subset==(
-                names_in_model-1
-                ),]
-              ) 
-        )
-      
+dominance_scalar <-
+  function(function2call, args_list,
+           adj_model_args, # adj_model_args depreciated
+           value_w_all_names,
+           do_cdl, do_cpt, reverse) {
+    # generate subsets ----
+    name_count <- length(args_list$RHS)
+    # TRUE/FALSE list for in-/excluding name
+    in_out_namelist <- lapply(1:name_count, function(name) c(FALSE, TRUE))
+    # matrix of combinations that in-/exclude name
+    # rows are different subsets; columns are subset names
+    # empty subset removed; it is .adj and/or .all value
+    subset_matrix <-
+      expand.grid(in_out_namelist, KEEP.OUT.ATTRS = FALSE)
+    subset_filter <- apply(subset_matrix, 1, any)
+    subset_matrix <- subset_matrix[subset_filter, ]
+    # adjust values with '.adj' ----
+    # domir.formula method - if non-NULL '.adj' model
+    # ~~ depreciated ~~ to adopt domir.formula_list method
+    if ((length(args_list$.adj) > 0) && !is.null(adj_model_args)) {
+      # adjustment model args attached to empty name selector
+      # selects no names except those in '.adj'
+      list_adj_args <- append(list(Selector_lgl = NULL), adj_model_args)
+      result_adjustment <- adj_value <- do.call(function2call, list_adj_args)
+      # domir.formula method - if NULL '.adj' model
+      # ~~ depreciated ~~ to adopt domir.formula_list method
+    } else if (!is.null(adj_model_args)) {
+      adj_value <- NULL
+      result_adjustment <- 0
+      # domir.formula_list method
+      # '.adj' value is computed previously and passed using '.adj'
+      # ~~ supercedes ~~ to supercede above methods
+    } else {
+      adj_value <- args_list$.adj
+      result_adjustment <- ifelse(is.null(adj_value), 0, adj_value)
     }
-    
-    # adjust one name in model results for .adj and .all models
-    Conditional_Dominance[,1] <- 
-      Conditional_Dominance[,1] - result_adjustment
-    
-  }
-  
-  else Conditional_Dominance <- NULL
-  
-  # Obtain complete dominance statistics ----
-  
-  ## ~~ todo: redesign cpt dom to capture %of models as statistic ----
-  
-  if (complete) {
-    
-    # allocate complete domianance container matrix
-    Complete_Dominance <- 
-      matrix(nrow = name_count, 
-             ncol = name_count)
-    
-    # `combn` produces all possible pairs of names (implemented here as 
-    # column numbers for selection from 'Subset_matrix')
-    All_name_pairs <- 
-      utils::combn(1:name_count, 2) 
-    
-    for (name_pair in 1:ncol(All_name_pairs)) {
-      
-      # which columns/names are chosen?
-      Which_name_pair <- All_name_pairs[, name_pair] 
-      
-      # which columns/names are not?
-      Which_not_name_pair <- 
-        setdiff(1:name_count, Which_name_pair) 
-      
-      # create an additional row associated with 'Subset_matrix' that flags 
-      # models where one, and only one (never both, ever none), of the two 
-      # chosen names is present 
-      Subset_matrix_flag_singleton <- 
-        cbind(Subset_matrix, 
-              1:nrow(Subset_matrix))[ 
-                rowSums( Subset_matrix[,Which_name_pair] )==1, ] 
-      
-      # sort/`order` the updated 'Subset_matrix' by names not chosen 
-      # such that names that the names that are chosen are always one row away 
-      # from one another in the matrix (a convenience used below for 
-      # comparisons)
-      # `do.call` necessary here to get the matrices created to read as 
-      # input for sorting
-      Subset_matrix_sort_singleton <- 
-        Subset_matrix_flag_singleton[
-          do.call("order",
-                  as.data.frame(
-                    Subset_matrix_flag_singleton[,c(Which_not_name_pair, 
-                                                    Which_name_pair)])), ] 
-      
-      # selects 'Result_vector' entries that meet criteria for inclusion 
-      # in complete dominance
-      # binds together columns of results selected from 'Result_vector' by 
-      # using 'Subset_matrix_sort_singleton'-s last row (which flags where 
-      # there is only a single relevant name) where one column includes 
-      # results at row 'n' and the other includes results at row 'n + 1' 
-      # (i.e., '%%' and the use of sorting described above); hence, the 
-      # results at 'n' and 'n + 1' are now aligned on the same row
-      Sorted_results_pair <-
-        cbind( 
-          Result_vector[ 
-            Subset_matrix_sort_singleton[
-              (1:nrow(Subset_matrix_sort_singleton) %% 2)==0, 
-              ncol(Subset_matrix_sort_singleton)]], 
-          Result_vector[ 
-            Subset_matrix_sort_singleton[
-              (1:nrow(Subset_matrix_sort_singleton) %% 2)==1, 
-              ncol(Subset_matrix_sort_singleton)]] 
-        )
-      
-      # compute complete dominance designation
-      # if all paired results in column 1 are greater; indicate 'FALSE'
-      # if all paired results in column 2 are greater; indicate 'TRUE'
-      # otherwise, it's 'NA'
-      Complete_Designation <- 
-        ifelse(
-          all(Sorted_results_pair[,1] > Sorted_results_pair[,2]), 
-          FALSE,
-          ifelse(
-            all(Sorted_results_pair[,1] < Sorted_results_pair[,2]), 
-            TRUE, 
-            NA)
+    # adjust values with '.all' ----
+    # domir.formula method - if non-NULL '.all' model
+    # ~~ depreciated ~~ to adopt domir.formula_list method
+    if ((length(args_list$.all) > 0) && !is.null(adj_model_args)) {
+      # all model args attached to empty name selector
+      # selects no names except those in '.all' and '.adj'
+      list_all_args <- append(list(Selector_lgl = NULL), args_list)
+      result_adjustment <- all_value <- do.call(function2call, list_all_args)
+      # domir.formula method - if NULL '.all' model
+      # ~~ depreciated ~~ to adopt domir.formula_list method
+    } else if (!is.null(adj_model_args)) {
+      all_value <- NULL
+      # domir.formula_list method
+      # '.all' value is computed previously and passed using '.all'
+      # ~~ supercedes ~~ to supercede above methods
+    } else {
+      all_value <- args_list$.all
+      result_adjustment <-
+        ifelse(is.null(all_value), result_adjustment, all_value)
+    }
+    # obtain values from all subsets ----
+    # function takes integer value and selects row from 'subset_matrix'
+    # 'subset_matrix' row is coerced to logical vector
+    # logical vector is appended to other arguments to `function2call`
+    # all arguments passed to function2call` where value is returned
+    obtain_value <-
+      function(subset) {
+        lgl_select_vector <- unlist(subset_matrix[subset, ])
+        value_fct_args <- list(Selector_lgl = lgl_select_vector)
+        value_fct_args <- append(value_fct_args, args_list)
+        do.call(function2call, value_fct_args)
+      }
+    # vector of values from '.fct'; excludes subset of all names selected
+    value_vector <- sapply(1:(nrow(subset_matrix) - 1),
+                           obtain_value, simplify = TRUE, USE.NAMES = FALSE)
+    # append value for subset of all names selected
+    value_vector <- append(value_vector, value_w_all_names)
+    # compute conditional dominance statistics ----
+    if (do_cdl) {
+      # allocate conditional dominance matrix for all names
+      conditional_dominance <- matrix(nrow = name_count, ncol = name_count)
+      # compliment subsets matrix; used for computing increments
+      subset_matrix_complement <- !subset_matrix
+      # count number of included names in each subset
+      name_count_by_subset <- rowSums(subset_matrix)
+      # tally up possible combinations of included names
+      # for each subset in 'subset_matrix'
+      combo_count_by_subset <- choose(name_count, name_count_by_subset)
+      # tally up possible combinations of included names at one less name
+      # for each subset in 'subset_matrix'
+      combo_1ls_count_by_subset <- choose(name_count - 1, name_count_by_subset)
+      # by subset, compute number of combinations that include each name
+      wgtd_result_matrix <-
+        combo_count_by_subset - combo_1ls_count_by_subset
+      # associate these combinations with each selected name;
+      # fills in for all TRUE entries
+      wgtd_result_matrix <- subset_matrix * wgtd_result_matrix
+      # turn this count into a weight; weight is inverse of count
+      wgtd_result_matrix <- wgtd_result_matrix**-1
+      # distribute values to all nonmissing values
+      wgtd_result_matrix <- wgtd_result_matrix * value_vector
+      # 'Inf' values created above are replaced as 0
+      wgtd_result_matrix <-
+        replace(wgtd_result_matrix,
+                abs(wgtd_result_matrix) == Inf, 0)
+      # repeat above process with combinations at one less name
+      wgtd_1ls_result_matrix <-
+        subset_matrix_complement * combo_1ls_count_by_subset
+      wgtd_1ls_result_matrix <- wgtd_1ls_result_matrix**-1
+      wgtd_1ls_result_matrix <- wgtd_1ls_result_matrix * value_vector
+      wgtd_1ls_result_matrix <-
+        replace(wgtd_1ls_result_matrix,
+                abs(wgtd_1ls_result_matrix) == Inf, 0)
+      # for each 'order'/number of names contributing to value
+      for (contrib_count in 1:name_count) {
+        # subset values to include just those with focal number of names
+        values_subset <-
+          wgtd_result_matrix[name_count_by_subset == contrib_count, ]
+        # subset values with one less names
+        values_subset_1ls <-
+          wgtd_1ls_result_matrix[name_count_by_subset == contrib_count - 1, ]
+        # conditional dominance is difference between weighted sums of
+        # values at focal number of names and one less;
+        # this effectively creates the average of the increments
+        # associated with each name at the focal number of names contributing to
+        # the value
+        conditional_dominance[, contrib_count] <-
+          t(colSums(values_subset) - colSums(values_subset_1ls))
+      }
+      # adjust values at one name in model results for '.adj' and '.all'
+      conditional_dominance[, 1] <-
+        conditional_dominance[, 1] - result_adjustment
+      # if '.cdl' was FALSE
+    } else {
+      conditional_dominance <- NULL
+    }
+    # obtain complete dominance statistics ----
+    ## TODO: redesign cpt dom to capture %of models as statistic ----
+    if (do_cpt) {
+      # allocate complete dominance container matrix
+      complete_dominance <- matrix(nrow = name_count, ncol = name_count)
+      # generate all combinations of two names
+      # names are locations in matrix
+      all_name_pairs <- utils::combn(1:name_count, 2)
+      for (name_pair in seq_len(ncol(all_name_pairs))) {
+        # select two names by location
+        selected_name_pair <- all_name_pairs[, name_pair]
+        # indicate which names are not selected
+        unselected_names <- setdiff(1:name_count, selected_name_pair)
+        # generate version of 'subset_matrix' with row id
+        selected_names_matrix <-
+          cbind(subset_matrix, seq_len(nrow(subset_matrix)))
+        # generate vector flagging locations in 'subset_matrix' where
+        # one name of the two selected names is present
+        subsets_one_name <- rowSums(subset_matrix[, selected_name_pair]) == 1
+        # filter 'selected_names_matrix' to obtain all rows where
+        # one, never both or neither, names are a value generator
+        selected_names_matrix <- selected_names_matrix[subsets_one_name, ]
+        # generate matrix that places un-selected names earlier in
+        # sorting order and selected names last to ensure they are
+        # contiguous vertically in matrix
+        sorting_matrix <-
+          selected_names_matrix[, c(unselected_names, selected_name_pair)]
+        # coerce 'sorting_matrix' to `data.frame` for use in `order()`
+        sorting_df <- as.data.frame(sorting_matrix)
+        # sort rows of 'selected_names_matrix' by forced evaluation of
+        # 'sorting_df' by `do.call` with `order`
+        selected_names_sorted <-
+          selected_names_matrix[do.call("order", sorting_df), ]
+        # generate indicator for location of first name in
+        # 'selected_names_sorted'; always even number index
+        first_name_locs <- (seq_len(nrow(selected_names_sorted)) %% 2) == 0
+        # generate mapping of 'selected_names_sorted' locations to
+        # locations in 'value_vector'
+        first_name_index <-
+          selected_names_sorted[first_name_locs, ncol(selected_names_sorted)]
+        # generate vector selecting all values associated with first name
+        first_name_values <- value_vector[first_name_index]
+        # generate indicator for location of second name in
+        # 'selected_names_sorted'; always odd number index
+        second_name_locs <- (seq_len(nrow(selected_names_sorted)) %% 2) == 1
+        # apply same process as in first name to second name
+        second_name_index <-
+          selected_names_sorted[second_name_locs, ncol(selected_names_sorted)]
+        second_name_values <- value_vector[second_name_index]
+        # bind first and second names' values in matrix
+        sorted_results_pair <- cbind(first_name_values, second_name_values)
+        # comparing first name's values to second
+        first_vs_second <- sorted_results_pair[, 1] > sorted_results_pair[, 2]
+        # comparing second name's values to first
+        second_vs_first <- sorted_results_pair[, 1] < sorted_results_pair[, 2]
+        complete_designation <-
+          ifelse(all(first_vs_second), FALSE,
+                 ifelse(all(second_vs_first), TRUE, NA))
+        # record designation in container matrix
+        complete_dominance[selected_name_pair[[2]], selected_name_pair[[1]]] <-
+          complete_designation
+        # record designation of complementary comparison in container matrix
+        complete_dominance[selected_name_pair[[1]], selected_name_pair[[2]]] <-
+          !complete_designation
+      }
+      # if '.cpt' was FALSE
+    } else {
+      complete_dominance <- NULL
+    }
+    # reverse the complete dominance indication if '.rev'
+    if (reverse == TRUE) complete_dominance <- !complete_dominance
+    # obtain general dominance statistics ----
+    # if '.cdl' is false, implement general dominance statistic
+    # computational method
+    if (!do_cdl) {
+      # implement some otherwise conditional dominance processes
+      subset_matrix_complement <- !subset_matrix
+      name_count_by_subset <- rowSums(subset_matrix)
+      combo_count_by_subset <- choose(name_count, name_count_by_subset)
+      combo_1ls_count_by_subset <- choose(name_count - 1, name_count_by_subset)
+      # generates number of 'unique' combinations the focal name has at
+      # specific number of value generating names
+      uniq_cmb_count <-
+        subset_matrix * (combo_count_by_subset - combo_1ls_count_by_subset)
+      # if there is an '.adj' and/or '.all' model, adjust models with 1 name
+      # for that value; other models adjust automatically given increment
+      if (result_adjustment > 0)
+        uniq_cmb_count <-
+          replace(
+            uniq_cmb_count,
+            uniq_cmb_count - result_adjustment,
+            combo_count_by_subset == 1
           )
-      
-      # fill in designation
-      Complete_Dominance[ Which_name_pair[[2]], Which_name_pair[[1]] ] <-
-        Complete_Designation
-      
-      # fill complementary designation
-      Complete_Dominance[ Which_name_pair[[1]], Which_name_pair[[2]] ] <- 
-        !Complete_Designation
-      
+      # generates number of 'unique' combinations the focal name has at
+      # specific number of value generating names not considering self; note
+      # use of complement matrix and reflection over 0 to get increments
+      uniq_cmb_1ls_count <-
+        (subset_matrix_complement * combo_1ls_count_by_subset) * -1
+      # combine unique combination matrices and invert; values are now weights
+      # to be used in a weighted average
+      wgt_mat <- ((uniq_cmb_count + uniq_cmb_1ls_count) * name_count)^-1
+      # implement sum by column to get weighted average of value increments
+      # by name
+      general_dominance <- colSums(value_vector * wgt_mat)
+      # if '.cdl' is TRUE; general dominance is average of cdl dominance
+    } else {
+      general_dominance <- rowMeans(conditional_dominance)
     }
-    
+    # Obtain overall fit statistic and ranks ----
+    # replace result adjustment for overall value
+    value <- sum(general_dominance) + result_adjustment
+    # compute ranks; reverse if '.rev'
+    if (reverse == FALSE) {
+      gnrl_ranks <- rank(-general_dominance)
+    } else {
+      gnrl_ranks <- rank(general_dominance)
+    }
+    # Finalize returned values and attributes ----
+    list(
+      General_Dominance = general_dominance,
+      General_Dominance_Ranks = gnrl_ranks,
+      Conditional_Dominance = conditional_dominance,
+      Complete_Dominance = complete_dominance,
+      All_result = all_value,
+      Adj_result = adj_value,
+      Value = value
+    )
   }
-  
-  else Complete_Dominance <- NULL
-  
-  # reverse the complete dominance indication if `reverse`-d
-  if (reverse == TRUE) Complete_Dominance <- 
-    !Complete_Dominance 
-  
-  # Obtain general dominance statistics ----
-  
-  # results in this section repeat some of the resuls in the conditional 
-  # dominance section, specifically 'Subset_matrix_complement', 
-  # 'Names_per_subset', 'How_many_combins_at_name_count', and 
-  # 'How_many_combins_at_name_count_decrement'
-  # Each of these are described in that section above
-  if (!conditional) {
-    
-    Subset_matrix_complement <-!Subset_matrix
-    
-    Names_per_subset <- rowSums(Subset_matrix) 
-    
-    How_many_combins_at_name_count <- 
-      sapply(Names_per_subset, 
-             function(number_of_names_in_subset) 
-               choose(name_count, number_of_names_in_subset),
-             simplify = TRUE, USE.NAMES = FALSE)
-    
-    How_many_combins_at_name_count_decrement <- 
-      sapply(Names_per_subset, 
-             function(number_of_names_in_subset) 
-               choose(name_count - 1, number_of_names_in_subset),
-             simplify = TRUE, USE.NAMES = FALSE)
-    
-    # creates a matrix for each 'TRUE' in 'Subset_matrix' the value of 
-    # 'Result_vector' is plugged in.  This value is the difference between 
-    # the number of combinations at the number of names in the current model 
-    # and the number of combinations at the number of names in the 'decrement' 
-    # number of names model--which corresponds with the number of models that 
-    # need to be averaged for that name with that number of names in the model
-    # Can be thought of as a set of weighted results associated with each 
-    # name in the 'Subset_matrix'
-    # Note that these results are used in summing below
-    Unique_combins <- 
-      Subset_matrix*(How_many_combins_at_name_count - 
-                       How_many_combins_at_name_count_decrement)
-    
-    # identical in intention to 'Unique_combins' but associated with 
-    # names not in the current subset - also made negative as it 
-    # this value is associated with the names in subset/models being 
-    # adjusted for 
-    Unique_combins_decrement <- 
-      (Subset_matrix_complement*How_many_combins_at_name_count_decrement)*-1
-    
-    # create matrix of positive weights associated with 'Unique_combins' and 
-    # negative values associated with 'Unique_combins_decrement' - these 
-    # effective reproduce conditional dominance statistics
-    # conditional dominance is averaged to get general; hence multiplication 
-    # by number of names
-    # all values are inverted to serve as weights in the sum below (to make it 
-    # an average)
-    Weight_Matrix <- 
-      ((Unique_combins + Unique_combins_decrement)*name_count)^-1
-    
-    # general dominance is weighted sum of all results and weight matrix 
-    # by column (colums associated with different names)
-    General_Dominance <- 
-      colSums(Result_vector*Weight_Matrix)
-    
-    # adjust general dominance for .adj and .all models - only needs fixing 
-    # in model where there is a single name in a subset; hence divided by 
-    # the number of names total (in all other models will have been 
-    # adjusted for in the averaging process with the '_decrement' matrix; there 
-    # is no value for models with 0 names to adjust the 1 name subsets)
-    General_Dominance <- 
-      General_Dominance - result_adjustment/name_count 
-    
-  }
-  
-  # general dominance is also the average of all the conditonal dominance 
-  # statisics when available
-  else General_Dominance <- 
-    rowMeans(Conditional_Dominance)
-  
-  # Obtain overall fit statistic and ranks ----
-  
-  Value <- 
-    sum(General_Dominance) + result_adjustment # adjust overall fit statistic by replacing all subsets component and constant model component
-  
-  if (reverse == FALSE) General_Dominance_Ranks <- rank(-General_Dominance) # rank general dominance statistic if fitstat value increases (i.e., `reverse` == FALSE)
-  else General_Dominance_Ranks <- rank(General_Dominance) # rank general dominance statistic if fitstat value decreases (i.e., `reverse` == TRUE)
-  
-  # Finalize returned values and attributes ----
-  
-  return_list <- 
-    list(General_Dominance = General_Dominance, 
-         General_Dominance_Ranks = General_Dominance_Ranks, 
-         Conditional_Dominance = Conditional_Dominance, 
-         Complete_Dominance = Complete_Dominance, 
-         All_result = All_result, 
-         Adj_result = Adj_result, 
-         Value = Value)
-  
-  return(return_list)
-  
-}

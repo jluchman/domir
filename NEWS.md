@@ -1,3 +1,18 @@
+# domir 1.1.0
+
+## visible
+-   `formula_list` method implemented
+    - merger of planned `list` and `Formula::Formula` methods
+    - `fmllst2Fml` can be used to translate `formula_list`s to `Formula::Formula`s
+    - `offset()`s allowed in `formula_list`; to update in `formula` method
+-   `formula` method `.adj` argument is logical
+    - `formula`s of the form `~ 1` still accepted but depreciated
+    - other `formula` inputs defunct and user pushed to add to `.fct`
+
+## internal
+
+-   Began linting process for code readability
+
 # domir 1.0.1
 
 ## bug fixes

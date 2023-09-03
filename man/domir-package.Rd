@@ -5,34 +5,23 @@
 \alias{domir-package}
 \title{Tools to Support Relative Importance Analysis}
 \description{
-Methods to apply decomposition-based relative importance analysis for
-R functions.
+Methods to apply dominance analysis-based relative importance analysis for
+predictive modeling functions.
 }
 \details{
-Determining the relative importance of inputs to (i.e., independent
-variables, predictors, features) to a predictive model is topic
-of interest to scientists and analysts. Decomposing a returned value, such
-as a model fit metric or statistic, into parts attributable to each input
-is a commonly applied method for determining relative importance in
-predictive models.
+This package supports relative importance analysis by implementing several
+functions that compute dominance analysis (Azen & Budescu, 2004;
+Budescu, 1993). Dominance analysis produces the well-known Shapley value
+decomposition (e.g., Grömping, 2007; Lipovetsky & Conklin, 2001) as one
+of its methods called general dominance statistics.
 
-This package supports applying decomposition methods using
-\code{\link{lapply}}- or \code{\link{Map}}-like functions that compute dominance analysis
-(Azen & Budescu, 2004; Budescu, 1993)/Shapley value decomposition
-(Grömping, 2007; Lipovetsky & Conklin, 2001) based on the values returned
-from other, predictive modeling, functions.
-
-The user interface is structured such that {domir} automates the
-decomposition of the returned value and comparisons between model inputs
-and the user provides the analysis pipeline including model inputs, the
-predictive modeling function into which they are entered, and returned
-value from the model to decompose.
-
-This package's user interface accepts inputs as names on the right hand
-side of a \code{\link{formula}} which can be passed on to the predictive model
-directly or further processed in the analysis pipeline.  The interface
-is also planned to be extended to \code{\link[Formula:Formula]{Formula}} from the
-package \code{{Formula}} as well as \code{\link{list}} types as inputs.
+Dominance analysis is a method for determining the relative importance of
+inputs (i.e., independent variables, predictors, features,
+parameter estimates) to a predictive model that evaluates how a returned
+value, such as a model fit metric or statistic, is associated with each
+input. It is also a common, and generally well accepted, method for
+determining the relative importance of inputs to predictive models that
+is effective at separating the effects of correlated inputs.
 }
 \references{
 \itemize{

@@ -1,5 +1,9 @@
+library(pscl)
+library(datasets)
 
-library(domir); library(datasets)
+# domir.formula and domin tests ----
+
+## with sets ----
 
 vs_mgn <- c( 
   cor(mtcars$mpg, predict(lm(mpg ~ vs, data = mtcars)))^2,
@@ -115,7 +119,7 @@ test_obj2_new <- domir(mpg ~ vs + cyl + carb + am,
                       },
                       data = mtcars, 
                       .all = ~ am)
-
+## with all subests  ----
 test_that("Test Use of All with Conditional Dominance: domin", {
   expect_equal(test_obj2$Conditional_Dominance, cdl_test2
   )}
@@ -147,6 +151,8 @@ test_obj3_new <- domir(mpg ~ vs + cyl + carb + am,
                       data = mtcars, .cpt = FALSE,
                       .set = list(~ carb + am))
 
+### confirm complete can be nullified ----
+
 test_that("Test Complete Dominance as \"off\": domin", {
   expect_null(test_obj3$Complete_Dominance
   )})
@@ -155,7 +161,7 @@ test_that("Test Complete Dominance as \"off\": domir", {
   expect_null(test_obj3_new$Complete_Dominance
   )})
 
-# constant model + reverse ----
+## constant model + reverse ----
 
 vs_cns_mgn <- c( extractAIC(lm(mpg ~ vs, data = mtcars))[[2]] - 
                    extractAIC(lm(mpg ~ 1, data = mtcars))[[2]],
@@ -206,7 +212,7 @@ test_obj4_new <- domir(mpg ~ vs + cyl + carb,
                          res <- lm(fml, data = data)
                          return(extractAIC(res)[[2]])
                        },
-                   data=mtcars, .rev = TRUE, .adj = ~ 1) 
+                   data=mtcars, .rev = TRUE, .adj = TRUE) 
 
 test_that("Test Use of Constant Model with Conditional Dominance: domin", {
   expect_equal(test_obj4$Conditional_Dominance, cdl_cns_test
@@ -283,6 +289,8 @@ test_obj_nocdl_new <- domir(mpg ~ vs + cyl + carb + am,
                             .set = list(~ carb + am), 
                             .cdl = FALSE)
 
+### confirm conditional can be nullified ----
+
 test_that("'Conditional is False' General Dominance: domin", {
   expect_equal(test_obj_nocdl$General_Dominance, test_obj$General_Dominance
   )}
@@ -290,5 +298,157 @@ test_that("'Conditional is False' General Dominance: domin", {
 
 test_that("'Conditional is False' General Dominance: domir", {
   expect_equal(test_obj_nocdl_new$General_Dominance, test_obj_new$General_Dominance
+  )}
+)
+
+# domir.formula_list ----
+
+adj_mtcars <- 
+  transform(mtcars, 
+            zi = am*gear)
+
+adj_val <- 
+  logLik(
+    zeroinfl(
+      fmllst2Fml(formula_list(zi ~ 1, infert ~ 1), drop_lhs = 2L),
+      data = adj_mtcars) )[[1]]
+
+all_val <- 
+  logLik(
+    zeroinfl(
+      fmllst2Fml(formula_list(zi ~ wt, infert ~ 1), drop_lhs = 2L),
+      data = adj_mtcars) )[[1]]
+    
+vsdrat_fl_mgn <- c( 
+  logLik(
+    zeroinfl(
+      fmllst2Fml(formula_list(zi ~ vs + drat + wt, infert ~ 1), drop_lhs = 2L),
+      data = adj_mtcars))[[1]],
+  logLik(
+    zeroinfl(
+      fmllst2Fml(formula_list(zi ~ vs + drat + cyl + hp + wt, infert ~ 1), drop_lhs = 2L),
+      data = adj_mtcars))[[1]] - 
+    logLik(
+      zeroinfl(
+        fmllst2Fml(formula_list(zi ~ cyl + hp + wt, infert ~ 1), drop_lhs = 2L),
+        data = adj_mtcars))[[1]],
+  logLik(
+    zeroinfl(
+      fmllst2Fml(formula_list(zi ~ vs + drat + wt, infert ~ carb), drop_lhs = 2L),
+      data = adj_mtcars))[[1]] - 
+    logLik(
+      zeroinfl(
+        fmllst2Fml(formula_list(zi ~ wt, infert ~ carb), drop_lhs = 2L),
+        data = adj_mtcars))[[1]],
+  logLik(
+    zeroinfl(
+      fmllst2Fml(formula_list(zi ~ vs + drat + cyl + hp + wt, infert ~ carb), drop_lhs = 2L),
+      data = adj_mtcars))[[1]] - 
+    logLik(
+      zeroinfl(
+        fmllst2Fml(formula_list(zi ~ cyl + hp + wt, infert ~ carb), drop_lhs = 2L),
+        data = adj_mtcars))[[1]] )
+
+cylhp_fl_mgn <- c( 
+  logLik(
+    zeroinfl(
+      fmllst2Fml(formula_list(zi ~ cyl + hp + wt, infert ~ 1), drop_lhs = 2L),
+      data = adj_mtcars))[[1]],
+  logLik(
+    zeroinfl(
+      fmllst2Fml(formula_list(zi ~ vs + drat + cyl + hp + wt, infert ~ 1), drop_lhs = 2L),
+      data = adj_mtcars))[[1]] - 
+    logLik(
+      zeroinfl(
+        fmllst2Fml(formula_list(zi ~ vs + drat + wt, infert ~ 1), drop_lhs = 2L),
+        data = adj_mtcars))[[1]],
+  logLik(
+    zeroinfl(
+      fmllst2Fml(formula_list(zi ~ cyl + hp + wt, infert ~ carb), drop_lhs = 2L),
+      data = adj_mtcars))[[1]] - 
+    logLik(
+      zeroinfl(
+        fmllst2Fml(formula_list(zi ~ wt, infert ~ carb), drop_lhs = 2L),
+        data = adj_mtcars))[[1]],
+  logLik(
+    zeroinfl(
+      fmllst2Fml(formula_list(zi ~ vs + drat + cyl + hp + wt, infert ~ carb), drop_lhs = 2L),
+      data = adj_mtcars))[[1]] - 
+    logLik(
+      zeroinfl(
+        fmllst2Fml(formula_list(zi ~ vs + drat + wt, infert ~ carb), drop_lhs = 2L),
+        data = adj_mtcars))[[1]] )
+
+carbi_fl_mgn <- c( 
+  logLik(
+    zeroinfl(
+      fmllst2Fml(formula_list(zi ~ wt, infert ~ carb), drop_lhs = 2L),
+      data = adj_mtcars))[[1]],
+  logLik(
+    zeroinfl(
+      fmllst2Fml(formula_list(zi ~ vs + drat + wt, infert ~ carb), drop_lhs = 2L),
+      data = adj_mtcars))[[1]] - 
+    logLik(
+      zeroinfl(
+        fmllst2Fml(formula_list(zi ~ vs + drat + wt, infert ~ 1), drop_lhs = 2L),
+        data = adj_mtcars))[[1]],
+  logLik(
+    zeroinfl(
+      fmllst2Fml(formula_list(zi ~ cyl + hp + wt, infert ~ carb), drop_lhs = 2L),
+      data = adj_mtcars))[[1]] - 
+    logLik(
+      zeroinfl(
+        fmllst2Fml(formula_list(zi ~ cyl + hp + wt, infert ~ 1), drop_lhs = 2L),
+        data = adj_mtcars))[[1]],
+  logLik(
+    zeroinfl(
+      fmllst2Fml(formula_list(zi ~ vs + drat + cyl + hp + wt, infert ~ carb), drop_lhs = 2L),
+      data = adj_mtcars))[[1]] - 
+    logLik(
+      zeroinfl(
+        fmllst2Fml(formula_list(zi ~ vs + drat + cyl + hp + wt, infert ~ 1), drop_lhs = 2L),
+        data = adj_mtcars))[[1]] )
+
+vsdrat_fl_c <- c(vsdrat_fl_mgn[[1]] - all_val, mean(vsdrat_fl_mgn[2:3]), vsdrat_fl_mgn[[4]])
+cylhp_fl_c <- c(cylhp_fl_mgn[[1]] - all_val, mean(cylhp_fl_mgn[2:3]), cylhp_fl_mgn[[4]])
+carbi_fl_c <- c(carbi_fl_mgn[[1]] - all_val, mean(carbi_fl_mgn[2:3]), carbi_fl_mgn[[4]])
+
+cdl_fl_names_set <- list(c("infert~carb", "set1", "set2"), paste0("subset_size_", 1:3))
+
+cdl_fl_test_set <- matrix(c(carbi_fl_c, vsdrat_fl_c, cylhp_fl_c), nrow = 3, ncol = 3, 
+                          byrow = TRUE, dimnames = cdl_fl_names_set)
+
+test_fl_obj_set <- 
+  domir(formula_list(
+    zi ~ vs + drat + cyl + hp + wt, 
+    infert ~ carb), 
+    function(fml, data) {
+      
+      Fml <- 
+        fmllst2Fml(fml, drop_lhs = 2L)
+      
+      logLik(
+        zeroinfl(Fml, data = data)
+      )[[1]]
+      
+    },
+    .set = 
+      list(formula_list(zi ~ vs + drat), formula_list(zi ~ cyl + hp)),
+    .all = formula_list(zi ~ wt),
+    data = adj_mtcars,
+    .adj = TRUE)
+
+test_that("Test Use of Sets with Conditional Dominance: domir.formula_list", {
+  expect_equal(test_fl_obj_set$Conditional_Dominance, cdl_fl_test_set
+  )}
+)
+
+test_that("Test All Subsets Fitstat Value: domir.formula_list", {
+  expect_equal(test_fl_obj_set$Value_All, (all_val - adj_val)
+  )}
+)
+
+test_that("Test Adjustment Fitstat Value: domir.formula_list", {
+  expect_equal(test_fl_obj_set$Value_Adjust, adj_val
   )}
 )

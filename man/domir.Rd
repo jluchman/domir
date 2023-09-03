@@ -3,8 +3,7 @@
 \name{domir}
 \alias{domir}
 \alias{domir.formula}
-\alias{domir.Formula}
-\alias{domir.list}
+\alias{domir.formula_list}
 \title{Dominance analysis methods}
 \usage{
 domir(.obj, ...)
@@ -15,31 +14,42 @@ domir(.obj, ...)
   .set = NULL,
   .wst = NULL,
   .all = NULL,
-  .adj = NULL,
+  .adj = FALSE,
   .cdl = TRUE,
   .cpt = TRUE,
   .rev = FALSE,
   ...
 )
 
-\method{domir}{Formula}(...)
-
-\method{domir}{list}(...)
+\method{domir}{formula_list}(
+  .obj,
+  .fct,
+  .set = NULL,
+  .wst = NULL,
+  .all = NULL,
+  .adj = FALSE,
+  .cdl = TRUE,
+  .cpt = TRUE,
+  .rev = FALSE,
+  ...
+)
 }
 \arguments{
-\item{.obj}{A \code{\link{formula}}, \code{\link[Formula:Formula]{Formula}}, or \code{\link{list}}.
+\item{.obj}{A \code{formula} or \code{formula_list}.
 
-Parsed to produce subsets of elements to submit to \code{.fct}. Always submits
-subsets of \code{.obj} that are of the same \code{\link{class}} to \code{.fct} and are always
-submitted as the first, unnamed argument.}
+Parsed to produce list of names. Combinations of subsets the name list are
+\code{\link{sapply}}-ed to \code{.fct}.
+The name list subsets submitted to \code{.fct} are formatted to be of
+the same \code{\link{class}} as \code{.obj} and are submitted to
+\code{.fct} as the first, unnamed argument.}
 
-\item{...}{Passes arguments to other methods; passes arguments to
-the function in \code{.fct}.}
+\item{...}{Passes arguments to other methods during method dispatch;
+passes arguments to the function in \code{.fct} during function execution.}
 
-\item{.fct}{A \code{\link{function}}/closure or string function name.
+\item{.fct}{A \code{\link{function}} or string function name.
 
 Applied to all subsets of elements as received from \code{.obj}.
-Must return a length 1 (scalar), numeric, atomic vector.}
+Must return a length 1/scalar, numeric, atomic vector.}
 
 \item{.set}{A \code{list}.
 
@@ -48,13 +58,15 @@ Elements of the list can be named.}
 
 \item{.wst}{Not yet used.}
 
-\item{.all}{A \code{formula}, \code{Formula}, or \code{list}.
+\item{.all}{A \code{formula} or \code{formula_list}.
 
 Must be the same class as \code{.obj}.}
 
-\item{.adj}{A \code{formula}, \code{Formula}, or \code{list}.
+\item{.adj}{Logical.
 
-Must be the same class as \code{.obj}.}
+If \code{TRUE} then a model including only an intercept is submitted to \code{.fct}
+and the value returned is subtracted from the values returned from all
+subsets in the dominance analysis.}
 
 \item{.cdl}{Logical.
 
@@ -71,8 +83,7 @@ If \code{TRUE} then standardized vector, ranks, and complete dominance
 designations are reversed in their interpretation.}
 }
 \value{
-Returns an object of \code{\link{class}} "domir" which is a composed of the
-following elements:
+Returns an object of \code{\link{class}} "domir" composed of:
 
 \describe{
 \item{\code{General_Dominance}}{Vector of general dominance values.}
@@ -97,192 +108,261 @@ when elements are in \code{.adj}, will be adjusted for \code{Value_Adjust}.}
 }
 }
 \description{
-Parses input object to obtain valid elements, determines all required
-combinations/subsets of elements (depends on input type), submits subsets to
-a function, and computes dominance decomposition
+Parses input object to obtain list of names, determines all required
+combinations of subsets of the name list, submits name list subsets to
+a function as the input type, and computes dominance decomposition
 statistics based on the returned values from the function.
 }
 \details{
 \subsection{Element Parsing}{
 
-\code{.obj}s elements are parsed and used to determine the required number of
-subsets included the dominance analysis.  How the elements are parsed is
-determined depends on \code{.obj}s class method.
+\code{.obj}s is parsed into a name list that is used to determine
+the required number of combinations of subsets of the name list
+included the dominance analysis.  How the name list is obtained
+depends on \code{.obj}'s class.
 \subsection{\code{formula}}{
 
-The \code{formula} method applies the standard \code{\link{terms}} function parsing
-which separates term names on the right hand side of the \code{formula}.  All
-terms separated by \code{+} are considered a separate element for generating
-subsets.
+The \code{formula} creates a name list using all terms in the formula.
+The terms are obtained using \code{\link{terms.formula}}. All processing
+that is normally applied to the right hand side of a formula is
+implemented (see \code{\link{formula}}).
 
-Any terms on the left hand side of \code{.obj} are retained and passed through
-to all subsets.
+A response/left hand side is not required but, if present, is
+included in all \code{formula}s passed to \code{.fct}.
 }
 
-\subsection{\code{Formula} and \code{list}}{
+\subsection{\code{formula_list}}{
 
-The \code{Formula} and \code{list} methods are not yet implemented.
+The \code{\link{formula_list}} creates a name list out of response-term pairs.
+The terms are obtained using \code{terms.formula} applied to each individual
+formula in the list.
 }
 
 \subsection{Additional Details}{
 
-By default, each parsed element in \code{.obj} will be used as a separate
-element to generate subsets and will obtain a separate contribution to
-the returned value.
+By default, names obtained from \code{.obj} are all considered separate
+'value-generating names' with the same priority.
+Each value-generating name will be a separate element when
+computing combination subsets and will be compared to all other
+value-generating names.
+
+\code{formula}s and \code{formula_list} elements are assumed to have an intercept
+except if excplicitly removed with a \code{- 1} in the \code{formula}(s) in \code{.obj}.
+If removed, the intercept will be removed in all \code{formula}(s) in each
+\code{sapply}-ed subset to \code{.fct}.
+
+If \code{\link{offset}}s are included, they are passed, like intercepts, while
+\code{sapply}-ing subsets to \code{.fct}. Currently, only the \code{formula_list} method
+allows \code{offsets}.
 }
 
 }
 
 \subsection{Changing Element Parsing}{
 
-All methods' default behavior of using all elements to generate subsets
-can be overriden using \code{.set}, \code{.all}, and \code{.adj} arguments.
+All methods' default behavior that considers all value-generating names
+to be of equal priority can be overriden using \code{.set} and \code{.all} arguments.
 
-Elements in \code{.set}, \code{.all}, and \code{.adj} must also be present in \code{.obj}.
-The entries in three arguments change \code{.obj}s parsing behavior but still
-depend on \code{.obj} as the primary input object.
+Names in \code{.set} and \code{.all} must also be present in \code{.obj}.
 \subsection{\code{.set}}{
 
-\code{.set} binds together elements in \code{.obj} such that they form
-a single new element. The elements in \code{.obj} bound together contribute
-jointly to the returned value.
+\code{.set} binds together value-generating names such that
+they are of equal priority and are never separated when submitted to
+\code{.fct}.
+Thus, the elements in \code{.obj} bound together contribute jointly to the
+returned value and are considered, effectively, a single
+value-generating name.
 
-If elements in \code{.set} are named, the \code{.set} element's name will be used
-in the "domir" object returned and all printed results.
+If list elements in \code{.set} are named, this name will be used in all
+returned results as the name of the set of value-generating names bound
+together.
 
-The \code{formula} method for \code{.set} does not allow any element to have a left
-hand side.
+\code{.set} thus considers the value-generating names an 'inseparable set' in the
+dominance analysis and are always included or excluded together.
 }
 
 \subsection{\code{.all}}{
 
-\code{.all} binds elements in \code{.obj} to all subsets. The elements in \code{.obj} bound
-together by \code{.all} are given precedence in ascribing the returned value and
-contribute jointly to \code{Value_All}. \code{Value_All} is determined prior to
-conducting the dominance analysis and its value is removed from the returned
-values for all subsets.
+\code{.all} gives immediate priority to value-generating names.
+The value-generating names in \code{.all} are bound together, are
+ascribed their full amount of the returned value from \code{.fct}, and
+are not adjusted for contribution of other value-generating names.
+
+The value of \code{.fct} ascribed to the value-generating names bound
+together in \code{.all} is returned separately from, and not directly
+compared to, the other value-generating names.
 
 The \code{formula} method for \code{.all} does not allow a left hand side.
+
+\code{.all} includes the value-generating names in 'all subsets' submitted to
+the dominance analysis which effectively removes the value associated with
+this set of names.
 }
 
 \subsection{\code{.adj}}{
 
-\code{.adj} binds elements in \code{.obj} to all subsets. The elements in \code{.obj} bound
-together by \code{.adj} are considered external to the dominance analysis but
-are adjusted for given they affect the returned value.  Elements in \code{.adj}
-contribute jointly to \code{Value_Adjust} and have a higher precedence than
-those bound in \code{.all}. \code{Value_Adjust} is determined prior to conducting
-the dominance analysis and its value is removed from the returned
-values for all subsets as well as from \code{Value_All}.
+\code{.adj} indicates that an intercept-only model should be supplied to \code{.fct}.
+This intercept-only subset is given most immediate priority and the
+value of \code{.fct} ascribed to it is removed from all other
+value-generating names and groups including those in \code{.all}.
 
-The \code{formula} method for \code{.adj} does not allow a left hand side but
-allows the intercept (i.e., \code{~ 1}) to be included as a valid
-element in the right hand size even when not explicitly included in \code{.obj}.
+The \code{formula} method will submit an intercept-only formula to \code{.fct}.
+The \code{formula_list} method creates a separate, intercept-only subset for each
+of the \code{formula}s in the list.
+Both the \code{formula} and \code{formula_list} methods will respect the user's
+removal of an intercept. The \code{formula_list} method will also respect the
+user's inclusion of an \code{offset} and will include them in the submission to
+\code{.fct}.
+
+\code{.adj} then 'adjusts' the returned value for a non-0 value-returning
+null model when no value generating names are included.
 }
 
 \subsection{Additional Details}{
 
-All element parsing methods for \code{domir} will submit subsets generated as an
-object of the same class as \code{.obj} (i.e., a \code{formula} in \code{.obj} will be
-submitted as a \code{formula}) to the \code{.fct} as the first, unnamed argument.
+All methods submit combinations of subsets of names as an
+object of the same class as \code{.obj}.
+A \code{formula} in \code{.obj} will submit all combinations of subsets of names
+as \code{formula}s to \code{.fct}.
+A \code{formula_list} in \code{.obj} will submit all combinations of subsets of names
+as \code{formula_list}s to \code{.fct}.
+In the case that \code{.fct} requires a different \code{class} (i.e.,
+a vector of names, a \code{\link[Formula:Formula]{Formula::Formula}} see \code{\link{fmllst2Fml}}) the
+subsets of names will have to be processed in \code{.fct} to
+obtain the correct \code{class}.
+
+The all subsets of names will be submitted to \code{.fct} as the first, unnamed
+argument.
 }
 
 }
 
 \subsection{\code{.fct} as Analysis Pipeline}{
 
-The function in \code{.fct} will be called repeatedly; once for each subset
-of elements created from \code{.obj}.
+The function \code{sapply}-ed and to which the combinations of subsets of
+names will be applied.
 
 \code{.fct} is expected to be a complete analysis pipeline that receives a
-subset of elements from \code{.obj}, uses the subset of elements from \code{.obj} in
-the class as received to generate a predictive model, and
-extracts a returned value of the appropriate type to dominance analyze.
+subset of names of the same \code{class} as \code{.obj}, uses the names in the
+\code{class} as submitted to generate a returned value of the appropriate
+type to dominance analyze. Typically, this returned value is a
+fit statistic extracted from a predictive model.
 
 At current, only atomic (i.e., non-\code{list}), numeric scalars (i.e.,
 vectors of length 1) are allowed as returned values.
 
-\code{domir} is intended to be strict about input and output requirements for
-functions in \code{.fct} and applies a series of checks to ensure the input and
-output adhere to these requirements.  In most circumstances,
-the user will have to make their own named or anonymous function to
-supply to \code{.fct} to meet \code{domir}s requirements.
+The \code{.fct} argument is strict about names submitted and returned value
+requirements for functions used and applies a series of checks to
+ensure the submitted names and returned value adhere to these requirements.
+The checks include whether the \code{.obj} can be submitted to \code{.fct} without
+producing an error and whether the
+returned value from \code{.fct} is a length 1, atomic, numeric vector.
+In most circumstances, the user will have to make their own named or
+anonymous function to supply as \code{.fct} to satisfy the checks.
 }
 }
 \section{Notes}{
 \subsection{\code{formula} method}{
 
-\code{formula} objects and all arguments for the \code{formula} method do not allow
-\code{\link{offset}} terms. When the user needs to include offset terms in their model,
-they could be included by the user in the \code{.fct} as an
-\code{\link[=update.formula]{update}} to the submitted \code{formula} object or through
-other similar means.
+Prior to version 1.1.0, the \code{formula} method allowed a \code{formula}
+to be submitted to \code{.adj}.
+Submitting an intercept-only \code{formula} as opposed to a
+logical has been depreciated and submitting a \code{formula} with more than an
+intercept is defunct.
 
-\code{formula}s with second-order or higher terms (i.e., interactions like
-\code{~ a*b}) are not, by default, used differently from first-order terms.
-The dominance analysis results from models using such terms may not produce
-useful results unless the user ensures that second-order and higher terms
-are used appropriately in \code{.fct}.
+The \code{formula} and \code{formula_list} methods can be used to pass responses,
+intercepts, and in some cases, \code{offset}s to all combinations of subsets
+of names.
+If the user seeks to include other model components integral to
+estimation
+(i.e., a random effect term in \code{\link[lme4:glmer]{lme4::glmer()}}) include them as
+\code{\link[=update.formula]{update}} to the submitted \code{formula} or \code{formula_list}
+imbedded in \code{.fct}.
+
+Second-order or higher terms (i.e., interactions like\code{~ a*b}) are parsed
+by default but not used differently from first-order terms for producing
+subsets. The values ascribed to such terms may not be valid unless
+the user ensures that second-order and
+higher terms are used appropriately in \code{.fct}.
 }
 }
 
 \examples{
-## Basic linear model with r-square
+## Linear model returning r-square
+lm_r2 <- 
+  function(fml, data) { 
+    lm_res <- lm(fml, data = data)
+    summary(lm_res)[["r.squared"]]
+ }
 
-lm_r2 <- function(fml, data) { 
-  lm_res <- lm(fml, data = data)
-  r2 <- summary(lm_res)[["r.squared"]]
-  return(r2) }
-
-domir(mpg ~ am + vs + cyl, 
-  lm_r2,
-  data = mtcars)
+domir(mpg ~ am + vs + cyl, lm_r2, data = mtcars)
 
 
 ## Linear model including set
+domir(
+  mpg ~ am + vs + cyl + carb + gear + disp + wt,
+  lm_r2,
+  .set = list(~ carb + gear, ~ disp + wt),
+  data = mtcars
+)
 
-domir(mpg ~ am + vs + cyl + carb + gear + disp + wt,
- lm_r2,
- .set = list(~ carb + gear, ~ disp + wt),
- data = mtcars)
 
-
-## Multivariate linear model with multivariate r-square
-## and all subsets variable
-
-mlm_rxy <- function(fml, data, dvnames) {
-  mlm_res <- lm(fml, data = data)
-  mlm_pred <- predict(mlm_res)
-  mlm_rxy <- cancor(mlm_pred, data[dvnames])$cor[[1]]^2
-  return(mlm_rxy)
+## Multivariate regression with multivariate r-square and 
+## all subsets variable
+mlm_rxy <- 
+  function(fml, data, dvnames) {
+    mlm_res <- lm(fml, data = data)
+    mlm_pred <- predict(mlm_res)
+    cancor(mlm_pred, data[dvnames])$cor[[1]]^2
   }
        
-domir(cbind(wt, mpg) ~ vs + cyl + am + carb,
+domir(
+  cbind(wt, mpg) ~ vs + cyl + am + carb,
   mlm_rxy, 
   .all = ~ carb,
   data = mtcars, 
-  dvnames = c("wt", "mpg"))
+  dvnames = c("wt", "mpg")
+)
 
 
 ## Named sets
-
-domir(mpg ~ am + gear + cyl + vs + qsec + drat,
+domir(
+  mpg ~ am + gear + cyl + vs + qsec + drat,
   lm_r2,
   data = mtcars, 
-  .set = list(trns = ~ am + gear, 
-    eng = ~ cyl + vs, misc = ~ qsec + drat))
+  .set = 
+    list( trns = ~ am + gear, 
+          eng = ~ cyl + vs, misc = ~ qsec + drat
+    )
+)
   
   
-## Linear model using AIC
+## Linear model returning AIC
+lm_aic <- 
+  function(fml, data) { 
+    lm_res <- lm(fml, data = data)
+    AIC(lm_res)
+ }
 
-lm_aic <- function(fml, data) { 
-  lm_res <- lm(fml, data = data)
-  aic <- AIC(lm_res)
-  return(aic) }
-
-domir(mpg ~ am + carb + cyl, 
+domir(
+  mpg ~ am + carb + cyl, 
   lm_aic, 
-  .adj = ~ 1,
+  .adj = TRUE,
   .rev = TRUE,
-  data = mtcars)
+  data = mtcars
+ )
+
+
+## 'systemfit' with 'formula_list' method returning AIC
+if (requireNamespace("systemfit", quietly = TRUE)) {
+  domir(
+    formula_list(mpg ~ am + cyl + carb, qsec ~ wt + cyl + carb),
+    function(fml) {
+      res <- systemfit::systemfit(fml, data = mtcars)
+      AIC(res)
+    }, 
+    .adj = TRUE, .rev = TRUE
+  )
+}
+  
 }
