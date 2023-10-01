@@ -147,7 +147,7 @@ computing combination subsets and will be compared to all other
 value-generating names.
 
 \code{formula}s and \code{formula_list} elements are assumed to have an intercept
-except if excplicitly removed with a \code{- 1} in the \code{formula}(s) in \code{.obj}.
+except if explicitly removed with a \code{- 1} in the \code{formula}(s) in \code{.obj}.
 If removed, the intercept will be removed in all \code{formula}(s) in each
 \code{sapply}-ed subset to \code{.fct}.
 

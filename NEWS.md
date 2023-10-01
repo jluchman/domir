@@ -1,6 +1,14 @@
+# domir 1.1.1
+
+## bug fixes
+
+-   `domir()` produced error when `.cdl = FALSE` was combined with `.all`
+-   *lme4* added to suggested list due to reference in documentation and CRAN warning
+
 # domir 1.1.0
 
 ## visible
+
 -   `formula_list` method implemented
     - merger of planned `list` and `Formula::Formula` methods
     - `fmllst2Fml` can be used to translate `formula_list`s to `Formula::Formula`s
@@ -123,11 +131,7 @@
 
 ## bug fixes
 
-<<<<<<< HEAD
--   `Ensemble_Coordinator` that submitted factor #'s instead of text in R versions \< 4
-=======
 -   `Ensemble_Coordinator` that submitted factor numbers instead of text in R versions \< 4.0
->>>>>>> 1.0
 
 # domir 0.0.0
 

@@ -231,11 +231,11 @@ dominance_scalar <-
       # if there is an '.adj' and/or '.all' model, adjust models with 1 name
       # for that value; other models adjust automatically given increment
       if (result_adjustment > 0)
-        uniq_cmb_count <-
+        value_vector <-
           replace(
-            uniq_cmb_count,
-            uniq_cmb_count - result_adjustment,
-            combo_count_by_subset == 1
+            value_vector,
+            combo_count_by_subset == 1,
+            value_vector[combo_count_by_subset == 1] - result_adjustment
           )
       # generates number of 'unique' combinations the focal name has at
       # specific number of value generating names not considering self; note

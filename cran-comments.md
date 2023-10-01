@@ -1,9 +1,18 @@
-## Minor version update: 1.1.0
+## Patch version update: 1.1.1
 
-This minor update has added a new S3 method the the primary `domir()` function
-that parses a list of formulas by RHS~LHS name pairs. This update has also
-begun an extensive code linting process to improve its readability and 
-complexity.
+This patch update fixed a bug in the computation of a returned matrix when an 
+infrequently used optional argument is non-`NULL` and added the *lme4* package 
+to this package's list of suggested packages given its reference in 
+documentation and a warning from CRAN checks.
+
+## CRAN check results
+
+    Check: Rd cross-references
+    Result: NOTE
+        Undeclared package ‘lme4’ in Rd xrefs
+    Flavor: r-devel-linux-x86_64-fedora-clang
+    
+Comment: `lme4`has been added to this package's list of suggested packages.
 
 ## Test environments
 
@@ -29,9 +38,8 @@ Comment: DOI: 10.1002/asmb.446 links reliably to Lipovetsky's and Conklin's 2001
 Windows Server 2022, R-devel, 64 bit: 3 NOTES
 
     * checking HTML version of manual ... NOTE
-    Skipping checking math rendering: package 'V8' unavailable
  
-Comment: Assume the note stems from a temporary issue with package `{V8}` on the RHub platform and is not reproducible in many other platforms.
+Comment: Previously, this issue arose with the package `{V8}` on the RHub platform and was not reproducible on the win-builder, macOS-builder, or my local checks.
 
     * checking for non-standard things in the check directory ... NOTE
     Found the following files/directories:
@@ -51,7 +59,15 @@ Fedora Linux, R-devel, clang, gfortran and Ubuntu Linux 20.04.1 LTS, R-release, 
     Skipping checking HTML validation: no command 'tidy' found
     Skipping checking math rendering: package 'V8' unavailable
     
-Comment: Assume the note stems from an issue with package `{V8}` and `{broom}` on the RHub platform and is not reproducible in many other platforms.
+Comment: This is a similar issue to Rhub's Windows check in that the `{V8}` package seems unavailable and is throwing a NOTE. Again, not an issue that occured with win-builder, macOS-builder, or my local checks.
+
+Ubuntu Linux 20.04.1 LTS, R-release, GCC (rhub): 1 NOTE
+
+    * checking HTML version of manual ... NOTE
+    Skipping checking HTML validation: no command 'tidy' found
+    Skipping checking math rendering: package 'V8' unavailable
+    
+Comment: Consistent with the Fedora-based check, the Ubuntu check is throwing a NOTE given the `{V8}` package is seems unavailable. Again, not an issue that occured with win-builder, macOS-builder, or my local checks.
 
 ## Downstream dependencies
 

@@ -1,7 +1,7 @@
 Package: domir
 Title: Tools to Support Relative Importance Analysis
-Version: 1.1.0
-Date: 2023-9-2
+Version: 1.1.1
+Date: 2023-10-1
 Authors@R: 
     person(given = "Joseph",
            family = "Luchman",
@@ -25,6 +25,7 @@ Suggests:
     Formula,
     ggplot2,
     knitr,
+    lme4,
     parameters,
     performance,
     pscl,
