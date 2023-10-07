@@ -1,3 +1,23 @@
+# domir 1.2.0
+
+## visible
+
+-   ...parallel estimation of all subsets
+-   ...progress bar?
+-   ...conditional does fraction (update `summary` and `print` method too)
+-   ...offset with formula
+-   ...formula with `.all` defunct
+
+## internal
+
+-   ...`formula` method sync with `formula_list`
+-   ...more linting
+-   ... disallow intercept-y things in `.all` and `.set`
+
+## bug fix
+
+-   `offset()`s omitted from `.adj` `formula_list` models
+
 # domir 1.1.1
 
 ## bug fixes

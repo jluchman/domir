@@ -39,6 +39,7 @@ domir(.obj, ...)
 
 Parsed to produce list of names. Combinations of subsets the name list are
 \code{\link{sapply}}-ed to \code{.fct}.
+
 The name list subsets submitted to \code{.fct} are formatted to be of
 the same \code{\link{class}} as \code{.obj} and are submitted to
 \code{.fct} as the first, unnamed argument.}
@@ -52,7 +53,6 @@ Applied to all subsets of elements as received from \code{.obj}.
 Must return a length 1/scalar, numeric, atomic vector.}
 
 \item{.set}{A \code{list}.
-
 Must be comprised of elements of the same class as \code{.obj}.
 Elements of the list can be named.}
 
@@ -78,13 +78,11 @@ method to produce general dominance statistics changes.}
 If \code{FALSE} then complete dominance matrix is not computed.}
 
 \item{.rev}{Logical.
-
 If \code{TRUE} then standardized vector, ranks, and complete dominance
 designations are reversed in their interpretation.}
 }
 \value{
 Returns an object of \code{\link{class}} "domir" composed of:
-
 \describe{
 \item{\code{General_Dominance}}{Vector of general dominance values.}
 \item{\code{Standardized}}{Vector of general dominance values normalized
@@ -360,7 +358,7 @@ if (requireNamespace("systemfit", quietly = TRUE)) {
     function(fml) {
       res <- systemfit::systemfit(fml, data = mtcars)
       AIC(res)
-    }, 
+    },
     .adj = TRUE, .rev = TRUE
   )
 }

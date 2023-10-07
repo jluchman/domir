@@ -1,16 +1,12 @@
 #' @title Scalar-returning internal dominance analysis meta-function
-#'
 #' @description Internal dominance analysis computation function assuming scalar
 #' or vector of length 1 returned value.
 #'
 #' Not intended to be called by the user.
 #'
 #' @keywords internal
-#'
 #' @name dominance_scalar
-#'
 #' @rdname dominance_scalar
-#'
 #' @export
 dominance_scalar <-
   function(function2call, args_list,

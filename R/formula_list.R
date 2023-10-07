@@ -125,7 +125,7 @@ fmllst2Fml <- function(fmllst, drop_lhs = NULL) {
       sapply(
         list_parsed[keep_lhs],
         function(elem) {
-          elem$LHS_names
+          elem$lhs_names
         }
       ),
       collapse = "|"
@@ -139,7 +139,7 @@ fmllst2Fml <- function(fmllst, drop_lhs = NULL) {
             list_parsed,
             function(elem) {
               rhs_sum <- 
-                paste(elem$RHS_names, collapse = "+")
+                paste(elem$rhs_names, collapse = "+")
               if (rhs_sum == "") rhs_sum <- "1"
               rhs_sum
             }
