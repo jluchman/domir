@@ -4,9 +4,9 @@
 
 -   ...parallel estimation of all subsets
 -   ...progress bar?
--   ...conditional does fraction (update `summary` and `print` method too)
+-   ...complete does fraction (update `summary` and `print` method too)
 -   ...offset with formula
--   ...formula with `.all` defunct
+-   ...formula with `.adj` defunct
 
 ## internal
 
@@ -17,6 +17,7 @@
 ## bug fix
 
 -   `offset()`s omitted from `.adj` `formula_list` models
+-   ...`offsets()` omitted from models with no predictors (basically above issue)
 
 # domir 1.1.1
 

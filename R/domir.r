@@ -330,6 +330,7 @@ domir.formula <- function(
     .all = NULL, .adj = FALSE,
     .cdl = TRUE, .cpt = TRUE, .rev = FALSE,
     ...) {
+  #TODO: no checks on logicals for .rev/.cdl/.cpt (makes cryptic errors) ----
   # placeholder argument for within set evaluated names
   if (!is.null(.wst)) {
     .NotYetUsed(".wst")
@@ -345,7 +346,7 @@ domir.formula <- function(
   # confirm .fct works as applied to .obj - returns value for full model
   full_model <- function_checker(.obj, .fct, ...)
   # expand 'rhs_names' into list to conform with '.set' needs
-  # 'invisible() used as a convenience to return the vector value 
+  # 'invisible()' used as a convenience to return the vector value 
   # as list element
   selector_locations <- lapply(which(!fml_parsed$select_lgl), invisible)
   # estimate '.adj' value ----
@@ -357,131 +358,107 @@ domir.formula <- function(
   fml_parsed$select_lgl[pos_all_name] <- TRUE
   rmv_frm_subst[pos_all_name] <- TRUE
 # TODO: disallow offsets and intercept removal in '.all' and '.set' - extend to 'formula_list' ----
-  # Process '.set' ----
-  selector_locations_sets <- proc_set_fml(fml_parsed, .set) # consider submitting 'selector_loctions' and returning it if '.set' is null - this as opposed to the below ... how to do 'rmv_frm_subst' if so... return list?
-  if (!is.null(selector_locations_sets)) {
-    selector_locations <- selector_locations[-unlist(selector_locations_sets)]
-    selector_locations <- append(selector_locations, selector_locations_sets)
-    rmv_frm_subst[unlist(selector_locations_sets)] <- TRUE
-  }
+  # process '.set' ----
+  selector_locations_sets <- proc_set_fml(fml_parsed, .set)
+  rmv_frm_subst[unlist(selector_locations_sets)] <- TRUE
   # apply labels to '.set'
   set_labels <- set_labeller(.set, fml_parsed$rhs_names)
+  # subset adjustment and check ----
+  # adjust subsets for '.set' or '.all' names
+  if (!is.null(selector_locations_sets) || !is.null(all_model)) {
+    selector_locations <- selector_locations[!rmv_frm_subst]
+    selector_locations <- append(selector_locations, selector_locations_sets)
+  }
   # TODO: ensure too few subsets error in all domir's ----
   # check number of subsets
   if (length(selector_locations) < 2)
     stop("At least two names or sets of names are needed ", 
          "for a dominance analysis.",
          call. = FALSE)
-  # TODO: finalize meta_domir as helper function ----
-  # # Define meta-function to coordinate .fct calls ----
-  # meta_domir <-
-  #   function(Selector_lgl,
-  #            RHS, LHS,
-  #            .fct, .all, .adj,
-  #            intercept, args_2_fct) {
-  # 
-  #     # logical vector to select subset of names
-  #     selected_names <-
-  #       unlist(RHS[Selector_lgl])
-  # 
-  #     # reconstruct formula to submit to '.fct'
-  #     formula_to_use <-
-  #       stats::reformulate(
-  #         c(selected_names, .all, .adj),
-  #         response = LHS, intercept = intercept)
-  # 
-  #     # submit formula and arguments to '.fct'
-  #     returned_scalar <-
-  #       do.call(.fct,
-  #               append(formula_to_use, args_2_fct) )
-  # 
-  #     return(returned_scalar)
-  # 
-  #   }
-  # # Define arguments to `dominance_scalar` ----
-  # args_list <-
-  #   list(RHS = append(rhs_names, Set_names),
-  #        LHS = lhs_names,
-  #        .fct = .fct,
-  #        .all = All_names,
-  #        .adj = Adj_names,
-  #        intercept = intercept_lgl,
-  #        args_2_fct = list(...))
-  # 
-  # cons_args <-
-  #   list(RHS = rhs_names,
-  #        LHS = lhs_names,
-  #        .fct = .fct,
-  #        .all = NULL,
-  #        .adj = Adj_names,
-  #        intercept = intercept_lgl,
-  #        args_2_fct = list(...))
-  # 
-  # # Call `dominance_scalar` ----
-  # return_list <-
-  #   dominance_scalar(meta_domir, args_list, cons_args, test_model,
-  #                .cdl, .cpt, .rev)
-  # 
-  # # Finalize returned values and attributes ----
-  # 
-  # if (is.null(.set))
-  #   IV_Labels <- rhs_names
-  # 
-  # else IV_Labels <- c(rhs_names, Set_labels)
-  # 
-  # names(return_list$General_Dominance) <-
-  #   IV_Labels
-  # 
-  # names(return_list$General_Dominance_Ranks) <-
-  #   IV_Labels
-  # 
-  # if (.cdl)
-  #   dimnames(return_list$Conditional_Dominance) <-
-  #   list(names(return_list$General_Dominance),
-  #        paste0("subset_size_", 1:length(return_list$General_Dominance)))
-  # 
-  # if (.cpt)
-  #   dimnames(return_list$Complete_Dominance) <-
-  #   list(paste0("Dmnates_", names(return_list$General_Dominance)),
-  #        paste0("Dmnated_", names(return_list$General_Dominance)))
-  # 
-  # if (.rev == FALSE)
-  #   Standardized <-
-  #   return_list$General_Dominance /
-  #   (
-  #     return_list$Value -
-  #       ifelse(length(return_list$Adj_result) > 0, return_list$Adj_result, 0)
-  #   )
-  # 
-  # else Standardized <-
-  #   -return_list$General_Dominance /
-  #   -(
-  #     return_list$Value -
-  #       ifelse(length(return_list$Adj_result) > 0, return_list$Adj_result, 0)
-  #   )
-  # 
-  # return_list <- list(
-  #   "General_Dominance" = return_list$General_Dominance,
-  #   "Standardized" = Standardized,
-  #   "Ranks" = return_list$General_Dominance_Ranks,
-  #   "Complete_Dominance" = return_list$Complete_Dominance,
-  #   "Conditional_Dominance" = return_list$Conditional_Dominance,
-  #   "Value" = return_list$Value,
-  #   "Value_All" =
-  #     return_list$All_result -
-  #     ifelse(is.null(return_list$Adj_result), 0, return_list$Adj_result),
-  #   "Value_Adjust" = return_list$Adj_result,
-  #   "Call" = match.call()
-  # )
-  # 
-  # # apply class 'domir'
-  # class(return_list) <- c("domir")
-  # 
-  # return(return_list)
-  list(
-    over = fml_parsed, adj = adj_model, all = all_model, 
-    set = selector_locations, set_nm = set_labels
+  # define formula-based meta-function to coordinate .fct calls ----
+  meta_domir_fml <- 
+    function(Selector_lgl, 
+             fml_parsed, .fct, 
+             RHS,
+             args_2_fct, ...) {
+      # distribute logical vector to elements of formula
+      for (elem in RHS[Selector_lgl]) {
+        fml_parsed$select_lgl[elem] <- TRUE
+      }
+      # reconstruct the selected formula
+      fml <- 
+        stats::reformulate(
+          c(fml_parsed$rhs_names[fml_parsed$select_lgl], fml_parsed$offset),
+          response = fml_parsed$lhs_names, 
+          intercept = fml_parsed$intercept_lgl
+        )
+      # submit formula_list to '.fct'
+        do.call(.fct, append(list(fml), args_2_fct) )
+    }
+  # define arguments to `dominance_scalar` ----
+  args_list <- 
+    list(RHS = selector_locations,
+         fml_parsed = fml_parsed,
+         .fct = .fct,
+         .all = all_model, .adj = adj_model,
+         args_2_fct = list(...))
+  # implement dominance analysis
+  return_list <-
+    dominance_scalar(
+      meta_domir_fml,
+      args_list,
+      NULL, full_model,
+      .cdl, .cpt, .rev)
+  #TODO: update  dominance scalar for harmonized interface ----
+  # finalize returned values and attributes ----
+  if (is.null(.set)) {
+    IV_Labels <- fml_parsed$rhs_names[!rmv_frm_subst]
+  } else {
+    IV_Labels <- c(fml_parsed$rhs_names[!rmv_frm_subst], set_labels)
+  }
+  names(return_list$General_Dominance) <- IV_Labels
+  names(return_list$General_Dominance_Ranks) <- IV_Labels
+  if (.cdl) {
+    dimnames(return_list$Conditional_Dominance) <-
+      list(names(return_list$General_Dominance),
+           paste0("subset_size_", 1:length(return_list$General_Dominance)))
+  }
+  if (.cpt) {
+    dimnames(return_list$Complete_Dominance) <-
+    list(paste0("Dmnates_", names(return_list$General_Dominance)),
+         paste0("Dmnated_", names(return_list$General_Dominance)))
+  }
+  if (!.rev) {
+    Standardized <-
+      return_list$General_Dominance /
+      (
+        return_list$Value -
+          ifelse(length(return_list$Adj_result) > 0, return_list$Adj_result, 0)
+      )
+  } else {
+    Standardized <-
+      -return_list$General_Dominance /
+      -(
+        return_list$Value -
+          ifelse(length(return_list$Adj_result) > 0, return_list$Adj_result, 0)
+      )
+  }
+  # apply class and return
+  return_list <- list(
+    "General_Dominance" = return_list$General_Dominance,
+    "Standardized" = Standardized,
+    "Ranks" = return_list$General_Dominance_Ranks,
+    "Complete_Dominance" = return_list$Complete_Dominance,
+    "Conditional_Dominance" = return_list$Conditional_Dominance,
+    "Value" = return_list$Value,
+    "Value_All" =
+      return_list$All_result -
+      ifelse(is.null(return_list$Adj_result), 0, return_list$Adj_result),
+    "Value_Adjust" = return_list$Adj_result,
+    "Call" = match.call()
   )
+  class(return_list) <- c("domir")
+  return_list
 }
 
 #' @rdname domir
@@ -491,9 +468,8 @@ domir.formula_list <- function(
     .set = NULL, .wst = NULL, .all = NULL, .adj = FALSE,
     .cdl = TRUE, .cpt = TRUE, .rev = FALSE,
     ...) {
-  
-  # TODO: Unify domir.formula_list and domir.formula interfaces ----
-
+#TODO: fml_lst version broken ----
+# believe intention is for it to follow fml version with 'lapply'-ed helpers
   if (!is.null(.wst)) {
     
     .NotYetUsed(".wst")
