@@ -13,14 +13,16 @@ Description: Methods to apply decomposition-based relative importance
   decomposition methods by providing 'lapply'- or 'Map'-like meta-functions that 
   compute dominance analysis (Azen, R., & Budescu, D. V. (2003) 
   <doi:10.1037/1082-989X.8.2.129>; Grömping, U. (2007) 
-  <doi:10.1198/000313007X188252>) or Shapley value regression 
+  <doi:10.1198/000313007X188252>) an extension of Shapley value regression 
   (Lipovetsky, S., & Conklin, M. (2001) <doi:10.1002/asmb.446>)
   based on the values returned from other functions.
 Imports:
+    parallel,
     stats,
     utils
 Suggests: 
     dplyr,
+    dominanceanalysis,
     forcats,
     Formula,
     ggplot2,

@@ -10,9 +10,9 @@
 #' @export
 dominance_scalar <-
   function(function2call, args_list,
-           adj_model_args, # adj_model_args depreciated
            value_w_all_names,
-           do_cdl, do_cpt, reverse) {
+           do_cdl, do_cpt, reverse, 
+           cluster, progress) {
     # generate subsets ----
     name_count <- length(args_list$RHS)
     # TRUE/FALSE list for in-/excluding name
@@ -25,60 +25,47 @@ dominance_scalar <-
     subset_filter <- apply(subset_matrix, 1, any)
     subset_matrix <- subset_matrix[subset_filter, ]
     # adjust values with '.adj' ----
-    # domir.formula method - if non-NULL '.adj' model
-    # ~~ depreciated ~~ to adopt domir.formula_list method
-    if ((length(args_list$.adj) > 0) && !is.null(adj_model_args)) {
-      # adjustment model args attached to empty name selector
-      # selects no names except those in '.adj'
-      list_adj_args <- append(list(Selector_lgl = NULL), adj_model_args)
-      result_adjustment <- adj_value <- do.call(function2call, list_adj_args)
-      # domir.formula method - if NULL '.adj' model
-      # ~~ depreciated ~~ to adopt domir.formula_list method
-    } else if (!is.null(adj_model_args)) {
-      adj_value <- NULL
-      result_adjustment <- 0
-      # domir.formula_list method
-      # '.adj' value is computed previously and passed using '.adj'
-      # ~~ supercedes ~~ to supercede above methods
-    } else {
-      adj_value <- args_list$.adj
-      result_adjustment <- ifelse(is.null(adj_value), 0, adj_value)
-    }
+    adj_value <- args_list$.adj
+    result_adjustment <- ifelse(is.null(adj_value), 0, adj_value)
     # adjust values with '.all' ----
-    # domir.formula method - if non-NULL '.all' model
-    # ~~ depreciated ~~ to adopt domir.formula_list method
-    if ((length(args_list$.all) > 0) && !is.null(adj_model_args)) {
-      # all model args attached to empty name selector
-      # selects no names except those in '.all' and '.adj'
-      list_all_args <- append(list(Selector_lgl = NULL), args_list)
-      result_adjustment <- all_value <- do.call(function2call, list_all_args)
-      # domir.formula method - if NULL '.all' model
-      # ~~ depreciated ~~ to adopt domir.formula_list method
-    } else if (!is.null(adj_model_args)) {
-      all_value <- NULL
-      # domir.formula_list method
-      # '.all' value is computed previously and passed using '.all'
-      # ~~ supercedes ~~ to supercede above methods
-    } else {
-      all_value <- args_list$.all
-      result_adjustment <-
-        ifelse(is.null(all_value), result_adjustment, all_value)
-    }
+    all_value <- args_list$.all
+    result_adjustment <- 
+      ifelse(is.null(all_value), result_adjustment, all_value)
     # obtain values from all subsets ----
+    # set progress bars when requested
+    if (progress) {
+      pg_bar <- 
+        utils::txtProgressBar(min = 0, max = nrow(subset_matrix) - 1, 
+                              style = 3)
+    } else {
+      pg_bar <- NULL
+    }
     # function takes integer value and selects row from 'subset_matrix'
     # 'subset_matrix' row is coerced to logical vector
     # logical vector is appended to other arguments to `function2call`
     # all arguments passed to function2call` where value is returned
     obtain_value <-
-      function(subset) {
+      function(subset, pg_bar) {
+        if (!is.null(pg_bar) ) utils::setTxtProgressBar(pg_bar, subset)
         lgl_select_vector <- unlist(subset_matrix[subset, ])
         value_fct_args <- list(Selector_lgl = lgl_select_vector)
         value_fct_args <- append(value_fct_args, args_list)
         do.call(function2call, value_fct_args)
       }
     # vector of values from '.fct'; excludes subset of all names selected
-    value_vector <- sapply(1:(nrow(subset_matrix) - 1),
-                           obtain_value, simplify = TRUE, USE.NAMES = FALSE)
+    if (!is.null(cluster)) {
+      value_vector <- 
+        parallel::parSapply(
+          cl = cluster,
+          1:(nrow(subset_matrix) - 1), 
+          function(subset) obtain_value(subset, pg_bar), 
+          simplify = TRUE, USE.NAMES = FALSE)
+    } else {
+      value_vector <- 
+        sapply(1:(nrow(subset_matrix) - 1),
+               function(subset) obtain_value(subset, pg_bar), 
+               simplify = TRUE, USE.NAMES = FALSE)
+    }
     # append value for subset of all names selected
     value_vector <- append(value_vector, value_w_all_names)
     # compute conditional dominance statistics ----

@@ -329,16 +329,17 @@ domir.formula <- function(
     .set = NULL, .wst = NULL,
     .all = NULL, .adj = FALSE,
     .cdl = TRUE, .cpt = TRUE, .rev = FALSE,
-    ...) {
+    .cst = NULL, .prg = FALSE, ...) {
+  #TODO: check cluster entry - disallow progress bar with cluster (until I get it to work) ----
   # placeholder argument for within set evaluated names
   if (!is.null(.wst)) {
     .NotYetUsed(".wst")
   }
-  lgl_args <- sapply(list(.rev, .cdl, .cpt), is.logical)
+  lgl_args <- sapply(list(.rev, .cdl, .cpt, .prg), is.logical)
   if (!all(lgl_args))
     stop(
       paste(
-        c(".rev", ".cdl", ".cpt")[which(!lgl_args)], collapse = " "),
+        c(".rev", ".cdl", ".cpt", ".prg")[which(!lgl_args)], collapse = " "),
       " must be logical.", call. = FALSE)
   # process and check 'formula' ----
   # use 'formula_parse()' to obtain formula inputs
@@ -381,7 +382,6 @@ domir.formula <- function(
          "for a dominance analysis.",
          call. = FALSE)
   # define formula-based meta-function to coordinate .fct calls ----
-  #TODO:generalize meta domir in helper functions ----
   meta_domir_fml <- 
     function(Selector_lgl, 
              fml_parsed, .fct, 
@@ -412,10 +412,9 @@ domir.formula <- function(
   return_list <-
     dominance_scalar(
       meta_domir_fml,
-      args_list,
-      NULL, full_model,
-      .cdl, .cpt, .rev)
-  #TODO: update dominance scalar for harmonized interface ----
+      args_list, full_model,
+      .cdl, .cpt, .rev, 
+      .cst, .prg)
   # finalize returned values and attributes ----
   if (is.null(.set)) {
     IV_Labels <- fml_parsed$rhs_names[!rmv_frm_subst]
@@ -473,15 +472,15 @@ domir.formula_list <- function(
     .obj, .fct, 
     .set = NULL, .wst = NULL, .all = NULL, .adj = FALSE,
     .cdl = TRUE, .cpt = TRUE, .rev = FALSE,
-    ...) {
+    .cst = NULL, .prg = FALSE, ...) {
   if (!is.null(.wst)) {
     .NotYetUsed(".wst")
   }
-  lgl_args <- sapply(list(.rev, .cdl, .cpt), is.logical)
+  lgl_args <- sapply(list(.rev, .cdl, .cpt, .prg), is.logical)
   if (!all(lgl_args))
     stop(
       paste(
-        c(".rev", ".cdl", ".cpt")[which(!lgl_args)], collapse = " "),
+        c(".rev", ".cdl", ".cpt", ".prg")[which(!lgl_args)], collapse = " "),
         " must be logical.", call. = FALSE)
   # process and check 'formula_list' ----
   # use 'formula_parse()' to obtain formula inputs
@@ -607,9 +606,9 @@ domir.formula_list <- function(
   return_list <-
     dominance_scalar(
       meta_domir_fml_lst,
-      args_list,
-      NULL, full_model,
-      .cdl, .cpt, .rev)
+      args_list, full_model,
+      .cdl, .cpt, .rev, 
+      .cst, .prg)
   # finalize returned values and attributes ----
   if (is.null(.set)) {
     IV_Labels <- lhs_rhs_pairlist[!rmv_frm_subst]
@@ -675,11 +674,16 @@ formula_parse <- function(.obj) {
   rhs_names <- attr(stats::terms(.obj), "term.labels")
   # intercept logical - confirms inclusion of intercept
   intercept_lgl <- as.logical(attr(stats::terms(.obj), "intercept"))
-# TODO: offset wrong when no IVs given use of rownames ----
   # obtain offsets
   if (!is.null(attr(stats::terms(.obj), "offset"))) {
     offset_locs <- attr(stats::terms(.obj), "offset")
     offset <- rownames(attr(stats::terms(.obj), "factors"))[offset_locs]
+    if (is.null(offset)) 
+      offset <- 
+      sapply(
+        (offset_locs + 1), 
+        function(loc) attr(stats::terms(.obj), "variables")[[loc]]
+      )
   } else {
     offset <- NULL
   }
