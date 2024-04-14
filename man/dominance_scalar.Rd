@@ -7,11 +7,12 @@
 dominance_scalar(
   function2call,
   args_list,
-  adj_model_args,
   value_w_all_names,
   do_cdl,
   do_cpt,
-  reverse
+  reverse,
+  cluster,
+  progress
 )
 }
 \description{

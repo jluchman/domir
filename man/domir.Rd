@@ -18,6 +18,8 @@ domir(.obj, ...)
   .cdl = TRUE,
   .cpt = TRUE,
   .rev = FALSE,
+  .cst = NULL,
+  .prg = FALSE,
   ...
 )
 
@@ -31,6 +33,8 @@ domir(.obj, ...)
   .cdl = TRUE,
   .cpt = TRUE,
   .rev = FALSE,
+  .cst = NULL,
+  .prg = FALSE,
   ...
 )
 }
@@ -53,6 +57,7 @@ Applied to all subsets of elements as received from \code{.obj}.
 Must return a length 1/scalar, numeric, atomic vector.}
 
 \item{.set}{A \code{list}.
+
 Must be comprised of elements of the same class as \code{.obj}.
 Elements of the list can be named.}
 
@@ -78,8 +83,20 @@ method to produce general dominance statistics changes.}
 If \code{FALSE} then complete dominance matrix is not computed.}
 
 \item{.rev}{Logical.
+
 If \code{TRUE} then standardized vector, ranks, and complete dominance
 designations are reversed in their interpretation.}
+
+\item{.cst}{Object of class c("SOCKcluster", "cluster") from
+\code{\link{parallel-package}}.
+
+When non-\code{NULL}, will alter the method for collecting values from all
+combinations of names from using \code{\link{sapply}} to \code{\link[parallel:clusterApply]{parallel::parSapply}}.}
+
+\item{.prg}{Logical.
+
+If \code{TRUE} then a progress bar is displayed during collection of values
+to indicate progress.}
 }
 \value{
 Returns an object of \code{\link{class}} "domir" composed of:
@@ -150,8 +167,7 @@ If removed, the intercept will be removed in all \code{formula}(s) in each
 \code{sapply}-ed subset to \code{.fct}.
 
 If \code{\link{offset}}s are included, they are passed, like intercepts, while
-\code{sapply}-ing subsets to \code{.fct}. Currently, only the \code{formula_list} method
-allows \code{offsets}.
+\code{sapply}-ing subsets to \code{.fct}.
 }
 
 }
@@ -208,9 +224,8 @@ The \code{formula} method will submit an intercept-only formula to \code{.fct}.
 The \code{formula_list} method creates a separate, intercept-only subset for each
 of the \code{formula}s in the list.
 Both the \code{formula} and \code{formula_list} methods will respect the user's
-removal of an intercept. The \code{formula_list} method will also respect the
-user's inclusion of an \code{offset} and will include them in the submission to
-\code{.fct}.
+removal of an intercept and or inclusion of an \code{offset}.
+\code{offset}s will automatically be included in the submission to \code{.fct}.
 
 \code{.adj} then 'adjusts' the returned value for a non-0 value-returning
 null model when no value generating names are included.
@@ -269,15 +284,14 @@ logical has been depreciated and submitting a \code{formula} with more than an
 intercept is defunct.
 
 The \code{formula} and \code{formula_list} methods can be used to pass responses,
-intercepts, and in some cases, \code{offset}s to all combinations of subsets
-of names.
+intercepts, and \code{offset}s to all combinations of subsets of names.
 If the user seeks to include other model components integral to
 estimation
 (i.e., a random effect term in \code{\link[lme4:glmer]{lme4::glmer()}}) include them as
 \code{\link[=update.formula]{update}} to the submitted \code{formula} or \code{formula_list}
 imbedded in \code{.fct}.
 
-Second-order or higher terms (i.e., interactions like\code{~ a*b}) are parsed
+Second-order or higher terms (i.e., interactions like \code{~ a*b}) are parsed
 by default but not used differently from first-order terms for producing
 subsets. The values ascribed to such terms may not be valid unless
 the user ensures that second-order and
@@ -287,8 +301,8 @@ higher terms are used appropriately in \code{.fct}.
 
 \examples{
 ## Linear model returning r-square
-lm_r2 <- 
-  function(fml, data) { 
+lm_r2 <-
+  function(fml, data) {
     lm_res <- lm(fml, data = data)
     summary(lm_res)[["r.squared"]]
  }
@@ -305,20 +319,20 @@ domir(
 )
 
 
-## Multivariate regression with multivariate r-square and 
+## Multivariate regression with multivariate r-square and
 ## all subsets variable
-mlm_rxy <- 
+mlm_rxy <-
   function(fml, data, dvnames) {
     mlm_res <- lm(fml, data = data)
     mlm_pred <- predict(mlm_res)
     cancor(mlm_pred, data[dvnames])$cor[[1]]^2
   }
-       
+
 domir(
   cbind(wt, mpg) ~ vs + cyl + am + carb,
-  mlm_rxy, 
+  mlm_rxy,
   .all = ~ carb,
-  data = mtcars, 
+  data = mtcars,
   dvnames = c("wt", "mpg")
 )
 
@@ -327,24 +341,24 @@ domir(
 domir(
   mpg ~ am + gear + cyl + vs + qsec + drat,
   lm_r2,
-  data = mtcars, 
-  .set = 
-    list( trns = ~ am + gear, 
+  data = mtcars,
+  .set =
+    list( trns = ~ am + gear,
           eng = ~ cyl + vs, misc = ~ qsec + drat
     )
 )
-  
-  
+
+
 ## Linear model returning AIC
-lm_aic <- 
-  function(fml, data) { 
+lm_aic <-
+  function(fml, data) {
     lm_res <- lm(fml, data = data)
     AIC(lm_res)
  }
 
 domir(
-  mpg ~ am + carb + cyl, 
-  lm_aic, 
+  mpg ~ am + carb + cyl,
+  lm_aic,
   .adj = TRUE,
   .rev = TRUE,
   data = mtcars
@@ -362,5 +376,5 @@ if (requireNamespace("systemfit", quietly = TRUE)) {
     .adj = TRUE, .rev = TRUE
   )
 }
-  
+
 }

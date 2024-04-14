@@ -1,7 +1,8 @@
 #' @name domir-package
-#' @docType package
 #' @title Tools to Support Relative Importance Analysis
 #' @author Joseph Luchman \email{jluchman@gmail.com}
+#' @keywords internal
+#' "_PACKAGE"
 #'
 #' @description
 #' Methods to apply dominance analysis-based relative importance analysis for

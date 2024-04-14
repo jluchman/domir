@@ -5,18 +5,18 @@
 -   Basic parallel estimation of all subsets using `parallel::parSapply`
 -   Progress bar added for non-parallel sub-model estimation
 -   ...complete does fraction (update `summary` and `print` method too)
--   offsets now allowed with `formula` method
+-   `offset()`s now allowed with `formula` method
 -   `formula` input with `.adj` defunct
+-   Better handing of errors returned by '.fct'. Reports the specific error that resulted.
 
 ## internal
 
 -   `formula` method sync with `formula_list`
 -   Intercept removal and offsets not allowed in `.all` and `.set`
--   ...more linting
 
 ## bug fix
 
--   `offsets()` omitted from models with no predictors. Usually an issue 
+-   `offsets()` omitted from models with no predictors. Was an issue with `.adj`'s value
 
 # domir 1.1.1
 

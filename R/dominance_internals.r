@@ -11,7 +11,7 @@
 dominance_scalar <-
   function(function2call, args_list,
            value_w_all_names,
-           do_cdl, do_cpt, reverse, 
+           do_cdl, do_cpt, reverse,
            cluster, progress) {
     # generate subsets ----
     name_count <- length(args_list$RHS)
@@ -29,13 +29,13 @@ dominance_scalar <-
     result_adjustment <- ifelse(is.null(adj_value), 0, adj_value)
     # adjust values with '.all' ----
     all_value <- args_list$.all
-    result_adjustment <- 
+    result_adjustment <-
       ifelse(is.null(all_value), result_adjustment, all_value)
     # obtain values from all subsets ----
     # set progress bars when requested
     if (progress) {
-      pg_bar <- 
-        utils::txtProgressBar(min = 0, max = nrow(subset_matrix) - 1, 
+      pg_bar <-
+        utils::txtProgressBar(min = 0, max = nrow(subset_matrix) - 1,
                               style = 3)
     } else {
       pg_bar <- NULL
@@ -46,7 +46,7 @@ dominance_scalar <-
     # all arguments passed to function2call` where value is returned
     obtain_value <-
       function(subset, pg_bar) {
-        if (!is.null(pg_bar) ) utils::setTxtProgressBar(pg_bar, subset)
+        if (!is.null(pg_bar)) utils::setTxtProgressBar(pg_bar, subset)
         lgl_select_vector <- unlist(subset_matrix[subset, ])
         value_fct_args <- list(Selector_lgl = lgl_select_vector)
         value_fct_args <- append(value_fct_args, args_list)
@@ -54,16 +54,17 @@ dominance_scalar <-
       }
     # vector of values from '.fct'; excludes subset of all names selected
     if (!is.null(cluster)) {
-      value_vector <- 
+      value_vector <-
         parallel::parSapply(
           cl = cluster,
-          1:(nrow(subset_matrix) - 1), 
-          function(subset) obtain_value(subset, pg_bar), 
-          simplify = TRUE, USE.NAMES = FALSE)
+          1:(nrow(subset_matrix) - 1),
+          function(subset) obtain_value(subset, pg_bar),
+          simplify = TRUE, USE.NAMES = FALSE
+        )
     } else {
-      value_vector <- 
+      value_vector <-
         sapply(1:(nrow(subset_matrix) - 1),
-               function(subset) obtain_value(subset, pg_bar), 
+               function(subset) obtain_value(subset, pg_bar),
                simplify = TRUE, USE.NAMES = FALSE)
     }
     # append value for subset of all names selected

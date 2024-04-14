@@ -7,6 +7,9 @@
 formula_parse(.obj)
 }
 \description{
-Internal formula parsing function
+Internal formula parsing function to facilitate re-construction
+of a formula using \code{reformulate()}
+
+Not intended to be called by the user.
 }
 \keyword{internal}

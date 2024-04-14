@@ -8,58 +8,53 @@
 #'
 #' @param ... `formula`s, possibly named
 #'
-#' @details  
-#' All `formula_list`s enforce requirements that the list are composed of 
-#' individual `formula`s and that each formula is unique with its own, 
+#' @details
+#' All `formula_list`s enforce requirements that the list are composed of
+#' individual `formula`s and that each formula is unique with its own,
 #' different, non-`NULL` dependent variable/response.
-#' 
+#'
 #' @return A `list` of class `formula_list`.
-#' 
+#'
 #' @rdname formula_list
-#' 
+#'
 #' @export
 formula_list <- function(...) {
-  
   .obj <- list(...)
-  
   # Check all list elements are formulas
-  not_fml <- 
-    sapply(.obj, Negate(inherits), what = "formula")
- 
+  not_fml <- sapply(.obj, Negate(inherits), what = "formula")
   if ( any(not_fml) )
     stop(
-      paste(c("List element", which(not_fml), "not of class 'formula'."), 
+      paste(c("List element", which(not_fml), "not of class 'formula'."),
             collapse = " "),
       call. = TRUE
     )
-  
   # Check all elements are unique formulas
   DV_list <-
-    sapply(.obj, 
+    sapply(.obj,
            function(elem) {
              if (attr(stats::terms(elem), "response")==1)
                as.list(attr(stats::terms(elem), "variables"))[[
                  attr(stats::terms(elem), "response")+1
-               ]] 
+               ]]
              else NA
-           } 
+           }
     )
-  
-  DV_problem <- 
-    ( is.na(DV_list) | duplicated(DV_list, incomparables = c(NA)) ) 
-  
-  if ( any( DV_problem ) ) 
+ 
+  DV_problem <-
+    ( is.na(DV_list) | duplicated(DV_list, incomparables = c(NA)) )
+ 
+  if ( any( DV_problem ) )
     stop(
-      paste(c("List element", which(DV_problem), 
-              "missing a response or duplicated a response."), 
+      paste(c("List element", which(DV_problem),
+              "missing a response or duplicated a response."),
             collapse = " "),
       call. = TRUE
     )
-  
+ 
   class(.obj) <- c("formula_list", "list")
 
   return(.obj)
-  
+ 
 }
 
 #' @title Translate `formula_list` into `Formula::Formula`
@@ -87,40 +82,40 @@ formula_list <- function(...) {
 #'
 #' @export
 fmllst2Fml <- function(fmllst, drop_lhs = NULL) {
-  if (!inherits(fmllst, "formula_list")) 
+  if (!inherits(fmllst, "formula_list"))
     stop("Submitted object is not of class 'formula_list'.", call. = FALSE)
-  
-  if (!requireNamespace("Formula")) 
+ 
+  if (!requireNamespace("Formula"))
     stop("Package '{Formula}' not available.", call. = FALSE)
-  
-  list_parsed <- 
+ 
+  list_parsed <-
     lapply(fmllst, domir::formula_parse)
-  
+ 
   if (!is.null(drop_lhs)) {
     if (!is.atomic(drop_lhs) || !is.integer(drop_lhs) || !length(drop_lhs)) {
       stop(paste(
-        "'drop_lhs' is not a integer vector.", 
-        "'drop_lhs' is a(n)", class(drop_lhs), "of mode", mode(drop_lhs), 
+        "'drop_lhs' is not a integer vector.",
+        "'drop_lhs' is a(n)", class(drop_lhs), "of mode", mode(drop_lhs),
         "with a length of", length(drop_lhs), "."
       ),
       call. = FALSE)
     }
-    
+   
     if ( !all(drop_lhs %in% 1:length(list_parsed)) ) {
-      bad_drop_lhs <- 
+      bad_drop_lhs <-
         drop_lhs[which(!(drop_lhs %in% 1:length(list_parsed)))]
-      stop(paste("Values", 
+      stop(paste("Values",
                  paste(bad_drop_lhs, collapse = " "),
-                 "in 'drop_lhs' are not valid element positions."), 
+                 "in 'drop_lhs' are not valid element positions."),
            call. = FALSE)
     }
-    
+   
     keep_lhs <- which(!(1:length(list_parsed) %in% drop_lhs))
   } else {
     keep_lhs <- 1:length(list_parsed)
   }
-  
-  Fml <- 
+ 
+  Fml <-
     paste(
       sapply(
         list_parsed[keep_lhs],
@@ -130,15 +125,15 @@ fmllst2Fml <- function(fmllst, drop_lhs = NULL) {
       ),
       collapse = "|"
     )
-  
-  Fml <- 
+ 
+  Fml <-
     paste(
-      c(Fml, " ~ ", 
+      c(Fml, " ~ ",
         paste(
           sapply(
             list_parsed,
             function(elem) {
-              rhs_sum <- 
+              rhs_sum <-
                 paste(elem$rhs_names, collapse = "+")
               if (rhs_sum == "") rhs_sum <- "1"
               rhs_sum
@@ -149,7 +144,7 @@ fmllst2Fml <- function(fmllst, drop_lhs = NULL) {
       ),
       collapse = ""
     )
-  
+ 
   Formula::as.Formula(Fml)
-  
+ 
 }
