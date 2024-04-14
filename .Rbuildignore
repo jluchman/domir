@@ -8,3 +8,7 @@ cran-comments.md
 README.Rmd
 ^CRAN-SUBMISSION$
 ^revdep$
+^_pkgdown\.yml$
+^docs$
+^pkgdown$
+^\.github$

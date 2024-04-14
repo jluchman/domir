@@ -40,7 +40,7 @@ Suggests:
     testthat (>= 3.0.0),
     tidyr
 License: GPL (>= 3)
-URL: https://github.com/jluchman/domir
+URL: https://github.com/jluchman/domir, https://jluchman.github.io/domir/
 BugReports: https://github.com/jluchman/domir/issues
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
