@@ -99,9 +99,9 @@ domir(mpg ~ am + vs + cyl, lm_wrapper, data = mtcars)
     ## 
     ## Complete Dominance Designations:
     ##             Dmnated?am Dmnated?vs Dmnated?cyl
-    ## Dmnates?am          NA         NA       FALSE
-    ## Dmnates?vs          NA         NA       FALSE
-    ## Dmnates?cyl       TRUE       TRUE          NA
+    ## Dmnates?am          NA        0.5           1
+    ## Dmnates?vs         0.5         NA           1
+    ## Dmnates?cyl        0.0        0.0          NA
 
 In `domir`, the `lm` model is not submitted directly. Rather, it is
 wrapped into a function (i.e., `lm_wrapper`) that, in this case, accepts
@@ -192,6 +192,37 @@ coefficients/predicted values.
 Again, note that `{relaimpo}` is not dominance analysis-oriented and
 does not report on dominance designations or dominance values other than
 the general dominance values.
+
+## `{dominanceanalysis}`’s `dominanceAnalysis`
+
+`dominanceAnalysis` is, like `domir`, focused on dominance analysis but
+uses S3 methods focused on model types to implement similar to how
+`parameters::dominance_analysis` works.
+
+``` r
+dominanceanalysis::dominanceAnalysis(lm(mpg ~ am + vs + cyl, data = mtcars))
+```
+
+    ## 
+    ## Dominance analysis
+    ## Predictors: am, vs, cyl 
+    ## Fit-indices: r2 
+    ## 
+    ## * Fit index:  r2 
+    ##     complete conditional general
+    ## am                              
+    ## vs                            am
+    ## cyl    am,vs       am,vs   am,vs
+    ## 
+    ## Average contribution:
+    ##   cyl    vs    am 
+    ## 0.382 0.203 0.177
+
+`dominanceanalysis` focuses more on dominance designations (like those
+offered in the `summary()` method for a `domir` object) and does not
+provide all statistics in its `print` method (though they are available
+in the `dominanceAnalysis` object with accessor functions like
+`contributionByLevel`).
 
 # Further Examples
 

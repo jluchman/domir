@@ -108,11 +108,10 @@ to sum to 1.}
 \item{\code{Conditional_Dominance}}{Matrix of conditional dominance values.
 Each row represents an element in \code{.obj};
 each column represents a number of elements from \code{.obj} in a subset.}
-\item{\code{Complete_Dominance}}{Logical matrix of complete dominance
-designations.
-The \code{.obj} elements represented in each row indicates dominance status;
-the \code{.obj} elements represented in each column indicates
-dominated-by status.}
+\item{\code{Complete_Dominance}}{Matrix of proportions of subsets where the
+name in the row has a larger value than the name in the column.
+The se proportions determine complete dominance when a value of
+1 or 0.}
 \item{\code{Value}}{Value returned by \code{.fct} with all elements (i.e.,
 from \code{.obj}, \code{.all}, and \code{.adj}.}
 \item{\code{Value_All}}{Value of \code{.fct} associated with elements included

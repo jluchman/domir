@@ -82,6 +82,16 @@ relaimpo::calc.relimp(mpg ~ am + vs + cyl, data = mtcars, type = "lmg")
 
 Again, note that `{relaimpo}` is not dominance analysis-oriented and does not report on dominance designations or dominance values other than the general dominance values.
 
+## `{dominanceanalysis}`'s `dominanceAnalysis`
+
+`dominanceAnalysis` is, like `domir`, focused on dominance analysis but uses S3 methods focused on model types to implement similar to how `parameters::dominance_analysis` works.
+
+```{r init_da}
+dominanceanalysis::dominanceAnalysis(lm(mpg ~ am + vs + cyl, data = mtcars))
+```
+
+Note that `dominanceAnalysis` takes an `lm` object and can accommodate several others as well as a covariance matrix.
+`dominanceanalysis` focus is more on dominance designations (like those offered in the `summary()` method for a `domir` object) and does not provide all statistics in its `print` method by default (which are available in the `dominanceAnalysis` object with accessor functions like `contributionByLevel`).
 
 # Further Examples
 

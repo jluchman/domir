@@ -183,22 +183,19 @@ dominance_scalar <-
         first_vs_second <- sorted_results_pair[, 1] > sorted_results_pair[, 2]
         # comparing second name's values to first
         second_vs_first <- sorted_results_pair[, 1] < sorted_results_pair[, 2]
-        complete_designation <-
-          ifelse(all(first_vs_second), FALSE,
-                 ifelse(all(second_vs_first), TRUE, NA))
         # record designation in container matrix
         complete_dominance[selected_name_pair[[2]], selected_name_pair[[1]]] <-
-          complete_designation
+          mean(second_vs_first)
         # record designation of complementary comparison in container matrix
         complete_dominance[selected_name_pair[[1]], selected_name_pair[[2]]] <-
-          !complete_designation
+          mean(first_vs_second)
       }
       # if '.cpt' was FALSE
     } else {
       complete_dominance <- NULL
     }
     # reverse the complete dominance indication if '.rev'
-    if (reverse == TRUE) complete_dominance <- !complete_dominance
+    if (reverse) complete_dominance <- 1 - complete_dominance
     # obtain general dominance statistics ----
     # if '.cdl' is false, implement general dominance statistic
     # computational method

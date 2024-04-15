@@ -77,27 +77,40 @@ test_that("Test General Dominance Computation: domir", {
   )}
 )
 
-cyl_vs_cpt <- switch(sum(c(cyl_mgn[[3]] > vs_mgn[[3]]), 
-  c(cyl_mgn[[1]] > vs_mgn[[1]]))+1, FALSE, NA, TRUE) 
+cyl_vs_cpt <- mean(c(cyl_mgn[[3]] > vs_mgn[[3]], 
+                     cyl_mgn[[1]] > vs_mgn[[1]]))
 
-carb_vs_cpt <- switch(sum(c(carb_mgn[[3]] > vs_mgn[[2]]), 
-  c(carb_mgn[[1]] > vs_mgn[[1]]))+1, FALSE, NA, TRUE)
+carb_vs_cpt <- mean(c(carb_mgn[[3]] > vs_mgn[[2]], 
+                    carb_mgn[[1]] > vs_mgn[[1]]))
 
-carb_cyl_cpt <- switch(sum(c(carb_mgn[[2]] > cyl_mgn[[2]]),
-  c(carb_mgn[[1]] > cyl_mgn[[1]]))+1, FALSE, NA, TRUE)
+carb_cyl_cpt <- mean(c(carb_mgn[[2]] > cyl_mgn[[2]], 
+                     carb_mgn[[1]] > cyl_mgn[[1]]))
 
 cpt_test <- matrix(c(NA, cyl_vs_cpt, carb_vs_cpt, 
-                     !cyl_vs_cpt, NA, carb_cyl_cpt, 
-                     !carb_vs_cpt, !carb_cyl_cpt, NA),
+                     1-cyl_vs_cpt, NA, carb_cyl_cpt, 
+                     1-carb_vs_cpt, 1-carb_cyl_cpt, NA),
                    nrow = 3, ncol = 3)
 
 dimnames(cpt_test) <- list(
+  paste0(c("vs", "cyl", "carb"), "_>"),
+  paste0(">_", c("vs", "cyl", "carb"))
+)
+
+dmn_trns <- function(val) {
+  ifelse(val == 1, TRUE, ifelse(val == 0, FALSE, NA))
+}
+cpt_test_dmn <- matrix(c(NA, dmn_trns(cyl_vs_cpt), dmn_trns(carb_vs_cpt), 
+                         dmn_trns(1-cyl_vs_cpt), NA, dmn_trns(carb_cyl_cpt), 
+                         dmn_trns(1-carb_vs_cpt), dmn_trns(1-carb_cyl_cpt), NA),
+                   nrow = 3, ncol = 3)
+
+dimnames(cpt_test_dmn) <- list(
   paste0("Dmnates_", c("vs", "cyl", "carb")),
   paste0("Dmnated_", c("vs", "cyl", "carb"))
 )
 
 test_that("Test Complete Dominance Designation: domin", {
-  expect_equal(test_obj$Complete_Dominance, cpt_test
+  expect_equal(test_obj$Complete_Dominance, cpt_test_dmn
   )})
 
 test_that("Test Complete Dominance Designation: domir", {
@@ -182,26 +195,26 @@ test_that("Test General Dominance Computation: domir.formula_list", {
 )
 
 cyl_vs_cpt_fl <- 
-  switch(sum(c(cyl_fl_mgn[[3]] > vs_fl_mgn[[3]]), 
-             c(cyl_fl_mgn[[1]] > vs_fl_mgn[[1]]))+1, FALSE, NA, TRUE) 
+  mean(c(cyl_fl_mgn[[3]] > vs_fl_mgn[[3]], 
+             cyl_fl_mgn[[1]] > vs_fl_mgn[[1]])) 
 
 carb_vs_cpt_fl <- 
-  switch(sum(c(carb_fl_mgn[[3]] > vs_fl_mgn[[2]]), 
-             c(carb_fl_mgn[[1]] > vs_fl_mgn[[1]]))+1, FALSE, NA, TRUE)
+  mean(c(carb_fl_mgn[[3]] > vs_fl_mgn[[2]], 
+             carb_fl_mgn[[1]] > vs_fl_mgn[[1]]))
 
 carb_cyl_cpt_fl <- 
-  switch(sum(c(carb_fl_mgn[[2]] > cyl_fl_mgn[[2]]),
-             c(carb_fl_mgn[[1]] > cyl_fl_mgn[[1]]))+1, FALSE, NA, TRUE)
+  mean(c(carb_fl_mgn[[2]] > cyl_fl_mgn[[2]],
+             carb_fl_mgn[[1]] > cyl_fl_mgn[[1]]))
 
 cpt_fl_test <- 
   matrix(c(NA, cyl_vs_cpt_fl, carb_vs_cpt_fl, 
-           !cyl_vs_cpt_fl, NA, carb_cyl_cpt_fl, 
-           !carb_vs_cpt_fl, !carb_cyl_cpt_fl, NA),
+           1-cyl_vs_cpt_fl, NA, carb_cyl_cpt_fl, 
+           1-carb_vs_cpt_fl, 1-carb_cyl_cpt_fl, NA),
          nrow = 3, ncol = 3)
 
 dimnames(cpt_fl_test) <- list(
-  paste0("Dmnates_", cdl_fl_names_new[[1]]),
-  paste0("Dmnated_", cdl_fl_names_new[[1]])
+  paste0(cdl_fl_names_new[[1]], "_>"),
+  paste0(">_", cdl_fl_names_new[[1]])
 )
 
 test_that("Test Complete Dominance Designation: domir.formula_list", {

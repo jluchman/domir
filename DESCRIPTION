@@ -1,6 +1,6 @@
 Package: domir
 Title: Tools to Support Relative Importance Analysis
-Version: 1.1.1.9
+Version: 1.2.0
 Date: 2024-4-14
 Authors@R: 
     person(given = "Joseph",

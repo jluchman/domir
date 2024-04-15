@@ -74,11 +74,10 @@
 #'  \item{`Conditional_Dominance`}{Matrix of conditional dominance values.
 #'  Each row represents an element in `.obj`;
 #'  each column represents a number of elements from `.obj` in a subset.}
-#'  \item{`Complete_Dominance`}{Logical matrix of complete dominance
-#'  designations.
-#'  The `.obj` elements represented in each row indicates dominance status;
-#'  the `.obj` elements represented in each column indicates
-#'  dominated-by status.}
+#'  \item{`Complete_Dominance`}{Matrix of proportions of subsets where the 
+#'  name in the row has a larger value than the name in the column.
+#'  The se proportions determine complete dominance when a value of 
+#'  1 or 0.}
 #'  \item{`Value`}{Value returned by `.fct` with all elements (i.e.,
 #'  from `.obj`, `.all`, and `.adj`.}
 #'  \item{`Value_All`}{Value of `.fct` associated with elements included
@@ -439,8 +438,8 @@ domir.formula <- function(
   }
   if (.cpt) {
     dimnames(return_list$Complete_Dominance) <-
-    list(paste0("Dmnates_", names(return_list$General_Dominance)),
-         paste0("Dmnated_", names(return_list$General_Dominance)))
+    list(paste0(names(return_list$General_Dominance), "_>"),
+         paste0(">_", names(return_list$General_Dominance)))
   }
   if (!.rev) {
     Standardized <-
@@ -638,8 +637,8 @@ domir.formula_list <- function(
          paste0("subset_size_", seq_len(length(return_list$General_Dominance))))
   if (.cpt)
     dimnames(return_list$Complete_Dominance) <-
-    list(paste0("Dmnates_", names(return_list$General_Dominance)),
-         paste0("Dmnated_", names(return_list$General_Dominance)))
+    list(paste0(names(return_list$General_Dominance), "_>"),
+         paste0(">_", names(return_list$General_Dominance)))
 
   if (!.rev) {
     Standardized <-
@@ -1178,11 +1177,11 @@ print.domir <- function(x, ...) {
     cat("\n")
   }
   if (length(x[["Complete_Dominance"]] > 0)) {
-    cat("Complete Dominance Designations:\n")
+    cat("Complete Dominance Proportions:\n")
     colnames(x[["Complete_Dominance"]]) <-
-      gsub("^Dmnated_", "Dmnated?", colnames(x[["Complete_Dominance"]]))
+      gsub("^>_", "> ", colnames(x[["Complete_Dominance"]]))
     rownames(x[["Complete_Dominance"]]) <-
-      gsub("^Dmnates_", "Dmnates?", rownames(x[["Complete_Dominance"]]))
+      gsub("_>$", " >", rownames(x[["Complete_Dominance"]]))
     print(x[["Complete_Dominance"]])
     cat("\n")
   }
@@ -1228,9 +1227,9 @@ summary.domir <- function(object, ...) {
       for (IV2 in (IV1 + 1):length(object$General_Dominance)) {
         location <- location + 1
         if (length(object[["Complete_Dominance"]] > 0)) {
-          if (!is.na(object$Complete_Dominance[IV1, IV2])) {
+          if ((object$Complete_Dominance[IV1, IV2] %in% c(0, 1))) {
             pairs[2, location] <-
-              ifelse(object$Complete_Dominance[IV1, IV2],
+              ifelse(object$Complete_Dominance[IV1, IV2] == 1,
                      "completely dominates",
                      "is completely dominated by")
             next

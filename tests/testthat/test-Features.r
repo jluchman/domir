@@ -236,27 +236,40 @@ test_that("Test Adjustment Value: domir", {
   )}
 )
 
-cyl_vs_cpt <- switch(sum(c(cyl_cns_mgn[[3]] > vs_cns_mgn[[3]]), 
-                         c(cyl_cns_mgn[[1]] > vs_cns_mgn[[1]]))+1, TRUE, NA, FALSE) 
+cyl_vs_cpt <- mean(c(cyl_cns_mgn[[3]] < vs_cns_mgn[[3]], 
+                         cyl_cns_mgn[[1]] < vs_cns_mgn[[1]]))
 
-carb_vs_cpt <- switch(sum(c(carb_cns_mgn[[3]] > vs_cns_mgn[[2]]), 
-                          c(carb_cns_mgn[[1]] > vs_cns_mgn[[1]]))+1, TRUE, NA, FALSE)
+carb_vs_cpt <- mean(c(carb_cns_mgn[[3]] < vs_cns_mgn[[2]], 
+                          carb_cns_mgn[[1]] < vs_cns_mgn[[1]]))
 
-carb_cyl_cpt <- switch(sum(c(carb_cns_mgn[[2]] > cyl_cns_mgn[[2]]),
-                           c(carb_cns_mgn[[1]] > cyl_cns_mgn[[1]]))+1, TRUE, NA, FALSE)
+carb_cyl_cpt <- mean(c(carb_cns_mgn[[2]] < cyl_cns_mgn[[2]],
+                           carb_cns_mgn[[1]] < cyl_cns_mgn[[1]]))
 
 cpt_rev_test <- matrix(c(NA, cyl_vs_cpt, carb_vs_cpt, 
-                     !cyl_vs_cpt, NA, carb_cyl_cpt, 
-                     !carb_vs_cpt, !carb_cyl_cpt, NA),
+                     1-cyl_vs_cpt, NA, carb_cyl_cpt, 
+                     1-carb_vs_cpt, 1-carb_cyl_cpt, NA),
                    nrow = 3, ncol = 3)
 
 dimnames(cpt_rev_test) <- list(
+  paste0(c("vs", "cyl", "carb"), "_>"),
+  paste0(">_", c("vs", "cyl", "carb"))
+)
+
+dmn_trns <- function(val) {
+  ifelse(val == 1, TRUE, ifelse(val == 0, FALSE, NA))
+}
+cpt_rev_test_dmn <- matrix(c(NA, dmn_trns(cyl_vs_cpt), dmn_trns(carb_vs_cpt), 
+                         dmn_trns(1-cyl_vs_cpt), NA, dmn_trns(carb_cyl_cpt), 
+                         dmn_trns(1-carb_vs_cpt), dmn_trns(1-carb_cyl_cpt), NA),
+                       nrow = 3, ncol = 3)
+
+dimnames(cpt_rev_test_dmn) <- list(
   paste0("Dmnates_", c("vs", "cyl", "carb")),
   paste0("Dmnated_", c("vs", "cyl", "carb"))
 )
 
 test_that("Test Reversed Complete Dominance Designation: domin", {
-  expect_equal(test_obj4$Complete_Dominance, cpt_rev_test
+  expect_equal(test_obj4$Complete_Dominance, cpt_rev_test_dmn
   )})
 
 test_that("Test Reversed Complete Dominance Designation: domir", {

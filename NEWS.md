@@ -4,10 +4,12 @@
 
 -   Basic parallel estimation of all subsets using `parallel::parSapply`
 -   Progress bar added for non-parallel sub-model estimation
--   ...complete does fraction (update `summary` and `print` method too)
+-   Complete dominance reports fraction of total models higher/lower
+    -   Update to `summary` method
 -   `offset()`s now allowed with `formula` method
 -   `formula` input with `.adj` defunct
 -   Better handing of errors returned by '.fct'. Reports the specific error that resulted.
+-   New `pkgdown`-based GitHub page.
 
 ## internal
 
