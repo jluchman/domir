@@ -9,19 +9,21 @@
 #' predictive modeling functions.
 #'
 #' @details
-#' This package supports relative importance analysis by implementing several
-#' functions that compute dominance analysis (Azen & Budescu, 2004;
-#' Budescu, 1993). Dominance analysis produces the well-known Shapley value
-#' decomposition (e.g., Grömping, 2007; Lipovetsky & Conklin, 2001) as one
-#' of its methods called general dominance statistics.
+#' This package supports the determination of importance for inputs
+#' (i.e., independent variables, predictors, features, parameter estimates;
+#' called 'names' in the package) using dominance analysis
+#' (Azen & Budescu, 2004; Budescu, 1993).
 #'
-#' Dominance analysis is a method for determining the relative importance of
-#' inputs (i.e., independent variables, predictors, features,
-#' parameter estimates) to a predictive model that evaluates how a returned
-#' value, such as a model fit metric or statistic, is associated with each
-#' input. It is also a common, and generally well accepted, method for
-#' determining the relative importance of inputs to predictive models that
-#' is effective at separating the effects of correlated inputs.
+#' Dominance analysis resolves the indeterminancy of ascribing
+#' the value returned by a predictive modeling function to inputs/names when
+#' it is not possible to do so analytically. The most common use case for the
+#' application of dominance analysis is in comparing inputs/names in terms of
+#' their contribution to a predictive model's fit statistic or metric.
+#'
+#' Dominance analysis is a common, and generally well accepted, method for
+#' determining the relative importance of inputs/names that is, in part,
+#' a conceptual extension of the well-known Shapley value
+#' decomposition (e.g., Grömping, 2007; Lipovetsky & Conklin, 2001).
 #'
 #' @references
 #' \itemize{

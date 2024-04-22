@@ -2,7 +2,7 @@
 % Please edit documentation in R/dominance_internals.r
 \name{dominance_scalar}
 \alias{dominance_scalar}
-\title{Scalar-returning internal dominance analysis meta-function}
+\title{Dominance analysis meta-function that returns scalar}
 \usage{
 dominance_scalar(
   function2call,

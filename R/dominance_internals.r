@@ -1,4 +1,4 @@
-#' @title Scalar-returning internal dominance analysis meta-function
+#' @title Dominance analysis meta-function that returns scalar
 #' @description Internal dominance analysis computation function assuming scalar
 #' or vector of length 1 returned value.
 #'
@@ -129,7 +129,6 @@ dominance_scalar <-
       conditional_dominance <- NULL
     }
     # obtain complete dominance statistics ----
-    ## TODO: redesign cpt dom to capture %of models as statistic ----
     if (do_cpt) {
       # allocate complete dominance container matrix
       complete_dominance <- matrix(nrow = name_count, ncol = name_count)
@@ -233,7 +232,7 @@ dominance_scalar <-
     } else {
       general_dominance <- rowMeans(conditional_dominance)
     }
-    # Obtain overall fit statistic and ranks ----
+    # obtain overall fit statistic and ranks ----
     # replace result adjustment for overall value
     value <- sum(general_dominance) + result_adjustment
     # compute ranks; reverse if '.rev'
@@ -242,7 +241,7 @@ dominance_scalar <-
     } else {
       gnrl_ranks <- rank(general_dominance)
     }
-    # Finalize returned values and attributes ----
+    # finalize returned values and attributes ----
     list(
       General_Dominance = general_dominance,
       General_Dominance_Ranks = gnrl_ranks,

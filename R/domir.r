@@ -39,8 +39,7 @@
 #'
 #' @param .cdl Logical.
 #'
-#' If `FALSE` then conditional dominance matrix is not computed and
-#' method to produce general dominance statistics changes.
+#' If `FALSE` then conditional dominance matrix is not computed.
 #'
 #' @param .cpt Logical.
 #'
@@ -74,9 +73,9 @@
 #'  \item{`Conditional_Dominance`}{Matrix of conditional dominance values.
 #'  Each row represents an element in `.obj`;
 #'  each column represents a number of elements from `.obj` in a subset.}
-#'  \item{`Complete_Dominance`}{Matrix of proportions of subsets where the 
+#'  \item{`Complete_Dominance`}{Matrix of proportions of subsets where the
 #'  name in the row has a larger value than the name in the column.
-#'  The se proportions determine complete dominance when a value of 
+#'  The se proportions determine complete dominance when a value of
 #'  1 or 0.}
 #'  \item{`Value`}{Value returned by `.fct` with all elements (i.e.,
 #'  from `.obj`, `.all`, and `.adj`.}
@@ -139,7 +138,7 @@
 #' `.set` binds together value-generating names such that
 #' they are of equal priority and are never separated when submitted to
 #' `.fct`.
-#' Thus, the elements in `.obj` bound together contribute jointly to the
+#' Thus, the elements in `.set` bound together contribute jointly to the
 #' returned value and are considered, effectively, a single
 #' value-generating name.
 #'
@@ -161,7 +160,8 @@
 #' together in `.all` is returned separately from, and not directly
 #' compared to, the other value-generating names.
 #'
-#' The `formula` method for `.all` does not allow a left hand side.
+#' The `formula` method for `.all` does not allowthe submitted formula to have
+#' a left hand side.
 #'
 #' `.all` includes the value-generating names in 'all subsets' submitted to
 #' the dominance analysis which effectively removes the value associated with
@@ -172,54 +172,50 @@
 #' `.adj` indicates that an intercept-only model should be supplied to `.fct`.
 #' This intercept-only subset is given most immediate priority and the
 #' value of `.fct` ascribed to it is removed from all other
-#' value-generating names and groups including those in `.all`.
+#' value-generating names and sets including those in `.all`.
 #'
 #' The `formula` method will submit an intercept-only formula to `.fct`.
 #' The `formula_list` method creates a separate, intercept-only subset for each
 #' of the `formula`s in the list.
 #' Both the `formula` and `formula_list` methods will respect the user's
 #' removal of an intercept and or inclusion of an `offset`.
-#' `offset`s will automatically be included in the submission to `.fct`.
 #'
 #' `.adj` then 'adjusts' the returned value for a non-0 value-returning
-#' null model when no value generating names are included.
+#' null model when no value generating names are included. This is often
+#' useful when a predictive model's fit metric is not 0 when no
+#' predictive factors are included in the model.
 #'
 #' ### Additional Details
 #'
-#' All methods submit combinations of subsets of names as an
-#' object of the same class as `.obj`.
-#' A `formula` in `.obj` will submit all combinations of subsets of names
-#' as `formula`s to `.fct`.
-#' A `formula_list` in `.obj` will submit all combinations of subsets of names
-#' as `formula_list`s to `.fct`.
-#' In the case that `.fct` requires a different `class` (i.e.,
-#' a vector of names, a [`Formula::Formula`] see [`fmllst2Fml`]) the
-#' subsets of names will have to be processed in `.fct` to
-#' obtain the correct `class`.
+#' All methods submit combinations of names as an object of the same class as
+#' `.obj`. A `formula` in `.obj` will submit all combinations of names as
+#' `formula`s to `.fct`. A `formula_list` in `.obj` will submit all
+#' combinations of subsets of names as `formula_list`s to `.fct`.
+#' In the case that `.fct` requires a different `class` (e.g.,
+#' a character vector of names, a [`Formula::Formula`] see [`fmllst2Fml`]) the
+#' subsets of names will have to be processed in `.fct` to obtain the correct
+#' `class`.
 #'
 #' The all subsets of names will be submitted to `.fct` as the first, unnamed
 #' argument.
 #'
 #' ## `.fct` as Analysis Pipeline
 #'
-#' The function `sapply`-ed and to which the combinations of subsets of
-#' names will be applied.
-#'
 #' `.fct` is expected to be a complete analysis pipeline that receives a
-#' subset of names of the same `class` as `.obj`, uses the names in the
+#' subset of names of the same `class` as `.obj` and uses these names in the
 #' `class` as submitted to generate a returned value of the appropriate
-#' type to dominance analyze. Typically, this returned value is a
-#' fit statistic extracted from a predictive model.
+#' type to dominance analyze. Typically, the returned value is a
+#' scalar fit statistic/metric extracted from a predictive model.
 #'
 #' At current, only atomic (i.e., non-`list`), numeric scalars (i.e.,
 #' vectors of length 1) are allowed as returned values.
 #'
 #' The `.fct` argument is strict about names submitted and returned value
-#' requirements for functions used and applies a series of checks to
-#' ensure the submitted names and returned value adhere to these requirements.
+#' requirements for functions used. A series of checks to ensure the submitted
+#' names and returned value adhere to these requirements.
 #' The checks include whether the `.obj` can be submitted to `.fct` without
-#' producing an error and whether the
-#' returned value from `.fct` is a length 1, atomic, numeric vector.
+#' producing an error and whether the returned value from `.fct` is a length 1,
+#' atomic, numeric vector.
 #' In most circumstances, the user will have to make their own named or
 #' anonymous function to supply as `.fct` to satisfy the checks.
 #'
@@ -234,7 +230,7 @@
 #' intercept is defunct.
 #'
 #' The `formula` and `formula_list` methods can be used to pass responses,
-#' intercepts, and `offset`s to all combinations of subsets of names.
+#' intercepts, and `offset`s to all combinations of names.
 #' If the user seeks to include other model components integral to
 #' estimation
 #' (i.e., a random effect term in [`lme4::glmer()`]) include them as
@@ -292,8 +288,10 @@
 #'   lm_r2,
 #'   data = mtcars,
 #'   .set =
-#'     list( trns = ~ am + gear,
-#'           eng = ~ cyl + vs, misc = ~ qsec + drat
+#'     list( 
+#'       trns = ~ am + gear,
+#'       eng = ~ cyl + vs, 
+#'       misc = ~ qsec + drat
 #'     )
 #' )
 #'
@@ -346,15 +344,15 @@ domir.formula <- function(
   if (length(fml_parsed$rhs_names) == 0)
     stop("The formula in '.obj' must have one or more terms.", call. = FALSE)
   # create logical vector to assist removing names;
-  # used to eliminate names used in '.all' and '.set' from the 
+  # used to eliminate names used in '.all' and '.set' from the
   # overall list; initialized as 'don't remove'/FALSE
   rmv_frm_subst <- rep(FALSE, times = length(fml_parsed$rhs_names))
   # confirm .fct works as applied to .obj;
-  # this function returns the value for all names included in 
+  # this function returns the value for all names included in
   # value generating function
   full_model <- function_checker(.obj, .fct, ...)
   # create vector of 'select_lgl' locations;
-  # used as a convenience to select elements from this list that 
+  # used as a convenience to select elements from this list that
   # can contain 1 or more 'select_lgl' locations
   selector_locations <- lapply(which(!fml_parsed$select_lgl), invisible)
   # estimate '.adj' value ----
@@ -375,7 +373,7 @@ domir.formula <- function(
   # apply labels to '.set'
   set_labels <- set_labeller(.set, fml_parsed$rhs_names)
   # subset adjustment and check ----
-  # use name removal list to pare down selector_location list; 
+  # use name removal list to pare down selector_location list;
   # add '.set's as selector locations
   if (!is.null(selector_locations_sets) || !is.null(all_model)) {
     selector_locations <- selector_locations[!rmv_frm_subst]
@@ -392,12 +390,12 @@ domir.formula <- function(
              fml_parsed, .fct,
              RHS,
              args_2_fct, ...) {
-      # indicate which names have been selected for inclusion 
+      # indicate which names have been selected for inclusion
       # by 'Selector_lgl' implemented/passed by `dominance_scalar()`
       for (elem in RHS[Selector_lgl]) {
         fml_parsed$select_lgl[elem] <- TRUE
       }
-      # reconstruct the formula with selected names for application to 
+      # reconstruct the formula with selected names for application to
       # value generating function
       fml <-
         stats::reformulate(
@@ -406,7 +404,7 @@ domir.formula <- function(
           intercept = fml_parsed$intercept_lgl
         )
       # submit formula_list to '.fct'
-        do.call(.fct, append(list(fml), args_2_fct))
+      do.call(.fct, append(list(fml), args_2_fct))
     }
   # define arguments to `dominance_scalar` ----
   args_list <-
@@ -433,7 +431,7 @@ domir.formula <- function(
   if (.cdl) {
     dimnames(return_list$Conditional_Dominance) <-
       list(names(return_list$General_Dominance),
-           paste0("subset_size_", 
+           paste0("include_at_",
                   seq_len(length(return_list$General_Dominance))))
   }
   if (.cpt) {
@@ -481,8 +479,8 @@ domir.formula_list <- function(
     .set = NULL, .wst = NULL, .all = NULL, .adj = FALSE,
     .cdl = TRUE, .cpt = TRUE, .rev = FALSE,
     .cst = NULL, .prg = FALSE, ...) {
-  # !! documentation for this function only focuses on key differences 
-  # from 'formula'-based domir; most differences are in applying same 
+  # !! documentation for this function only focuses on key differences
+  # from 'formula'-based domir; most differences are in applying same
   # processes to a list of formulas as opposed to an individual formula !!
   # check domir arguments ----
   domir_args(.wst, .rev, .cpt, .cdl, .prg, .cst)
@@ -586,7 +584,7 @@ domir.formula_list <- function(
         }
       }
       # reconstruct the selected formula_list
-      # Note the extra condition in case one formula is empty in a 
+      # Note the extra condition in case one formula is empty in a
       # specific subset
       fml_lst <-
         lapply(
@@ -634,7 +632,7 @@ domir.formula_list <- function(
   if (.cdl)
     dimnames(return_list$Conditional_Dominance) <-
     list(names(return_list$General_Dominance),
-         paste0("subset_size_", seq_len(length(return_list$General_Dominance))))
+         paste0("include_at_", seq_len(length(return_list$General_Dominance))))
   if (.cpt)
     dimnames(return_list$Complete_Dominance) <-
     list(paste0(names(return_list$General_Dominance), "_>"),
@@ -685,7 +683,15 @@ domir.formula_list <- function(
 formula_parse <- function(.obj) {
   if (is.null(.obj)) return(NULL)
   # obtain 'right hand side'/RHS name vector from `.obj`
-  rhs_names <- attr(stats::terms(.obj), "term.labels")
+  rhs_names <- 
+    tryCatch(
+      attr(stats::terms(.obj), "term.labels"),
+      error = function(err) {
+        # avoids cryptic error
+        stop(deparse(.obj), " is an invalid formula.", call. = FALSE
+        )
+      }
+    )
   # intercept logical - confirms inclusion of intercept
   intercept_lgl <- as.logical(attr(stats::terms(.obj), "intercept"))
   # obtain offsets
@@ -745,6 +751,14 @@ est_adj_model <- function(fml_prs, .fct, .adj, .sty, ...) {
   if (!is.logical(.adj) || (length(.adj) > 1))
     stop("'.adj' argument must be logical of length 1.", call. = FALSE)
   if (!.adj) return(NULL)
+  need_inter <-
+    switch(
+      .sty,
+      formula = !fml_prs$intercept,
+      formula_list = !all(sapply(fml_prs, function(elem) elem$intercept))
+    )
+  if (need_inter) 
+    stop("'.adj' cannot be estimated with removed intercepts.", call. = FALSE)
   adj_fml <-
     switch(
       .sty,
@@ -755,7 +769,7 @@ est_adj_model <- function(fml_prs, .fct, .adj, .sty, ...) {
           intercept = fml_prs$intercept_lgl
         ),
       formula_list =
-        (\() {
+        ( function() {
           adj_fml_lst <-
             lapply(
               fml_prs,
@@ -778,10 +792,20 @@ est_all_model <-
   function(fml_prs, .fct, .all, .sty, lhs_rhs, sel_loc, ...) {
     if (is.null(.all)) return(NULL)
     all_prs <-
-      switch( # check for valid lists and formulas before - currently is later
+      switch(
         .sty,
-        formula = formula_parse(.all),
-        formula_list = lapply(.all, formula_parse)
+        formula = 
+          ( function() {
+            if (!inherits(.all, "formula"))
+              stop("'.all' must be a 'formula'.", call. = FALSE)
+            formula_parse(.all)
+          })(),
+        formula_list = 
+          ( function() {
+            if (!inherits(.all, "formula_list"))
+              stop("'.all' must be a 'formula_list'.", call. = FALSE)
+            lapply(.all, formula_parse)
+          })()
       )
     chk_all_fml <-
       function(.all, .sty) {
@@ -801,18 +825,8 @@ est_all_model <-
       }
     switch(
       .sty,
-      formula =
-        (\() {
-          if (!inherits(.all, "formula"))
-            stop("'.all' must be a 'formula'.", call. = FALSE)
-          chk_all_fml(all_prs, "formula")
-        })(),
-      formula_list =
-        (\() {
-          if (!inherits(.all, "formula_list"))
-            stop("'.all' must be a 'formula_list'.", call. = FALSE)
-          lapply(all_prs, chk_all_fml, "formula_list")
-        })()
+      formula =  chk_all_fml(all_prs, "formula"),
+      formula_list = lapply(all_prs, chk_all_fml, "formula_list")
     )
     # names in '.all' are in '.obj' check
     valid_all_lgl <-
@@ -820,7 +834,7 @@ est_all_model <-
         .sty,
         formula = all_prs$rhs_names %in% fml_prs$rhs_names,
         formula_list =
-          (\() {
+          ( function() {
             all_pairs <-
               lapply(
                 all_prs,
@@ -835,7 +849,7 @@ est_all_model <-
           .sty,
           formula = paste(all_prs$rhs_names[!valid_all_lgl], collapse = " "),
           formula_list =
-            (\() {
+            ( function() {
               all_pairs <-
                 lapply(
                   all_prs,
@@ -856,7 +870,7 @@ est_all_model <-
             response = fml_prs$lhs_names,
             intercept = fml_prs$intercept_lgl),
         formula_list =
-          (\() {
+          ( function() {
             adj_fml_prs <- fml_prs
             all_pairs <-
               lapply(
@@ -869,7 +883,7 @@ est_all_model <-
             all_fml_lst <-
               lapply(
                 adj_fml_prs,
-                \(fml) {
+                function(fml) {
                   if (any(fml$select_lgl)) {
                     stats::reformulate(
                       c(fml$rhs_names[fml$select_lgl], fml$offset),
@@ -893,12 +907,31 @@ est_all_model <-
 # process sets ----
 proc_set_fml <- function(fml_prs, .set, .sty, lhs_rhs) {
   if (is.null(.set)) return(NULL)
+  # check '.set' is a list
+  if (!is.list(.set)) 
+    stop("'.set' must be a list.", call. = FALSE)
+  # check '.set' is not an empty list
+  if (length(.set) == 0) 
+    stop("'.set' is empty.", call. = FALSE)
   # obtain RHS, LHS, intercept, and offsets from '.set's
   sets_prs <-
     switch(
       .sty,
       formula = lapply(.set, formula_parse),
-      formula_list = lapply(.set, function(elem) lapply(elem, formula_parse))
+      formula_list = 
+        lapply(
+          .set, 
+          function(elem) {
+            # enforce each element being 'formula_list'
+            if (!inherits(elem, "formula_list")) 
+              stop("Each element in '.set' must be a 'formula_list'.", 
+                   call. = FALSE)
+            # avoids cryptic error
+            if (length(elem) == 0) 
+              stop("Each element in '.set' must be non-empty.", call. = FALSE)
+            lapply(elem, formula_parse)
+          }
+        )
     )
   # '.set' must be list
   chk_set_fml <- function(sets_prs, fml_prs) { # consider unifying checks for '.all' and '.set' formulas
@@ -947,7 +980,7 @@ proc_set_fml <- function(fml_prs, .set, .sty, lhs_rhs) {
     .sty,
     formula = chk_set_fml(sets_prs),
     formula_list =
-      (\() {
+      ( function() {
         if (!is.list(.set)) stop("'.set' must be a 'list'.", call. = FALSE)
         lapply(sets_prs, chk_set_fml)
       })()
@@ -971,7 +1004,7 @@ proc_set_fml <- function(fml_prs, .set, .sty, lhs_rhs) {
       .sty,
       formula =
         lapply(
-          seq_len(length(sets_prs)), 
+          seq_len(length(sets_prs)),
           mk_nm_mat,
           lst = sets_prs, sty = "formula"
         ),
@@ -1008,7 +1041,7 @@ proc_set_fml <- function(fml_prs, .set, .sty, lhs_rhs) {
       .sty,
       formula =
         lapply(
-          sets_prs, 
+          sets_prs,
           function(elem, rhs) elem$rhs_names %in% rhs,
           rhs = fml_prs$rhs_names
         ),
@@ -1172,7 +1205,7 @@ print.domir <- function(x, ...) {
   if (length(x[["Conditional_Dominance"]] > 0)) {
     cat("Conditional Dominance Values:\n")
     colnames(x[["Conditional_Dominance"]]) <-
-      paste("Subset Size:", seq_len(ncol(x[["Conditional_Dominance"]])))
+      paste("Include At:", seq_len(ncol(x[["Conditional_Dominance"]])))
     print(x[["Conditional_Dominance"]], ...)
     cat("\n")
   }

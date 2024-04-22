@@ -13,11 +13,13 @@ formula_list(...)
 A \code{list} of class \code{formula_list}.
 }
 \description{
-Defines a list object class composed of \code{formula} objects that
-is used to obtain RHS-LHS pairs in its \code{\link{domir}} S3 method.
+Defines a list object composed of \code{formula}s. The purpose of this
+class of object is to impose structure of the list to ensure that it
+can be used to obtain RHS-LHS pairs and will be able to be
+parsed in \code{\link{domir}}.
 }
 \details{
-All \code{formula_list}s enforce requirements that the list are composed of
-individual \code{formula}s and that each formula is unique with its own,
-different, non-\code{NULL} dependent variable/response.
+The \code{formula_list} requires that each element of the list is a \code{formula}
+and that each \code{formula} is unique with a different, non-\code{NULL}
+dependent variable/response.
 }

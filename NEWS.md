@@ -9,7 +9,7 @@
 -   `offset()`s now allowed with `formula` method
 -   `formula` input with `.adj` defunct
 -   Better handing of errors returned by '.fct'. Reports the specific error that resulted.
--   New `pkgdown`-based GitHub page.
+-   New `pkgdown`-based GitHub page with extra visual design features.
 
 ## internal
 

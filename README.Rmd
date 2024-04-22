@@ -3,6 +3,8 @@ title: Tools to Support Relative Importance Analysis
 output: github_document
 ---
 
+# domir <img src="man/figures/logo.png" align="right" height="139"/>
+
 [![Stable version](http://www.r-pkg.org/badges/version-last-release/domir)](https://cran.r-project.org/package=domir) [![downloads](http://cranlogs.r-pkg.org/badges/grand-total/domir)](https://cran.r-project.org/package=domir)
 
 ```{r setup, include = FALSE}
@@ -11,39 +13,29 @@ devtools::load_all()
 
 # Overview
 
-The `{domir}` package supports the determination of the relative importance of the inputs (i.e., independent variables, predictors, or features) in a user's statistical or machine learning model. The methodology used by `{domir}` is called *Dominance Analysis* which is based on a series of pairwise comparisons between the model fit values ascribed to elements in the model including comparing [*Shapley values*](https://en.wikipedia.org/wiki/Shapley_value).
+The **domir** package supports determining the relative importance of inputs (i.e., independent variables, predictors, or features referred to as *names* in the package) in a user's statistical or machine learning model.
 
-The intention of this package is to provide a flexible user interface to dominance analysis---a relatively assumption-free methodology for comparing the value of model inputs to prediction. The user interface is structured such that `{domir}` automates the decomposition of the returned value and comparisons between model inputs and the user provides the model inputs, the predictive model into which they are entered, and returned value from the model to decompose.
+The intention of this package is to provide a flexible user interface to *Dominance Analysis*---a relatively assumption-free methodology for comparing the predictive value, usefulness, or importance associated with of model inputs/names.
+
+Dominance analysis resolves the indeterminancy of ascribing the value returned by a predictive modeling function to inputs/names when it is not possible to do so analytically. The most common use case for the application of dominance analysis is in comparing inputs/names in terms of their contribution to a predictive model's fit statistic or metric.
 
 # Installation
 
-To install the most recent version of `{domir}` from CRAN use:
+To install the most recent version of **domir** from CRAN use:
 
 `install.packages("domir")`
 
-`{domir}` is also used as the computational engine underlying the [`dominance_analysis()`](https://easystats.github.io/parameters/reference/dominance_analysis.html) function for the [{parameters}](https://easystats.github.io/parameters/) package from the `{easystats}` collection. 
+**domir** is also used as the computational engine underlying the [`dominance_analysis()`](https://easystats.github.io/parameters/reference/dominance_analysis.html) function for the [**parameters**](https://easystats.github.io/parameters/) package in the [**easystats**](https://easystats.github.io/easystats/) framework/collection.
 
-# What `{domir}` Does
+# What **domir** Does
 
-The primary dominance analysis function `domir` implements the most computationally intensive and programming heavy parts of dominance analysis for the user and has relatively few requirements on the predictive modeling functions with which it can work.
-
-The flexibility of `domir` comes at the cost of more complexity for the user in terms of setting up a function that accepts the type of input `domir` will provide (currently only a 'formula') and and expects to receive (currently only a numeric scalar).
-
-Below these ideas are outlined in greater detail in the context of a few examples. The next section begins the discussion with a more extensive comparison of `domir` with packages that implement similar methods.
-
-## Comparison with Existing Relative Importance Packages
-
-The `domir` function implements the same method as the "lmg" type for the `calc.relimpo` function in the `{relaimpo}` package. `domir` can replicate the results produced by both the above package but, as will be seen, requires more user input.
-
-To illustrate these points, consider the following example linear regression on which all three of the dominance analysis results to come are based:
+`domir` computes three different sets of results based on a set of inputs/names and the values returned from a function like this linear regression model.
 
 `lm(mpg ~ am + vs + cyl, data = mtcars)`
 
-Classic dominance analysis uses the variance explained $R^2$ as fit statistic (i.e., as implemented by `lm`'s `summary` method) and so will this example.
+Using the variance explained $R^2$ as fit statistic as implemented by `lm`'s `summary` method as the returned value, `domir` can implement a 'classic' dominance analysis[^1] as:
 
-### `{domir}`'s `domir`
-
-Implementing a 'classic' dominance analysis on this linear regression in `domir` can be inputted as:
+[^1]: see this [vignette](https://CRAN.R-project.org/package=domir/vignettes/domir_basics.html) for a conceptual discussion of dominance analysis
 
 ```{r init_domin}
 lm_wrapper <-       
@@ -56,43 +48,38 @@ lm_wrapper <-
 domir(mpg ~ am + vs + cyl, lm_wrapper, data = mtcars)
 ```
 
-In `domir`, the `lm` model is not submitted directly. Rather, it is wrapped into a function (i.e., `lm_wrapper`) that, in this case, accepts two arguments; *formula* or an R formula and *data* a data frame in which the independent variables in the formula are present. The result of the `lm` submitted into the `summary` function and the result is then filtered to just the **r.squared** element and returned.
+`domir` requires the set of inputs/names, submitted as a `formula` or a specialized [`formula_list`](https://jluchman.github.io/domir/reference/formula_list.html) object, and a function that accepts the input/names and returns a single, numeric value.
 
-What `domir` does automate taking subsets of the *formula* and submit them, repeatedly until all possible subsets have been submitted, to `lm_wrapper` (see this [vignette](https://CRAN.R-project.org/package=domir/vignettes/domir_basics.html) for a conceptual discussion of dominance analysis). In this way, `domir` is a `Map`- or `lapply`-like function as it receives an object on which to operate (i.e., the *formula*) and a function to which to apply to it. `domir` expects a numeric scalar to be returned from the function.
+Note the use of a wrapper function, `lm_wrapper`, that accepts a `formula` and returns the $R^2$. These 'analysis pipeline' wrapper functions are necessary for the effective use of `domir` and underlies the package's flexibility.
 
-Like `lapply`, other arguments (`data = mtcars`) can also be passed to each call of the function and must be explicitly built into the wrapper function.
+`domir` by default reports on complete dominance proportions, conditional dominance values, and general dominance values.
 
-What is important to note about `domir` that differs from other dominance analysis-oriented functions discussed below is that `domir` expects that the user will supply the analysis pipeline linking the *formula* it passes to the numeric scalar value that it expects. This 'supply the pipeline' approach makes `domir` far more flexible than other implementations but does require the user to think more carefully about how to structure the pipeline.
+Complete dominance proportions are the proportion of subsets of inputs/names where the name in the row obtains a bigger value than the name in the column.
 
-Note that the focus of `domir`'s `print`-ed results focuses on the numerical results from "General Dominance Values" and "Conditional Dominance Values" and, a logical matrix of "Complete Dominance Designations".
+Conditional dominance values are the average value associated with the name when included sequentially at each possible position in the sequence of name slots.
 
-See also the (now superseded) `domir::domin` function for another approach to structuring the input pipeline for dominance analysis.
+General dominance values are the average value associated with the name across all possible ways of including the name in the sequence of all names. These values are also equivalent to the [Shapley Value](https://en.wikipedia.org/wiki/Shapley_value) for each name.
 
-### `{relaimpo}`'s `calc.relimp` with `type = "lmg"`
+# Comparison with Existing Relative Importance Packages
 
-`{relaimpo}` is not a dominance analysis software but does produce general dominance value decomposition for linear regression using the explained variance $R^2$ in the `calc.relimp` function with the argument `type = "lmg"`.
+Several other relative importance packages can produce results identical to `domir` under specific circumstances. I will focus on discussing two of the most directly re
+
+The `calc.relimpo` function in the **relaimpo** package with `type = "lmg"` produces the general dominance values for `lm` as in the example below:
 
 ```{r init_relaimpo}
 relaimpo::calc.relimp(mpg ~ am + vs + cyl, data = mtcars, type = "lmg")
 ```
 
-`calc.relimp` has a similar to structure to that of `domir` but does not require a pipeline function. This is because `{relaimpo}` is specialized and works only with `lm` models and the variance explained $R^2$ as a fit statistic. `calc.relimp` also allows for multiple methods of submitting (i.e., correlation matrices, fitted `lm` object, a `data.frame`) given that it always implements the same model.
+**relaimpo** is for importance analysis with linear regression with variance explained $R^2$ as a fit statistic and is optimized to analyze that model-fit statistic pairing across multiple ways of submitting data (i.e., correlation matrices, fitted `lm` object, a `data.frame`).
 
-`calc.relimp`'s printed results provide relative importance metric values that match those obtained from `domir` (i.e., the general dominance values). In addition, `calc.relimp` reports the average `lm` coefficients across numbers of independent variables/$X$s in a way similar to the conditional dominance values reported by `domir`---an additional and useful result to show the impact of inclusion of different numbers of independent variables on obtained coefficients/predicted values.
-
-Again, note that `{relaimpo}` is not dominance analysis-oriented and does not report on dominance designations or dominance values other than the general dominance values.
-
-## `{dominanceanalysis}`'s `dominanceAnalysis`
-
-`dominanceAnalysis` is, like `domir`, focused on dominance analysis but uses S3 methods focused on model types to implement similar to how `parameters::dominance_analysis` works.
+The `dominanceAnalysis` function in **dominanceAnalysis** produces many of the same statistics as `domir` as in the example below:
 
 ```{r init_da}
 dominanceanalysis::dominanceAnalysis(lm(mpg ~ am + vs + cyl, data = mtcars))
 ```
 
-Note that `dominanceAnalysis` takes an `lm` object and can accommodate several others as well as a covariance matrix.
-`dominanceanalysis` focus is more on dominance designations (like those offered in the `summary()` method for a `domir` object) and does not provide all statistics in its `print` method by default (which are available in the `dominanceAnalysis` object with accessor functions like `contributionByLevel`).
+**dominanceAnalysis** is for the relative importance of specific model-fit statistic pairs as it is implemented using S3 methods focused on model types to implement similar to how `parameters::dominance_analysis` works but using a custom implementation not dependent on the **insight** package to parse model components and implement the methodology.
 
 # Further Examples
 
-Further examples of `domir`s functionality will be populated on the [`{domir}` wiki](https://github.com/jluchman/domir/wiki).
+Further examples of `domir`s functionality will be populated on the [**domir** wiki](https://github.com/jluchman/domir/wiki).

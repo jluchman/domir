@@ -37,7 +37,7 @@ cyl_c <- c(cyl_mgn[[1]], mean(cyl_mgn[2:3]), cyl_mgn[[4]])
 set_c <- c(set_mgn[[1]], mean(set_mgn[2:3]), set_mgn[[4]])
 
 cdl_names <- list(c("vs", "cyl", "set1"), paste0("IVs_", 1:3))
-cdl_names_new <- list(c("vs", "cyl", "set1"), paste0("subset_size_", 1:3))
+cdl_names_new <- list(c("vs", "cyl", "set1"), paste0("include_at_", 1:3))
 
 cdl_test <- matrix(c(vs_c, cyl_c, set_c), nrow = 3, ncol = 3, 
                    byrow = TRUE, dimnames = cdl_names)
@@ -101,7 +101,7 @@ carb_c2 <- c(carb_mgn2[[1]] - all_test, mean(carb_mgn2[2:3]), carb_mgn2[[4]])
 
 cdl_names2 <- list(c("vs", "cyl", "carb"), paste0("IVs_", 1:3))
 
-cdl_names2_new <- list(c("vs", "cyl", "carb"), paste0("subset_size_", 1:3))
+cdl_names2_new <- list(c("vs", "cyl", "carb"), paste0("include_at_", 1:3))
 
 cdl_test2 <- matrix(c(vs_c2, cyl_c2, carb_c2), nrow = 3, ncol = 3, 
                    byrow = TRUE, dimnames = cdl_names2)
@@ -195,7 +195,7 @@ cyl_cns_c <- c(cyl_cns_mgn[[1]], mean(cyl_cns_mgn[2:3]), cyl_cns_mgn[[4]])
 carb_cns_c <- c(carb_cns_mgn[[1]], mean(carb_cns_mgn[2:3]), carb_cns_mgn[[4]])
 
 cdl_cns_names <- list(c("vs", "cyl", "carb"), paste0("IVs_", 1:3))
-cdl_cns_names_new <- list(c("vs", "cyl", "carb"), paste0("subset_size_", 1:3))
+cdl_cns_names_new <- list(c("vs", "cyl", "carb"), paste0("include_at_", 1:3))
 
 cdl_cns_test <- matrix(c(vs_cns_c, cyl_cns_c, carb_cns_c), nrow = 3, ncol = 3, 
                    byrow = TRUE, dimnames = cdl_cns_names)
@@ -426,7 +426,7 @@ vsdrat_fl_c <- c(vsdrat_fl_mgn[[1]] - all_val, mean(vsdrat_fl_mgn[2:3]), vsdrat_
 cylhp_fl_c <- c(cylhp_fl_mgn[[1]] - all_val, mean(cylhp_fl_mgn[2:3]), cylhp_fl_mgn[[4]])
 carbi_fl_c <- c(carbi_fl_mgn[[1]] - all_val, mean(carbi_fl_mgn[2:3]), carbi_fl_mgn[[4]])
 
-cdl_fl_names_set <- list(c("infert~carb", "set1", "set2"), paste0("subset_size_", 1:3))
+cdl_fl_names_set <- list(c("infert~carb", "set1", "set2"), paste0("include_at_", 1:3))
 
 cdl_fl_test_set <- matrix(c(carbi_fl_c, vsdrat_fl_c, cylhp_fl_c), nrow = 3, ncol = 3, 
                           byrow = TRUE, dimnames = cdl_fl_names_set)

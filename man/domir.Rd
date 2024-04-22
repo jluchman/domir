@@ -75,8 +75,7 @@ subsets in the dominance analysis.}
 
 \item{.cdl}{Logical.
 
-If \code{FALSE} then conditional dominance matrix is not computed and
-method to produce general dominance statistics changes.}
+If \code{FALSE} then conditional dominance matrix is not computed.}
 
 \item{.cpt}{Logical.
 
@@ -182,7 +181,7 @@ Names in \code{.set} and \code{.all} must also be present in \code{.obj}.
 \code{.set} binds together value-generating names such that
 they are of equal priority and are never separated when submitted to
 \code{.fct}.
-Thus, the elements in \code{.obj} bound together contribute jointly to the
+Thus, the elements in \code{.set} bound together contribute jointly to the
 returned value and are considered, effectively, a single
 value-generating name.
 
@@ -205,7 +204,8 @@ The value of \code{.fct} ascribed to the value-generating names bound
 together in \code{.all} is returned separately from, and not directly
 compared to, the other value-generating names.
 
-The \code{formula} method for \code{.all} does not allow a left hand side.
+The \code{formula} method for \code{.all} does not allowthe submitted formula to have
+a left hand side.
 
 \code{.all} includes the value-generating names in 'all subsets' submitted to
 the dominance analysis which effectively removes the value associated with
@@ -217,27 +217,26 @@ this set of names.
 \code{.adj} indicates that an intercept-only model should be supplied to \code{.fct}.
 This intercept-only subset is given most immediate priority and the
 value of \code{.fct} ascribed to it is removed from all other
-value-generating names and groups including those in \code{.all}.
+value-generating names and sets including those in \code{.all}.
 
 The \code{formula} method will submit an intercept-only formula to \code{.fct}.
 The \code{formula_list} method creates a separate, intercept-only subset for each
 of the \code{formula}s in the list.
 Both the \code{formula} and \code{formula_list} methods will respect the user's
 removal of an intercept and or inclusion of an \code{offset}.
-\code{offset}s will automatically be included in the submission to \code{.fct}.
 
 \code{.adj} then 'adjusts' the returned value for a non-0 value-returning
-null model when no value generating names are included.
+null model when no value generating names are included. This is often
+useful when a predictive model's fit metric is not 0 when no
+predictive factors are included in the model.
 }
 
 \subsection{Additional Details}{
 
-All methods submit combinations of subsets of names as an
-object of the same class as \code{.obj}.
-A \code{formula} in \code{.obj} will submit all combinations of subsets of names
-as \code{formula}s to \code{.fct}.
-A \code{formula_list} in \code{.obj} will submit all combinations of subsets of names
-as \code{formula_list}s to \code{.fct}.
+All methods submit combinations of names as an object of the same class as
+\code{.obj}. A \code{formula} in \code{.obj} will submit all combinations of names as
+\code{formula}s to \code{.fct}. A \code{formula_list} in \code{.obj} will submit all
+combinations of subsets of names as \code{formula_list}s to \code{.fct}.
 In the case that \code{.fct} requires a different \code{class} (i.e.,
 a vector of names, a \code{\link[Formula:Formula]{Formula::Formula}} see \code{\link{fmllst2Fml}}) the
 subsets of names will have to be processed in \code{.fct} to

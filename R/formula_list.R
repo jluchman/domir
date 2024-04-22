@@ -3,15 +3,17 @@
 #' @name formula_list
 #'
 #' @description
-#' Defines a list object class composed of `formula` objects that
-#' is used to obtain RHS-LHS pairs in its [`domir`] S3 method.
+#' Defines a list object composed of `formula`s. The purpose of this 
+#' class of object is to impose structure of the list to ensure that it 
+#' can be used to obtain RHS-LHS pairs and will be able to be 
+#' parsed in [`domir`].
 #'
 #' @param ... `formula`s, possibly named
 #'
 #' @details
-#' All `formula_list`s enforce requirements that the list are composed of
-#' individual `formula`s and that each formula is unique with its own,
-#' different, non-`NULL` dependent variable/response.
+#' The `formula_list` requires that each element of the list is a `formula` 
+#' and that each `formula` is unique with a different, non-`NULL` 
+#' dependent variable/response.
 #'
 #' @return A `list` of class `formula_list`.
 #'
@@ -32,11 +34,19 @@ formula_list <- function(...) {
   DV_list <-
     sapply(.obj,
            function(elem) {
-             if (attr(stats::terms(elem), "response")==1)
-               as.list(attr(stats::terms(elem), "variables"))[[
-                 attr(stats::terms(elem), "response")+1
-               ]]
-             else NA
+             tryCatch(
+               ( function() { if (attr(stats::terms(elem), "response")==1)
+                 as.list(attr(stats::terms(elem), "variables"))[[
+                   attr(stats::terms(elem), "response")+1
+                 ]]
+                 else NA
+               })(),
+               error = function(err) {
+                 # avoids cryptic error
+                 stop(deparse(elem), " is an invalid formula.", call. = FALSE
+                 )
+               }
+             )
            }
     )
  
