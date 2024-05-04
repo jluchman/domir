@@ -89,8 +89,9 @@ single, numeric value.
 
 Note the use of a wrapper function, `lm_wrapper`, that accepts a
 `formula` and returns the $R^2$. These ‘analysis pipeline’ wrapper
-functions are necessary for the effective use of `domir` and underlies
-the package’s flexibility.
+functions are necessary for the effective use of `domir` and the ability
+to use them to adapt predictive models to the computational engine used
+by `domir` makes this package able to apply to almost any model.
 
 `domir` by default reports on complete dominance proportions,
 conditional dominance values, and general dominance values.
@@ -112,7 +113,7 @@ Value](https://en.wikipedia.org/wiki/Shapley_value) for each name.
 
 Several other relative importance packages can produce results identical
 to `domir` under specific circumstances. I will focus on discussing two
-of the most directly re
+of the most relevant comparison packages below.
 
 The `calc.relimpo` function in the **relaimpo** package with
 `type = "lmg"` produces the general dominance values for `lm` as in the

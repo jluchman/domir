@@ -237,10 +237,10 @@ All methods submit combinations of names as an object of the same class as
 \code{.obj}. A \code{formula} in \code{.obj} will submit all combinations of names as
 \code{formula}s to \code{.fct}. A \code{formula_list} in \code{.obj} will submit all
 combinations of subsets of names as \code{formula_list}s to \code{.fct}.
-In the case that \code{.fct} requires a different \code{class} (i.e.,
-a vector of names, a \code{\link[Formula:Formula]{Formula::Formula}} see \code{\link{fmllst2Fml}}) the
-subsets of names will have to be processed in \code{.fct} to
-obtain the correct \code{class}.
+In the case that \code{.fct} requires a different \code{class} (e.g.,
+a character vector of names, a \code{\link[Formula:Formula]{Formula::Formula}} see \code{\link{fmllst2Fml}}) the
+subsets of names will have to be processed in \code{.fct} to obtain the correct
+\code{class}.
 
 The all subsets of names will be submitted to \code{.fct} as the first, unnamed
 argument.
@@ -250,24 +250,21 @@ argument.
 
 \subsection{\code{.fct} as Analysis Pipeline}{
 
-The function \code{sapply}-ed and to which the combinations of subsets of
-names will be applied.
-
 \code{.fct} is expected to be a complete analysis pipeline that receives a
-subset of names of the same \code{class} as \code{.obj}, uses the names in the
+subset of names of the same \code{class} as \code{.obj} and uses these names in the
 \code{class} as submitted to generate a returned value of the appropriate
-type to dominance analyze. Typically, this returned value is a
-fit statistic extracted from a predictive model.
+type to dominance analyze. Typically, the returned value is a
+scalar fit statistic/metric extracted from a predictive model.
 
 At current, only atomic (i.e., non-\code{list}), numeric scalars (i.e.,
 vectors of length 1) are allowed as returned values.
 
 The \code{.fct} argument is strict about names submitted and returned value
-requirements for functions used and applies a series of checks to
-ensure the submitted names and returned value adhere to these requirements.
+requirements for functions used. A series of checks to ensure the submitted
+names and returned value adhere to these requirements.
 The checks include whether the \code{.obj} can be submitted to \code{.fct} without
-producing an error and whether the
-returned value from \code{.fct} is a length 1, atomic, numeric vector.
+producing an error and whether the returned value from \code{.fct} is a length 1,
+atomic, numeric vector.
 In most circumstances, the user will have to make their own named or
 anonymous function to supply as \code{.fct} to satisfy the checks.
 }
@@ -282,7 +279,7 @@ logical has been depreciated and submitting a \code{formula} with more than an
 intercept is defunct.
 
 The \code{formula} and \code{formula_list} methods can be used to pass responses,
-intercepts, and \code{offset}s to all combinations of subsets of names.
+intercepts, and \code{offset}s to all combinations of names.
 If the user seeks to include other model components integral to
 estimation
 (i.e., a random effect term in \code{\link[lme4:glmer]{lme4::glmer()}}) include them as
@@ -341,8 +338,10 @@ domir(
   lm_r2,
   data = mtcars,
   .set =
-    list( trns = ~ am + gear,
-          eng = ~ cyl + vs, misc = ~ qsec + drat
+    list( 
+      trns = ~ am + gear,
+      eng = ~ cyl + vs, 
+      misc = ~ qsec + drat
     )
 )
 

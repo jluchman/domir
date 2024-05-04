@@ -50,7 +50,7 @@ domir(mpg ~ am + vs + cyl, lm_wrapper, data = mtcars)
 
 `domir` requires the set of inputs/names, submitted as a `formula` or a specialized [`formula_list`](https://jluchman.github.io/domir/reference/formula_list.html) object, and a function that accepts the input/names and returns a single, numeric value.
 
-Note the use of a wrapper function, `lm_wrapper`, that accepts a `formula` and returns the $R^2$. These 'analysis pipeline' wrapper functions are necessary for the effective use of `domir` and underlies the package's flexibility.
+Note the use of a wrapper function, `lm_wrapper`, that accepts a `formula` and returns the $R^2$. These 'analysis pipeline' wrapper functions are necessary for the effective use of `domir` and the ability to use them to adapt predictive models to the computational engine used by `domir` makes this package able to apply to almost any model.
 
 `domir` by default reports on complete dominance proportions, conditional dominance values, and general dominance values.
 
@@ -62,7 +62,7 @@ General dominance values are the average value associated with the name across a
 
 # Comparison with Existing Relative Importance Packages
 
-Several other relative importance packages can produce results identical to `domir` under specific circumstances. I will focus on discussing two of the most directly re
+Several other relative importance packages can produce results identical to `domir` under specific circumstances. I will focus on discussing two of the most relevant comparison packages below.
 
 The `calc.relimpo` function in the **relaimpo** package with `type = "lmg"` produces the general dominance values for `lm` as in the example below:
 

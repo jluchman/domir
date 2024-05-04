@@ -1,9 +1,9 @@
 ---
 title: "Conceptual Introduction to Dominance Analysis"
-subtitle: "Examples and Implementation with `{domir}`'s `domin`"
+subtitle: "Examples and Implementation with `domir`"
 author: Joseph Luchman
 date: "`r Sys.Date()`"
-toc: 
+bibliography: domir_basics.bib
 output: rmarkdown::html_vignette
 vignette: >
   %\VignetteIndexEntry{Conceptual Introduction to Dominance Analysis}
@@ -11,7 +11,7 @@ vignette: >
   %\VignetteEncoding{UTF-8}
 ---
 
-The purpose of this vignette is to briefly discuss the conceptual underpinnings of the relative importance method implemented in `{domir}` and provide several extensive examples that illustrate these concepts as applied to data.
+The purpose of this vignette is to briefly discuss the conceptual underpinnings of the relative importance method implemented in the **domir** package and provide several extensive examples that illustrate these concepts as applied to data.
 
 This vignette is intended to serve as a refresher for users familiar with these concepts as well as an brief introduction to them for those who are not.
 
@@ -19,30 +19,34 @@ By the end of this vignette, the reader should have a sense for what the key rel
 
 # Conceptual Introduction
 
-The relative importance method implemented in `{domir}` produces results that are relatively easy to interpret but is itself a complex method in terms of implementation.
+The relative importance method implemented in the **domir** package produces results that are relatively easy to interpret but does so in a way that is computationally intensive in as implemented.
 
-The discussion below outlines the conceptual origins of the method, what the relative importance method does, and some details about how the DA method is implemented in `{domir}`.
+The discussion below outlines the conceptual origins of the method, what the relative importance method does, and some details about how the DA method is implemented in the **domir** package.
 
 ## Dominance Analysis
 
-The focus of the `{domir}` package is, currently, on dominance analysis (DA). DA can be thought of as an extension of Shapley value decomposition from Cooperative Game Theory (see Grömping, 2007 for a discussion) which seeks to find a solutions to the problem of how to subdivide payoffs to players in a cooperative game based on their relative contribution to the payoff.
+The focus of the **domir** package is on dominance analysis (DA). DA is a method that resolves the indeterminacy of trying to ascribe a the results from a predictive model's fit metric, referred to as a 'value' in the package, to individual predictive factors (i.e., independent variables/IVs, predictors, features), referred to as 'names' in the package.
 
-This methodology can be applied to predictive modeling in a conceptually straightforward way. Predictive models are, in a sense, a game in which independent variables (IVs)/predictors/features cooperate to produce a payoff in the form of predicting the dependent variable (DV)/outcome/response. The component of the decomposition/the proportion of the payoff ascribed to each IV can then be interpreted as the IVs importance in the context of the model as that is the contribution it makes to predicting the DV.
+A challenge for many predictive models and fit metrics are that there is no way to analytically decompose the fit statistic/metric given correlations between the predictive factors that are naturally present in the data or are introduced by the model. When there is no way to analytically separate the fit statistic to ascribe it to predictive factors, a methodological approach could be applied where values are ascribed by including the factors in the model sequentially. As each predictive factor is included, the change in the fit metric is ascribed to that predictive factor.
 
-In application, DA determines the relative importance of IVs in a predictive model based on each IV's contribution to an overall model fit statistic---a value that describes the entire model's predictions on a dataset at once. DA's goal extends beyond just the decomposition of the focal model fit statistic. In fact, DA produces three different results that it uses to compare the contribution each IV makes in the predictive model against the contributions attributed to each other IV. The use of these three results to compare IVs is the reason DA is an *extension of* Shapley value decomposition. The three different results are discussed in greater detail in the context of an example discussed below after a brief introduction to the `domin` function.
+One issue with the sequential approach is that the sequence chosen to ascribe the fit statistic to predictive factors determines how much of the fit statistic is ascribed to the factor. When the analyst has good reason to choose a specific inclusion order, this approach produces a useful result.
 
-## DA Implementation with `domir::domin`
+Using a single inclusion order can be problematic when there is *not* a good reason to choose one specific inclusion order over another. When the inclusion order is effectively arbitrary, changing the order changes the values ascribed to the predictive factors in ways that have implications on inferences from the model.
 
-The `domin` function[^1] of the `{domir}` package is an API for applying DA to predictive modeling functions in R. The sections below will use this function to illustrate how DA is implemented and discuss conceptual details of each computation.
+A solution to this problem is to consider all possible ways of including the predictive factor. This method for resolving this issue is the approach used by Shapley value decomposition from Cooperative Game Theory (see @gromping2007estimators for a discussion) which seeks to find a solution to the problem of how to subdivide payoffs to players in a cooperative game based on their relative contribution when it is not possible to separate relative contributions analytically.
 
-[^1]: Note that the `domin` function has been superseded by the `domir` function. Despite its programming designation, this vignette's purpose is to illustrate dominance analysis concepts and will use `domin` for this purpose as both functions produce identical results.
+DA uses the idea of comparing across inclusion orders as a methodological, and almost experimental design-like, approach to determining importance. DA also extends on the classic Shapley value decomposition methodology by adding two, more difficult to achieve, importance criteria. All three different importance criteria, known as dominance designations, are discussed in greater detail in the context of an example discussed below after a brief introduction to the `domir` function.
 
-```{r, include = FALSE}
+## DA Implementation with `domir`
+
+The `domir` function is an API for applying DA to predictive modeling functions in R. The sections below will use this function to illustrate how DA is implemented and discuss conceptual details of each computation.
+
+```{r, include = FALSE, results='hide'}
 knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>"
 )
-
+#devtools::load_all()
 library(ggplot2)
 library(dplyr)
 library(purrr)
@@ -53,11 +57,11 @@ library(stringr)
 
 # Concepts in Application
 
-The purpose of the `{domir}` package is to apply DA to predictive models. This section builds on the last by providing an example predictive model with which to illustrate the computation and interpretation of the dominance results produced by DA.
+The purpose of the **domir** package is to apply DA to predictive models. This section builds on the last by providing an example predictive model with which to illustrate the computation and interpretation of the dominance results produced by DA.
 
-DA was developed originally using linear regression (`lm`) with the explained variance $R^2$ metric as a fit statistic (Budescu, 1993). The examples below use this model and fit statistic as both are widely used and understood in statistics and data science.
+DA was developed originally using linear regression (`lm`) with the explained variance $R^2$ metric as a fit statistic [@budescu1993dominance]. The examples below use this model and fit statistic as both are widely used and understood in statistics and data science.
 
-Consider this model using the *mtcars* data in the `{datasets}` package.
+Consider this model using the *mtcars* data in the **datasets** package.
 
 ```{r setup_lm}
 library(datasets)
@@ -70,30 +74,33 @@ summary(lm_cars)
 
 The results show that all three IVs are statistically significant at the traditional level (i.e., $p < .05$) and that, in total, the predictors---*am, cyl*, and *carb*---explain \~80% of the variance in *mpg*.
 
-I intend to conduct a DA on this model using `domir::domin` and implement the DA as follows:
+I intend to conduct a DA on this model using `domir` and implement the DA as follows:
 
 ```{r setup_domir}
 library(domir)
 
-domin(mpg ~ am + cyl + carb, 
-      lm, 
-      list(summary, "r.squared"), 
-      data = mtcars)
+domir(
+  mpg ~ am + cyl + carb, 
+  function(formula) {
+    lm_model <- lm(formula, data = mtcars)
+    summary(lm_model)[["r.squared"]]
+  }
+)
 ```
 
-The `domin` function above prints out results in four sections:
+The `domir` function above prints out results in four sections:
 
 1.  fit statistic results
 2.  general dominance statistics
 3.  conditional dominance statistics
-4.  complete dominance designations
+4.  complete dominance proportions
 
 Below I "replay" and discuss each result in turn.
 
 ## Fit Statistic Results
 
 ```         
-#> Overall Fit Statistic:      0.8113023 
+Overall Value:      0.8113023
 ```
 
 The first result `domin` prints is related to the overall fit statistic value for the model. In game theory terms, this value is the total payoff all players/IVs produced in the cooperative game/model.
@@ -105,11 +112,11 @@ Other fit statistic value adjustments are reported in this section as well in pa
 ## General Dominance Statistics
 
 ```         
-#> General Dominance Statistics:
-#>      General Dominance Standardized Ranks
-#> am           0.2156848    0.2658501     2
-#> cyl          0.4173094    0.5143698     1
-#> carb         0.1783081    0.2197801     3
+General Dominance Values:
+     General Dominance Standardized Ranks
+am           0.2156848    0.2658501     2
+cyl          0.4173094    0.5143698     1
+carb         0.1783081    0.2197801     3
 ```
 
 The second result printed reports the *general dominance statistics* related to how the overall fit statistic's value is divided up among the IVs. These also represent the Shapley value decompositions of the fit statistic showing how each player/IV is ascribed a component of the payoff/fit statistic from the game/model.
@@ -131,40 +138,38 @@ The general dominance statistics, however simple to interpret, are the least str
 ## Conditional Dominance Statistics
 
 ```         
-#> Conditional Dominance Statistics:
-#>         IVs: 1    IVs: 2     IVs: 3
-#> am   0.3597989 0.2164938 0.07076149
-#> cyl  0.7261800 0.4181185 0.10762967
-#> carb 0.3035184 0.1791172 0.05228872
+Conditional Dominance Values:
+     Include At: 1 Include At: 2 Include At: 3
+am       0.3597989     0.2164938    0.07076149
+cyl      0.7261800     0.4181185    0.10762967
+carb     0.3035184     0.1791172    0.05228872
 ```
 
-The third section reported on by `domin` prints the *conditional dominance statistics* associated with each IV. Each IV has a separate conditional dominance statistic related to the number of IVs that are in a sub-model; why this matrix is useful delves into the computation of these statistics which is discussed later. For the time being it suffices to note that, conceptually, these values can be thought of as Shapley values for a specific number of players in the game. Thus, the *IVs: 1* column reports on the value of the fit statistic/payoff when the IV is "playing alone" (i.e., by itself in the model with no other IVs). Similarly, the *IVs: 2* column reports on the average value of the fit statistic/payoff when the IV is "playing with one other" (i.e., with another IV irrespective of which) and so on until the column with all IVs in the model (here *IVs: 3*).
+The third section reported on by `domin` prints the *conditional dominance statistics* associated with each IV. Each IV has a separate conditional dominance statistic related to position at which it is included in the sequence of IVs in the model.
 
-The primary utility of the conditional dominance matrix is that it can be used to designate importance in a way that is more stringent/harder to achieve than the general dominance statistics. Unfortunately, this matrix does not have a ranking like the general dominance statistics and it may not be obvious as to how one might use this matrix for determining importance.
-
-To determine importance, the conditional dominance matrix is used is 'row-wise', comparing the results of an entire row/IV against those of another row/IV. If the value of each entry for a row/IV is greater than the value of another row/IV at the same position (i.e., comparing models with the same number of IVs) than an IV is said to "conditionally dominate" the other IV. The matrix above shows that *am* "is conditionally dominated by" *cyl* as its conditional dominance statistics are smaller than *cyl*'s at positions 1, 2, and 3. Conversely, *am* "conditionally dominates" *carb* as its conditional dominance statistics are greater than *carb*'s at positions 1, 2, and 3.
+The conditional dominance matrix can be used to designate importance in a way that is more stringent/harder to achieve than the general dominance statistics. To determine importance with the conditional dominance matrix each IV is compared to each other in a 'row-wise' fashion. If the value of each entry for a row/IV is greater than the value of another row/IV at the same position (i.e., comparing IVs at the same inclusion position) than an IV is said to "conditionally dominate" the other IV. The matrix above shows that *am* "is conditionally dominated by" *cyl* as its conditional dominance statistics are smaller than *cyl*'s at positions 1, 2, and 3. Conversely, *am* "conditionally dominates" *carb* as its conditional dominance statistics are greater than *carb*'s at positions 1, 2, and 3.
 
 ### Points of Note: Conditional Dominance
 
-Conditional dominance statistics provide more information about each IV than general dominance statistics as they reveal the effect that IV redundancy has on prediction for each IV. To put this a little differently, conditional dominance statistics show more clearly the utility a specific player/IV adds to the payoff/fit metric. As the game/model gets more players/IVs, the contribution any one IV can make becomes more limited. This limiting effect with more IVs is reflected in the trajectory of conditional dominance statistics.
+Conditional dominance statistics provide more information about each IV than general dominance statistics as they more clearly reveal the effect that IV redundancy has on prediction for each IV. Conditional dominance statistics show the average increase in predictive usefulness associated with an IV when it is included at a specific position in the sequence of IVs. As the position gets more later in the model, the contribution any one IV can make tends to grow more limited. This limiting effect with more IVs is reflected in the trajectory of conditional dominance statistics.
 
 The increase in complexity with conditional dominance over that of general dominance also results in a more stringent set of comparisons. Because the label "conditionally dominates" is only ascribed to a relationship that shows more contribution to the fit metric at all positions of the conditional dominance matrix, it is a more difficult criterion to achieve and is therefore a stronger designation.
 
 Note that conditional dominance implies general dominance--but the reverse is not true. An IV can generally, but not conditionally, dominate another IV.
 
-## Complete Dominance Designations
+## Complete Dominance Proportions
 
 ```         
-#> Complete Dominance Designations:
-#>              Dmnated?am Dmnated?cyl Dmnated?carb
-#> Dmnates?am           NA       FALSE         TRUE
-#> Dmnates?cyl        TRUE          NA         TRUE
-#> Dmnates?carb      FALSE       FALSE           NA
+Complete Dominance Proportions:
+       > am > cyl > carb
+am >     NA     0      1
+cyl >     1    NA      1
+carb >    0     0     NA
 ```
 
-The fourth section reported on by `domin` prints the *complete dominance designations* associated with each IV pair. Each IV is compared to each other IV and has two entries in this matrix. The IV noted in the row labels represent a "completely dominates" relationship with the IV noted in the column label. By contrast, the IV noted in the column labels represent a "is completely dominated by" relationship with the IV in the row label. Each designation is then assigned a logical value or `NA` (i.e., when no complete dominance designation can be made).
+The fourth section reported on by `domir` prints the *complete dominance proportions* associated with each IV pair. Each IV is compared to each other IV and has two entries in this matrix. The IV noted in the row labels is the 'dominating' IV as is implied by the greater than symbol (i.e., $>$) preferring it. The IV noted in the column labels is the 'dominated' IV as is implied by the greater than symbol not preferring it. The values reported are the proportion of sub-models in which the IV in the row obtains a larger value than the IV in the column.
 
-The complete dominance designations are useful beyond the general and conditional dominance results as they are the most stringent sets of comparisons. Complete dominance reflects the relative performance of each IV to another IV in all the sub-models where their relative predictive performance can be compared. The results of this section are then not statistics but are the aggregate of an extensive series of inequality comparisons (i.e., in the mathematical sense: $>$, $<$) of individual sub-models expressed as logical designations.
+The complete dominance designations are useful beyond the general and conditional dominance results as they are the most stringent sets of comparisons. Complete dominance reflects the relative performance of each IV to another IV in all the sub-models where their relative predictive performance can be compared. When a value of 1 is obtained, the IV in the row is said to "completely dominate" the IV in the column. Conversely, when a value of 0 is obtained, the IV in the row is said to be "completely dominated by" the IV in the column.
 
 ### Points of Note: Complete Dominance
 
@@ -174,32 +179,30 @@ Also note that complete dominance implies both conditional and general dominance
 
 # Dominance Statistics and Designations: Key Computational Details
 
-The DA methodology currently implemented in `{domir}` is a relatively assumption-free and model agnostic but computationally expensive methodology that follows from the way Shapley value decomposition was originally formulated.
+The DA methodology currently implemented in **domir** is a relatively assumption-free and model agnostic but computationally expensive methodology that follows from the way Shapley value decomposition was originally formulated.
 
 The sections below begin by providing an analogy for how to think about the computation of DA results, outline exactly how each dominance statistic and designation is determined, as well as extend the example above by applying each computation in the context of the example.
 
-## Computational Implementation: DA as an Experiment
+## Computational Implementation: All Possible Orders
 
-Shapley value decomposition and DA have traditionally been implemented by treating the cooperative game/predictive model as though it was an experimental design which seeks to evaluate the impact of the players/IVs on the payoff/fit statistic. When designing the experiment applied to the model, it is assumed that the only factors are the IVs and that they all have two levels: 1) the IV is included in the sub-model or 2) the IV is excluded from the sub-model---all other potential inputs to the model are constant.
-
-The specific type of design applied to the model is a full-factorial design where all possible combinations of the IVs included or excluded are estimated as sub-models. When there are $p$ IVs in the model there will be $2^p$ sub-models estimated. The full-factorial design required for computing dominance statistics and designations is why the traditional approach is considered computationally expensive as each additional IV added to the model results in a geometric increase in the number of requires sub-models to estimate.
+DA requires evaluating the contribution IVs make to prediction given all possible orders in which they are included in the prediction model. As was noted above, this is an experimental design-like approach where all possible combinations of the IVs included or excluded are estimated as sub-models. When there are $p$ IVs in the model there will be $2^p$ sub-models estimated. The experimental design-like approach of the method makes it widely applicable across predictive models and fit statistic values but is computationally expensive as each additional IV added to the model results in a geometric increase in the number of required sub-models.
 
 ## DA Results: The Full-Factorial Design
 
-The DA results related to the `lm` model with three IVs discussed above is composed of `r 2**3` sub-models and their $R^2$ values. The `domin` function, if supplied a predictive modeling function that can record each sub-model's results, can be adapted to capture each sub-model's $R^2$ value along with the IVs that comprise it.
+The DA results related to the `lm` model with three IVs discussed above is composed of `r 2**3` sub-models and their $R^2$ values. The `domir` function, if supplied a predictive modeling function that can record each sub-model's results, can be adapted to capture each sub-model's $R^2$ value along with the IVs that comprise it.
 
-The code below constructs a wrapper function to export results from each sub-model to an external data frame. The code to produce these results is complex and each line is commented to note its purpose. This wrapper function then replaces `lm` in the call to `domin` so that, as the DA is executed, all the sub-models' data are captured for the illustration to come.
+The code below constructs a wrapper function to export results from each sub-model to an external data frame. The code to produce these results is complex and each line is commented to note its purpose. This wrapper function then replaces `lm` in the call to `domir` so that, as the DA is executed, all the sub-models' data are captured for the illustration to come.
 
 ```{r capture_r2s}
 lm_capture <- 
-  function(formula, ...) { # wrapper program that accepts formula and ellipsis arguments
+  function(formula, data, ...) { # wrapper program that accepts formula, data, and ellipsis arguments
     count <<- count + 1 # increment counter in enclosing environment
-    lm_obj <- lm(formula, ...) # estimate 'lm' model and save object
+    lm_obj <- lm(formula, data = data, ...) # estimate 'lm' model and save object
     DA_results[count, "formula"] <<- 
       deparse(formula) # record string version of formula passed in 'DA_results' in enclosing environment
     DA_results[count, "R^2"] <<- 
       summary(lm_obj)[["r.squared"]] # record R^2 in 'DA_results' in enclosing environment
-    return(lm_obj) # return 'lm' class-ed object
+    summary(lm_obj)[["r.squared"]] # return R^2
   }
 
 count <- 0 # initialize the count indicating the row in which the results will fill-in
@@ -209,27 +212,26 @@ DA_results <- # container data frame in which to record results
              `R^2` = rep(NA, times = 2^3-1), 
              check.names = FALSE)
 
-lm_da <- domin(mpg ~ am + cyl + carb, # implement the DA with the wrapper
+lm_da <- domir(mpg ~ am + cyl + carb, # implement the DA with the wrapper
                lm_capture, 
-               list(summary, "r.squared"), 
                data = mtcars)
 
 DA_results
 ```
 
-The printed result from *DA_results* shows that `domin` runs `r nrow(DA_results)` sub-models; each a different combination of the IVs. Note that, by default, the sub-model where all IVs are excluded is assumed to result in a fit statistic value of 0 and is not estimated directly (which can be changed with the `consmodel` argument to `domin`).
+The printed result from *DA_results* shows that `domir` runs `r nrow(DA_results)` sub-models; each a different combination of the IVs. Note that, by default, the sub-model where all IVs are excluded is assumed to result in a fit statistic value of 0 and is not estimated directly (which can be changed with the `.adj` argument).
 
 The $R^2$ values recorded in *DA_results* are used to compute the dominance statistics and designations reported on above.
 
-### Complete Dominance Designations
+### Complete Dominance Proportions
 
-Complete dominance between two IVs is designated by:
+Complete dominance proprtions between two IVs are computed by:
 
-$$X_vDX_z\; if\;2^{p-2}\, =\, \Sigma^{2^{p-2}}_{j=1}{ \{\begin{matrix} if\, F_{X_v\; \cup\;S_j}\, > F_{X_z\; \cup\;S_j}\, \,then\, 1\, \\ if\, F_{X_v\; \cup\;S_j}\, \le F_{X_z\; \cup\;S_j}\,then\, \,0\end{matrix} }$$
+$$C_{X_vX_z} =\, \frac{\Sigma^{2^{p-2}}_{j=1}{ \{\begin{matrix} if\, F_{X_v\; \cup\;S_j}\, > F_{X_z\; \cup\;S_j}\, \,then\, 1\, \\ if\, F_{X_v\; \cup\;S_j}\, \le F_{X_z\; \cup\;S_j}\,then\, \,0\end{matrix} }}{2^{p-2}}$$
 
-Where $X_v$ and $X_z$ are two IVs, $S_j$ is a distinct set of the other IVs in the model not including $X_v$ and $X_z$ which can include the null set ($\emptyset$) with no other IVs, and $F$ is a model fit statistic. Conceptually, this computation implies that when **all** $2^{p-2}$ comparisons show that $X_v$ is greater than $X_z$, then $X_v$ completely dominates $X_z$.
+Where $X_v$ and $X_z$ are two IVs, $S_j$ is a distinct set of the other IVs in the model not including $X_v$ and $X_z$ which can include the null set ($\emptyset$) with no other IVs, and $F$ is a model fit statistic. This computation is then the proportion of all comparable sub-models where $X_v$ is greater than $X_z$.
 
-The results from *DA_results* can then be used to make the comparisons required to determine whether each pair of IVs completely dominates the other. The comparison begins with the results for `am` and `cyl`.
+The results from *DA_results* can then be used to compute the complete dominance proportions. The comparison begins with the results for `am` and `cyl`.
 
 ```{r cpt_am_cyl, echo=FALSE}
 knitr::kable(
@@ -240,7 +242,7 @@ knitr::kable(
 
 The rows in the table above are aligned such that comparable models are in the rows. As applied to this example, the $S_j$ sets are $\emptyset$ (i.e., the null set) with no other IVs and the set also including *carb*.
 
-The $R^2$ values across the comparable models show that *cyl* has larger $R^2$ values than *am*.
+The $R^2$ values across the comparable models show that *cyl* has larger $R^2$ values than, and thus completely dominates, *am*.
 
 ```{r cpt_am_carb, echo=FALSE}
 knitr::kable(cbind(DA_results[grepl("am", DA_results$formula) & !grepl("carb", DA_results$formula) ,], DA_results[!grepl("am", DA_results$formula) & grepl("carb", DA_results$formula) ,]), row.names = FALSE, caption = "Complete Dominance Comparisons: `am` versus `carb` ", digits = 3)
@@ -248,7 +250,7 @@ knitr::kable(cbind(DA_results[grepl("am", DA_results$formula) & !grepl("carb", D
 
 Here the $S_j$ sets are, again, $\emptyset$ and the set also including *cyl*.
 
-The $R^2$ values across the comparable models show that *am* has larger $R^2$ values than *carb*.
+The $R^2$ values across the comparable models show that *am* has larger $R^2$ values than and completely dominates *carb*.
 
 ```{r cpt_cyl_carb, echo=FALSE}
 knitr::kable(cbind(DA_results[grepl("cyl", DA_results$formula) & !grepl("carb", DA_results$formula) ,], DA_results[!grepl("cyl", DA_results$formula) & grepl("carb", DA_results$formula) ,]), row.names = FALSE, caption = "Complete Dominance Comparisons: `cyl` versus `carb` ", digits = 3)
@@ -256,9 +258,9 @@ knitr::kable(cbind(DA_results[grepl("cyl", DA_results$formula) & !grepl("carb", 
 
 Finally, the $S_j$ sets are the $\emptyset$ and the set also including *am*.
 
-The $R^2$ values across the comparable models show that *cyl* has larger $R^2$ values than *carb*.
+The $R^2$ values across the comparable models show that *cyl* has larger $R^2$ values than and completely dominates *carb*.
 
-Each of these three sets of comparisons are represented in the *Complete_Dominance* matrix.
+Each of these three sets of comparisons are represented in the *Complete_Dominance* matrix as a series of proportions. Note that the diagonal of the matrix is `NA` values as it is conceptually useless to compare the IV to itself.
 
 ```{r lm_complete}
 lm_da$Complete_Dominance
@@ -272,7 +274,7 @@ $$C^i_{X_v} = \Sigma^{\begin{bmatrix}p-1\\i-1\end{bmatrix}}_{i=1}{\frac{F_{X_v\;
 
 Where $S_i$ is a subset of IVs not including $X_v$ and $\begin{bmatrix}p-1\\i-1\end{bmatrix}$ is the number of distinct combinations produced choosing the number of elements in the bottom value ($i-1$) given the number of elements in the top value ($p-1$; i.e., the value produced by `choose(p-1, i-1)`).
 
-In effect, the formula above amounts to an average of the differences between each model containing $X_v$ from the comparable model not containing it by the number of IVs in the model total. As applied to the results from *DA_results*, *am*'s conditional dominance statistics are computed with the following differences:
+In effect, the formula above amounts to an average of the differences between each model containing $X_v$ from the comparable model not containing it by the number of IVs in the model total. These values then reflect the effect of including the IV at a specific order in the model. As applied to the results from *DA_results*, *am*'s conditional dominance statistics are computed with the following differences:
 
 ```{r cdl_am, echo=FALSE}
 first_order <- 
@@ -303,9 +305,9 @@ knitr::kable(second_order, row.names = FALSE, caption = "Conditional Dominance C
 knitr::kable(third_order, row.names = FALSE, caption = "Conditional Dominance Computations: `am` with Three IVs/Full Model", digits = 3)
 ```
 
-The rows of each table represent a difference to be recorded for the conditional dominance statistics computation. In the one, two, and three IV comparison tables, the model with *am* is presented first (as the minuend) and the comparable model without *am* is presented second (as the subtrahend)---for the 1 IV comparison table, this model is the intercept only model that, as is noted above, is assumed to have a value of 0. The difference is presented last.
+The rows of each table represent a difference to be recorded for the conditional dominance statistics computation. In the position one, two, and three comparison tables, the model with *am* is presented first (as the minuend) and the comparable model without *am* is presented second (as the subtrahend)---for the first IV comparison table, this model is the intercept only model that, as is noted above, is assumed to have a value of 0. The difference is presented last.
 
-By table, the differences are averaged resulting in the `r round(lm_da$Conditional_Dominance["am", "IVs_1"], digits = 3)` value at one IV, the `r round(lm_da$Conditional_Dominance["am", "IVs_2"], digits = 3)` at two IVs, and `r round(lm_da$Conditional_Dominance["am", "IVs_3"], digits = 3)` at three IVs.
+By table, the differences are averaged resulting in the `r round(lm_da$Conditional_Dominance["am", "include_at_1"], digits = 3)` value when first, the ``` r round(lm_da$Conditional_Dominance["am", "``include_at_``2"], digits = 3) ``` when second, and ``` r round(lm_da$Conditional_Dominance["am", "``include_at_``3"], digits = 3) ``` when third.
 
 Next the computations for *cyl* are reported.
 
@@ -338,7 +340,7 @@ knitr::kable(second_order, row.names = FALSE, caption = "Conditional Dominance C
 knitr::kable(third_order, row.names = FALSE, caption = "Conditional Dominance Computations: `cyl` with Three IVs/Full Model", digits = 3)
 ```
 
-Again, the differences are averaged resulting in the `r round(lm_da$Conditional_Dominance["cyl", "IVs_1"], digits = 3)` value at one IV, the `r round(lm_da$Conditional_Dominance["cyl", "IVs_2"], digits = 3)` at two IVs, and `r round(lm_da$Conditional_Dominance["cyl", "IVs_3"], digits = 3)` at three IVs.
+Again, the differences are averaged resulting in the `r round(lm_da$Conditional_Dominance["cyl", "include_at_1"], digits = 3)` value when first, the `r round(lm_da$Conditional_Dominance["cyl", "include_at_2"], digits = 3)` when second, and `r round(lm_da$Conditional_Dominance["cyl", "include_at_3"], digits = 3)` when third.
 
 Finally, the computations for *carb*.
 
@@ -371,7 +373,7 @@ knitr::kable(second_order, row.names = FALSE, caption = "Conditional Dominance C
 knitr::kable(third_order, row.names = FALSE, caption = "Conditional Dominance Computations: `carb` with Three IVs/Full Model", digits = 3)
 ```
 
-And again, the differences are averaged resulting in the `r round(lm_da$Conditional_Dominance["carb", "IVs_1"], digits = 3)` value at one IV, the `r round(lm_da$Conditional_Dominance["carb", "IVs_2"], digits = 3)` at two IVs, and `r round(lm_da$Conditional_Dominance["carb", "IVs_3"], digits = 3)` at three IVs.
+And again, the differences are averaged resulting in the `r round(lm_da$Conditional_Dominance["carb", "include_at_1"], digits = 3)` value when first, the `r round(lm_da$Conditional_Dominance["carb", "include_at_2"], digits = 3)` when second, and `r round(lm_da$Conditional_Dominance["carb", "include_at_3"], digits = 3)` when third.
 
 These nine values then populate the conditional dominance statistic matrix.
 
@@ -379,7 +381,7 @@ These nine values then populate the conditional dominance statistic matrix.
 lm_da$Conditional_Dominance
 ```
 
-The conditional dominance matrix's values can then be used in a way similar to the complete dominance designations above in creating a series of logical designations indicating whether each IV conditionally dominates each other.
+The conditional dominance matrix's values can then be compared by creating a series of logical designations indicating whether each IV conditionally dominates each other.
 
 Below the comparisons begin with *am* and *cyl*
 
@@ -387,7 +389,7 @@ Below the comparisons begin with *am* and *cyl*
 knitr::kable(data.frame(t(lm_da$Conditional_Dominance[c("am", "cyl"),]), comparison= lm_da$Conditional_Dominance["am",] > lm_da$Conditional_Dominance["cyl",]), caption = "Conditional Dominance Designation: `am` Compared to `cyl`", digits = 3)
 ```
 
-The table above is a transpose of the conditional dominance statistic matrix with an additional *comparison* column indicating whether the first IV/*am*'s conditional dominance statistic at that number of IVs is greater than the second IV/*cyl*'s.
+The table above is a transpose of the conditional dominance statistic matrix with an additional *comparison* column indicating whether the first IV/*am*'s conditional dominance statistic at that inclusion position is greater than the second IV/*cyl*'s at that same position.
 
 Conditional dominance is determined by all values being `TRUE` or `FALSE`; in this case, *cyl* is seen to conditionally dominate *am* as all values are `FALSE`.
 
@@ -410,7 +412,7 @@ knitr::kable(data.frame(t(lm_da$Conditional_Dominance[c("cyl", "carb"),]), compa
 Another way of looking at conditional dominance is by graphing the trajectory of each IV across all positions in the conditional dominance matrix. If an IV's line crosses another IV's line, then a conditional dominance relationship between those two IVs cannot be determined. A graphic depicting the trajectory of the three IVs in the focal model is depicted below.
 
 ```{r condit_gph, echo=FALSE}
-lm_da |> pluck("Conditional_Dominance") |> as_tibble(rownames = "pred") |> pivot_longer(names_to = "ivs", values_to = "stat", cols = starts_with("IV")) |> mutate(ivs = fct_relabel(ivs, ~ str_replace(., "_", ": "))) |> ggplot(aes(x = ivs, y = stat, group = pred, color= pred)) + geom_line() + ylab("Conditional Dominance Statistic Value") + xlab("Number of Independent Variables") + labs(color = "Independent\nVariable") + theme_linedraw() + scale_color_viridis_d() 
+lm_da |> pluck("Conditional_Dominance") |> as_tibble(rownames = "pred") |> pivot_longer(names_to = "ivs", values_to = "stat", cols = starts_with("Inclu")) |> mutate(ivs = fct_relabel(ivs, ~ str_replace(., "_", ": "))) |> ggplot(aes(x = ivs, y = stat, group = pred, color= pred)) + geom_line() + ylab("Conditional Dominance Statistic Value") + xlab("Number of Independent Variables") + labs(color = "Independent\nVariable") + theme_linedraw() + scale_color_viridis_d() 
 ```
 
 The graph above confirms that all three IV's lines never cross and thus have a clear set of conditional dominance designations.
@@ -479,8 +481,18 @@ summary(lm_da)$Strongest_Dominance
 
 The result the `summary` function produces in the *Strongest_Dominance* element is consistent with expectation in that all three IV interrelationships have complete dominance designations between them.
 
-# Parting Thoughts: Key Caveat
+# Parting Thoughts
 
-The DA method implemented by the `domir::domin` function is *relatively* assumption-free but does make an assumption about the nature of the model that is dominance analyzed. DA assumes that the predictive model used is "pre-selected"or has passed through model selection procedures and the user is confident that the IVs/players in the model/game and are, in fact, reasonable to include. DA is *not* intended for use as a model selection tool.
+"Relative importance" as a concept is used in many different ways in statistics and data science. In the author's view, a crucial, but rarely acknowledged, difference between DA and many of the relative importance statistics produced by methods other than DA, are that many other methods are probably most useful for model selection and not for model evaluation. In making a distinction between model selection and importance, I follow the work of @azen2001criticality who distinguish between the concept of IV criticality and IV importance.
 
-"Relative importance" as a concept is used in many different ways in statistics and data science. In many cases, methods that focus on relative importance are probably best used for model selection/identifying trivial IVs for removal. DA, by contrast, is a method that is more focused on importance in a "model evaluation" sense. What I mean by model evaluation is an application where the user describes/interprets IVs' effects in the context of a finalized, predictive model.
+## Criticality: Model Selection
+
+In many cases, methods that focus on relative importance are probably best used for model selection. When applied to model selection, a method would identify when an IV should be included in the model or not. The process of determining whether or not an IV should be included in the model is desribed by Azen et al. as reflecting *IV Criticality*.
+
+In the view of the author, methods such as posterior inclusion probability, Akaike weights, and permutation importance are actually IV criticality, as opposed to importance, measures. These methods are criticality methods as they tend to be informative for identifying whether an IV has trivial or non-trivial conribution to prediction but is less informative for identifying the magnitude of their contribution.
+
+## Importance: Model Evaluation
+
+Model evaluation differs from model selection in that it seeks not to determine whether IVs should be in the model, but rather compares them in terms of their impact in the model conditional on their being included. Thus, importance methods assume that a model has passed through a model selection phase and that all the predictors in the model have non-trivial effects.
+
+The DA method implemented by the `domir` function is an importance method in this sense in that it assumes that the predictive model used is "pre-selected" or has passed through model selection procedures and the user is confident that the IVs model and are, in fact, reasonable to include. The results from DA and similar methods then provide more information about relative contribution to prediction which assists in model evaluation.
