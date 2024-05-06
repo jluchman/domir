@@ -3,7 +3,7 @@ pkgdown: 2.0.9
 pkgdown_sha: ~
 articles:
   domir_basics: domir_basics.html
-last_built: 2024-05-04T23:10Z
+last_built: 2024-05-06T00:31Z
 urls:
   reference: https://jluchman.github.io/domir/reference
   article: https://jluchman.github.io/domir/articles
