@@ -289,7 +289,7 @@ dominance_scalar <-
                 ) & cdl_wst_filter
             }
           }
-          relevant_subsets <- relevant_subsets[cdl_wst_filter,]; print(relevant_subsets) # ~~
+          relevant_subsets <- relevant_subsets[cdl_wst_filter,]
           relevant_values <- relevant_values[cdl_wst_filter]
           #relevant_name_count <- rowSums(relevant_subsets)
           non_wst_locs <- which(grepl("^Var", colnames(relevant_subsets)))
@@ -305,7 +305,7 @@ dominance_scalar <-
               relevant_name_count + apply(relevant_subsets[, wst_loc], 1, any)
           }
           relevant_perms <-
-            perm_computer(relevant_subsets, wst_names, names(subset_matrix)[contrib_count]); print(relevant_perms) # ~~
+            perm_computer(relevant_subsets, wst_names, names(subset_matrix)[contrib_count])
           for (inc_order in 1:wst_counts) {
             var_at_order <- # lgl to select
               relevant_name_count == inc_order & 
@@ -366,67 +366,252 @@ dominance_scalar <-
     # if '.cdl' was FALSE
     } else {
       conditional_dominance <- NULL
-    }
+    }; print(conditional_dominance) # ~~
     # obtain complete dominance statistics ----
+    # !! cpt dom not done !! ----
     if (do_cpt) {
       # allocate complete dominance container matrix
       complete_dominance <- matrix(nrow = name_count, ncol = name_count)
       # generate all combinations of two names
       # names are locations in matrix
       all_name_pairs <- utils::combn(1:name_count, 2)
+      # !! start new ----
+      subset_0_matrix <- 
+        rbind(
+          matrix(
+            rep(FALSE, times = ncol(subset_matrix)),
+            nrow = 1,
+            dimnames = list(NULL, colnames(subset_matrix))
+          ),
+          subset_matrix
+        )
+      value_0_vector <- c(result_adjustment, value_vector)
+      # !! end new ----
       for (name_pair in seq_len(ncol(all_name_pairs))) {
         # select two names by location
-        selected_name_pair <- all_name_pairs[, name_pair]
+        selected_name_pair <- all_name_pairs[, name_pair]; print(selected_name_pair) # ~~
         # indicate which names are not selected
         unselected_names <- setdiff(1:name_count, selected_name_pair)
-        # generate version of 'subset_matrix' with row id
-        selected_names_matrix <-
-          cbind(subset_matrix, seq_len(nrow(subset_matrix)))
-        # generate vector flagging locations in 'subset_matrix' where
-        # one name of the two selected names is present
-        subsets_one_name <- rowSums(subset_matrix[, selected_name_pair]) == 1
-        # filter 'selected_names_matrix' to obtain all rows where
-        # one, never both or neither, names are a value generator
-        selected_names_matrix <- selected_names_matrix[subsets_one_name, ]
-        # generate matrix that places un-selected names earlier in
-        # sorting order and selected names last to ensure they are
-        # contiguous vertically in matrix
-        sorting_matrix <-
-          selected_names_matrix[, c(unselected_names, selected_name_pair)]
-        # coerce 'sorting_matrix' to `data.frame` for use in `order()`
-        sorting_df <- as.data.frame(sorting_matrix)
-        # sort rows of 'selected_names_matrix' by forced evaluation of
-        # 'sorting_df' by `do.call` with `order`
-        selected_names_sorted <-
-          selected_names_matrix[do.call("order", sorting_df), ]
-        # generate indicator for location of first name in
-        # 'selected_names_sorted'; always even number index
-        first_name_locs <- (seq_len(nrow(selected_names_sorted)) %% 2) == 0
-        # generate mapping of 'selected_names_sorted' locations to
-        # locations in 'value_vector'
-        first_name_index <-
-          selected_names_sorted[first_name_locs, ncol(selected_names_sorted)]
-        # generate vector selecting all values associated with first name
-        first_name_values <- value_vector[first_name_index]
-        # generate indicator for location of second name in
-        # 'selected_names_sorted'; always odd number index
-        second_name_locs <- (seq_len(nrow(selected_names_sorted)) %% 2) == 1
-        # apply same process as in first name to second name
-        second_name_index <-
-          selected_names_sorted[second_name_locs, ncol(selected_names_sorted)]
-        second_name_values <- value_vector[second_name_index]
-        # bind first and second names' values in matrix
-        sorted_results_pair <- cbind(first_name_values, second_name_values)
-        # comparing first name's values to second
-        first_vs_second <- sorted_results_pair[, 1] > sorted_results_pair[, 2]
-        # comparing second name's values to first
-        second_vs_first <- sorted_results_pair[, 1] < sorted_results_pair[, 2]
-        # record designation in container matrix
-        complete_dominance[selected_name_pair[[2]], selected_name_pair[[1]]] <-
-          mean(second_vs_first)
-        # record designation of complementary comparison in container matrix
-        complete_dominance[selected_name_pair[[1]], selected_name_pair[[2]]] <-
-          mean(first_vs_second)
+        if (is.null(args_list$.wst)) {
+          # generate version of 'subset_matrix' with row id
+          selected_names_matrix <-
+            cbind(subset_matrix, seq_len(nrow(subset_matrix)))
+          # generate vector flagging locations in 'subset_matrix' where
+          # one name of the two selected names is present
+          subsets_one_name <- rowSums(subset_matrix[, selected_name_pair]) == 1
+          # filter 'selected_names_matrix' to obtain all rows where
+          # one, never both or neither, names are a value generator
+          selected_names_matrix <- selected_names_matrix[subsets_one_name, ]
+          # generate matrix that places un-selected names earlier in
+          # sorting order and selected names last to ensure they are
+          # contiguous vertically in matrix
+          sorting_matrix <-
+            selected_names_matrix[, c(unselected_names, selected_name_pair)]
+          # coerce 'sorting_matrix' to `data.frame` for use in `order()`
+          sorting_df <- as.data.frame(sorting_matrix)
+          # sort rows of 'selected_names_matrix' by forced evaluation of
+          # 'sorting_df' by `do.call` with `order`
+          selected_names_sorted <-
+            selected_names_matrix[do.call("order", sorting_df), ]
+          # generate indicator for location of first name in
+          # 'selected_names_sorted'; always even number index
+          first_name_locs <- (seq_len(nrow(selected_names_sorted)) %% 2) == 0
+          # generate mapping of 'selected_names_sorted' locations to
+          # locations in 'value_vector'
+          first_name_index <-
+            selected_names_sorted[first_name_locs, ncol(selected_names_sorted)]
+          # generate vector selecting all values associated with first name
+          first_name_values <- value_vector[first_name_index]
+          # generate indicator for location of second name in
+          # 'selected_names_sorted'; always odd number index
+          second_name_locs <- (seq_len(nrow(selected_names_sorted)) %% 2) == 1
+          # apply same process as in first name to second name
+          second_name_index <-
+            selected_names_sorted[second_name_locs, ncol(selected_names_sorted)]
+          second_name_values <- value_vector[second_name_index]
+          # bind first and second names' values in matrix
+          sorted_results_pair <- cbind(first_name_values, second_name_values)
+          # comparing first name's values to second
+          first_vs_second <- sorted_results_pair[, 1] > sorted_results_pair[, 2]
+          # comparing second name's values to first
+          second_vs_first <- sorted_results_pair[, 1] < sorted_results_pair[, 2]
+          # record designation in container matrix
+          complete_dominance[selected_name_pair[[2]], selected_name_pair[[1]]] <-
+            mean(second_vs_first)
+          # record designation of complementary comparison in container matrix
+          complete_dominance[selected_name_pair[[1]], selected_name_pair[[2]]] <-
+            mean(first_vs_second)
+        } else {
+          is_wst_1 <- 
+            !grepl("^Var[0-9]+", colnames(subset_matrix)[selected_name_pair[[1]]])
+          is_wst_2 <- 
+            !grepl("^Var[0-9]+", colnames(subset_matrix)[selected_name_pair[[2]]])
+          if (is_wst_1 && is_wst_2) {
+            is_same_wst <- 
+              gsub("_[0-9]+$", "", colnames(subset_matrix)[selected_name_pair[[1]]]) == 
+              gsub("_[0-9]+$", "", colnames(subset_matrix)[selected_name_pair[[2]]])
+          } else {
+            is_same_wst <- FALSE
+          }
+          if (is_same_wst) {
+            which_wst <- gsub("_[0-9]+$", "", colnames(subset_matrix)[selected_name_pair[[1]]])
+            cpt_count <- 
+              length(grep("^Var[0-9]+", colnames(subset_matrix))) + 
+              length(wst_names) - 1 + length(wst_names[[which_wst]]) - 2
+            other_comb_names <- 
+              c(grep("^Var[0-9]+", colnames(subset_matrix), value = TRUE), 
+                names(wst_names)[which(names(wst_names) != which_wst)],
+                setdiff(
+                  wst_names[[which_wst]], 
+                  c(names(subset_matrix)[[selected_name_pair[[1]]]],
+                    names(subset_matrix)[[selected_name_pair[[2]]]])
+                )
+              )
+          } else {
+            cpt_count <- 
+              length(grep("^Var[0-9]+", colnames(subset_matrix))) + 
+              length(wst_names) - 2; print(cpt_count) # ~~
+            other_comb_names <- 
+              c(grep("^Var[0-9]+", colnames(subset_matrix), value = TRUE), 
+                names(wst_names)
+              )
+            other_comb_names <- 
+              setdiff(
+                other_comb_names,
+                ifelse(
+                  is_wst_1, 
+                  gsub("_[0-9]+$", "", colnames(subset_matrix)[selected_name_pair[[1]]]),
+                  colnames(subset_matrix)[[selected_name_pair[[1]]]]
+                )
+              )
+            other_comb_names <- 
+              setdiff(
+                other_comb_names,
+                ifelse(
+                  is_wst_2, 
+                  gsub("_[0-9]+$", "", colnames(subset_matrix)[selected_name_pair[[2]]]),
+                  colnames(subset_matrix)[[selected_name_pair[[2]]]]
+                )
+              )
+          }
+          cpt_compares <- matrix(nrow = 2^(cpt_count), ncol = 2)
+          num_cpt_reps <- lapply(1:cpt_count, function(num) c(TRUE, FALSE))
+          other_combs <- do.call("expand.grid", num_cpt_reps)
+          names(other_combs) <- other_comb_names
+          if (cpt_count > 0) {
+            other_combs <- 
+              lapply(
+                names(other_combs), 
+                function(nm) {
+                  if (grepl("wst_[0-9]+$", nm)) {
+                    pass <- sapply(
+                      other_combs[[nm]],
+                      \(lgl) {
+                        rep(lgl, times = length(wst_names[[nm]]))
+                      }
+                    )
+                    pass <- as.data.frame(t(pass))
+                    names(pass) <- wst_names[[nm]]
+                    pass
+                  } else {
+                    pass <- data.frame(other_combs[[nm]])
+                    names(pass) <- nm
+                    pass
+                  }
+                }
+              )
+          }
+          other_combs <- as.data.frame(other_combs); print(other_combs) # ~~
+          go <- all(selected_name_pair == 1:2); print(ifelse(go, "go!", "")) # ~~
+          for (cpr in 1:nrow(cpt_compares)) {
+            select_vec_1 <- subset_0_matrix[[selected_name_pair[[1]]]]
+            select_vec_2 <- subset_0_matrix[[selected_name_pair[[2]]]]
+            if (cpt_count > 0) {
+              select_others <- subset_0_matrix[, names(other_combs)]
+              select_others <- 
+                apply(
+                  as.matrix(select_others), 1, 
+                  function(row) all(row == other_combs[cpr,])
+                )
+            } else {
+              select_others <- TRUE
+            }
+            relevant_subsets <- 
+              subset_0_matrix[select_vec_1 & !select_vec_2 & select_others, ]
+            if (go) print(relevant_subsets) # ~~
+            relevant_values <- 
+              value_0_vector[select_vec_1 & !select_vec_2 & select_others]
+            if (go) print(relevant_values) # ~~
+            if (length(relevant_values) > 1) {
+              relevant_perms <- 
+                perm_computer_cpt(
+                  relevant_subsets, wst_names, 
+                  colnames(subset_matrix)[[selected_name_pair[[1]]]])
+              if (go) print(relevant_perms) # ~~
+              subset_ls_1 <- 
+                subset_0_matrix[!select_vec_1 & !select_vec_2 & select_others, ]
+              values_ls_1 <- 
+                value_0_vector[!select_vec_1 & !select_vec_2 & select_others]
+              subset_ls_1[,selected_name_pair[[1]]] <- TRUE
+              orig_sort <- 
+                do.call("order", as.data.frame(relevant_subsets))
+              ls_1_sort <- 
+                do.call("order", as.data.frame(subset_ls_1))
+              wgts <- exp(relevant_perms[orig_sort] - log(sum(exp(relevant_perms))))
+              cpt_compares[cpr, 1] <-
+                sum((relevant_values[orig_sort] - values_ls_1[ls_1_sort])*wgts)
+            } else {
+              cpt_compares[cpr,1] <- 
+                relevant_values - 
+                value_0_vector[!select_vec_1 & !select_vec_2 & select_others]
+            }
+            relevant_subsets <- 
+              subset_0_matrix[!select_vec_1 & select_vec_2 & select_others, ]
+            relevant_values <- 
+              value_0_vector[!select_vec_1 & select_vec_2 & select_others]
+            if (length(relevant_values) > 1) {
+              relevant_perms <- 
+                perm_computer_cpt(
+                  relevant_subsets, wst_names, 
+                  colnames(subset_matrix)[[selected_name_pair[[2]]]])
+              subset_ls_1 <- 
+                subset_0_matrix[!select_vec_1 & !select_vec_2 & select_others, ]
+              values_ls_1 <- 
+                value_0_vector[!select_vec_1 & !select_vec_2 & select_others]
+              subset_ls_1[,selected_name_pair[[2]]] <- TRUE
+              orig_sort <- 
+                do.call("order", as.data.frame(relevant_subsets))
+              ls_1_sort <- 
+                do.call("order", as.data.frame(subset_ls_1))
+              wgts <- exp(relevant_perms[orig_sort] - log(sum(exp(relevant_perms))))
+              cpt_compares[cpr, 2] <-
+                sum((relevant_values[orig_sort] - values_ls_1[ls_1_sort])*wgts)
+            } else {
+              cpt_compares[cpr,2] <- 
+                relevant_values - 
+                value_0_vector[!select_vec_1 & !select_vec_2 & select_others]
+            }
+            # !! here !! ----
+            # now two IVs or sets are selected and all 'other_combs' or combos 
+            # of other IVs/wsts have been enumerated.
+            # will need to select row or within-set rows associated with the 
+            # 'other_combs' IVs/wsts as well as the focal one and it's comparator
+            # Within-sets must be selected as group and
+            # with the weighted averaging conducted within
+            # Only in the case that both are in the same wst will the comparison
+            # process be the same, or at least similar, as with no wsts. 
+            # In the same wst, full enumeration (with all other wsts full in 
+            # or out, which should be reflected already in the 'subset_matrix')
+            
+          }
+          print(cpt_compares) # ~~
+          first_vs_second <- cpt_compares[, 1] > cpt_compares[, 2]
+          second_vs_first <- cpt_compares[, 1] < cpt_compares[, 2]
+          complete_dominance[selected_name_pair[[2]], selected_name_pair[[1]]] <-
+            mean(second_vs_first)
+          complete_dominance[selected_name_pair[[1]], selected_name_pair[[2]]] <-
+            mean(first_vs_second)
+        }
       }
       # if '.cpt' was FALSE
     } else {
@@ -574,3 +759,93 @@ perm_computer <- function(subset_matrix, wst_names, current_name) {
   #      sum(sapply(all_wst_names, function(elem) lfactorial(length(elem)))))
   perm_vec
 }
+perm_computer_cpt <- function(subset_matrix, wst_names, current_name) {
+  perm_vec <- vector(mode = "numeric", length = nrow(subset_matrix))
+  nonwst_names <- grep("^Var[0-9]+", colnames(subset_matrix[]), value = TRUE)
+  nonwst_names <- setdiff(nonwst_names, current_name)
+  wst_names <- lapply(wst_names, function(wst) setdiff(wst, current_name))
+  if (length(nonwst_names) > 0) {
+    names(nonwst_names) <- nonwst_names
+    all_wst_names <- append(nonwst_names, wst_names)
+  } else {
+    all_wst_names <- wst_names
+  }
+  if (grepl("^wst", current_name)) {
+    wst_2_remove <- gsub("_[0-9]+$", "", current_name)
+    use_wsts <- which(names(all_wst_names) != wst_2_remove)
+  } else {
+    use_wsts <- 1:length(all_wst_names)
+  }
+  for (row in 1:nrow(subset_matrix)) {
+    grp_in <-
+      sapply(
+        all_wst_names[use_wsts],
+        \(x) {
+          all(subset_matrix[row, x])
+        }
+      )
+    grp_out <- 
+      sapply(
+        all_wst_names[use_wsts],
+        \(x) {
+          all(!subset_matrix[row, x])
+        }
+      )
+    wst_combs <- 
+      sapply(
+        all_wst_names,
+        \(x) {
+          lfactorial(sum(subset_matrix[row,x])) + lfactorial(sum(!subset_matrix[row,x]))
+        }
+      )
+    perm_vec[row] <- lfactorial(sum(grp_in)) + lfactorial(sum(grp_out)) + sum(wst_combs)
+    # groups_before <- sum(groups[row, -current_group_i])
+    # groups_after <- sum(!groups[row, -current_group_i])
+    # wgrps_before <-
+    #   sapply(
+    #     all_wst_names[groups[row, ]], function(elem) length(elem))
+    # wgrps_before <-
+    #   wgrps_before[-which(names(wgrps_before) == current_group)]
+    # wgrps_after <-
+    #   sapply(all_wst_names[!groups[row, ]], function(elem) length(elem))
+    # wgrp_names <-
+    #   all_wst_names[[which(names(all_wst_names) == current_group)]]
+    # wgrp_index <- subset_matrix[row, wgrp_names]
+    # names_before <- sum(wgrp_index) - 1
+    # names_after <- sum(!wgrp_index)
+    # perm_vec[[row]] <-
+    #   lfactorial(groups_before) + lfactorial(groups_after) +
+    #   ifelse(
+    #     length(wgrps_before) == 0,
+    #     0,
+    #     sum(sapply(wgrps_before, function(size) lfactorial(size)))
+    #   ) +
+    #   ifelse(
+    #     length(wgrps_after) == 0,
+    #     0,
+    #     sum(sapply(wgrps_after, function(size) lfactorial(size)))
+    #   ) +
+    #   lfactorial(names_before) + lfactorial(names_after)
+  }
+  # for (row in 1:nrow(subset_matrix)) {
+  #   if (!subset_matrix[row, col]) {
+  #     patt2match <- subset_matrix[row, ]
+  #     patt2match[, col] <- TRUE
+  #     loc_of_match <-
+  #       which(apply(subset_matrix, 1, function(patt) all(patt == patt2match)))
+  #     perm_vec[[row]] <- perm_vec[[loc_of_match]]
+  #   }
+  # }
+  # perm_vec <-
+  #   perm_vec -
+  #   (lfactorial(length(all_wst_names)) +
+  #      sum(sapply(all_wst_names, function(elem) lfactorial(length(elem)))))
+  perm_vec
+}
+
+#' TBD
+dominance_scalar2 <- 
+  function(.obj, .fct, .val, .adj, .all, .cdl, .cpt, .rev, .cls, .prg, .arg) {
+    
+  }
+

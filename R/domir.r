@@ -354,17 +354,17 @@ domir.formula <- function(
   print(all_value) # ~~
   fml_set_checker(.set, fml_parsed, "'.set'")
   fml_set_checker(.wst, fml_parsed, "'.wst'")
-  
-  
-  # ended here: 4/13  still working on `check_namelists` function ----
-  # look to simplify some of the 'select out things not in 'namelist' processes
   check_namelists(fml_parsed, .set, .wst, .all)
-  #names_for_dominance <- determine_dominance_names(fml_parsed, .set, .wst)
-
-  stop("sorry, that's it!")
-  # selector_locations function? Call it something else?
-  # ---- ended here: 4/13 ----
-  # maybe end with one overarching "selector locations" function to make that object?
+  names_for_dominance <- determine_dominance_names(fml_parsed, .set, .wst)
+  
+  
+  # ended here: 4/20 ----
+  #return_list <-
+    dominance_scalar2(
+      fml_parsed, meta_domir_fml2, entire_namelist_value, adj_value, all_value,
+      .cdl, .cpt, .rev, .cst, .prg, list(...))
+  stop("sorry, that's it!", call. = FALSE)
+  # ---- ended here: 4/20----
   
   
   # ~~ take processes involving this and make them into function
@@ -972,12 +972,34 @@ check_namelists <- function(fml_parsed, .set, .wst, .all) {
       call. = FALSE)
   }
   # check missing names
-  # ---- ended here 4/13 ----
-  # intention is to find which names in sets and wsts overlap with namelist
-  matched_names <- 
-    intersect(namelist, c(unlist(sets_namelists), unlist(wsts_namelists)))
-  print(matched_names) # ~~
-  # ---- ended here 4/13 ----
+  unmatched_names <- 
+    setdiff(c(unlist(sets_namelists), unlist(wsts_namelists)), namelist)
+  if (length(unmatched_names) > 0) {
+    between_namelists <- 
+      c(unlist(sets_namelists), unlist(wsts_namelists))
+    between_names <- append(sets_namelists, wsts_namelists)
+    between_names <- names(unlist(between_names))
+    which_single_names <-
+      mapply(
+        report_singletons,
+        between_namelists, 
+        rep(list(namelist), times = length(between_namelists)),
+        between_names
+      )
+    stop(
+      "Names in the following are not in '.obj':\n",
+      paste(which_single_names[which_single_names != ""], collapse = "\n"),
+      call. = FALSE)
+  }
+  # check '.set' names against namelist
+  set_names <- substr(set_names, 7, nchar(set_names)-1)
+  set_name_dups <- intersect(namelist, set_names)
+  if (length(set_name_dups) > 0) {
+    stop(
+    "Set names: ", paste(set_name_dups, collapse = ", "), 
+    "; are also names in '.obj'. Please rename them.",
+    call. = FALSE)
+  }
 }
 #' TBD
 set_labeller2 <- function(.set) {
@@ -1003,6 +1025,75 @@ report_duplicates <- function(list1, list2, name1, name2) {
     ""
   )
 }
+#' TBD
+report_singletons <- function(list1, list2, name) {
+  single <- setdiff(list1, list2)
+  ifelse(
+    length(single) > 0,
+    paste(
+      paste(single, collapse = ", "), 
+      "; from ", name, sep = ""
+    ),
+    ""
+  )
+}
+#' TBD
+determine_dominance_names <- function(fml_parsed, .set, .wst) {
+  # prep inputs
+  namelist <- fml_parsed$rhs_names
+  if (is.null(.set)) {
+    sets_namelists <- NULL
+  } else {
+    sets_parsed <- lapply(.set, formula_parse)
+    sets_namelists <- lapply(sets_parsed, function(elem) {elem$rhs_names})
+    set_names <- paste("set", seq_len(length(.set)), sep = "")
+    names(sets_namelists) <- set_names
+  }
+  if (is.null(.wst)) {
+    wsts_namelists <- NULL
+  } else {
+    wsts_parsed <- lapply(.wst, formula_parse)
+    wsts_namelists <- lapply(wsts_parsed, function(elem) {elem$rhs_names})
+    wst_names <- paste("wst", seq_len(length(.wst)), sep = "")
+    names(wsts_namelists) <- wst_names
+  }
+  # construct namelist
+  submitter_list <- 
+    setdiff(namelist, c(unlist(sets_namelists), unlist(wsts_namelists)))
+  if (length(submitter_list) > 0) {
+    submitter_list <- as.list(submitter_list)
+    names(submitter_list) <- 
+      paste("var", seq_len(length(submitter_list)), sep = "")
+  } else {
+    submitter_list <- list()
+  }
+  submitter_list <- append(submitter_list, sets_namelists)
+  submitter_list <- append(submitter_list, wsts_namelists)
+  number_dominance_names <- 
+    sum(grepl("^var|^set", names(submitter_list))) + 
+    sum(
+      unlist(sapply(wsts_namelists, function(elem) length(elem)))
+    )
+  if (number_dominance_names < 2) {
+    stop("At least two names or sets of names are needed for a ",
+         "dominance analysis.", call. = FALSE)
+  }
+  submitter_list
+}
+#' TBD
+meta_domir_fml2 <- #update name eventually
+  function(submodel_names_lgl, namelist, fml_parsed, .fct, args_2_fct) {
+    for (elem in namelist[submodel_names_lgl]) {
+      fml_parsed$select_lgl[elem] <- TRUE
+    }
+    fml <-
+      stats::reformulate(
+        c(fml_parsed$rhs_names[fml_parsed$select_lgl], fml_parsed$offset),
+        response = fml_parsed$lhs_names,
+        intercept = fml_parsed$intercept_lgl
+      )
+    do.call(.fct, append(list(fml), args_2_fct))
+  }
 
 
 
