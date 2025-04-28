@@ -357,14 +357,13 @@ domir.formula <- function(
   check_namelists(fml_parsed, .set, .wst, .all)
   names_for_dominance <- determine_dominance_names(fml_parsed, .set, .wst)
   
-  
-  # ended here: 4/20 ----
+  # ended here: 4/27 ----
   #return_list <-
     dominance_scalar2(
-      fml_parsed, meta_domir_fml2, entire_namelist_value, adj_value, all_value,
-      .cdl, .cpt, .rev, .cst, .prg, list(...))
+      fml_parsed, .fct, names_for_dominance, entire_namelist_value, 
+      adj_value, all_value, .cdl, .cpt, .rev, .cst, .prg, list(...))
   stop("sorry, that's it!", call. = FALSE)
-  # ---- ended here: 4/20----
+  # ---- ended here: 4/27 ----
   
   
   # ~~ take processes involving this and make them into function
@@ -1040,7 +1039,7 @@ report_singletons <- function(list1, list2, name) {
 #' TBD
 determine_dominance_names <- function(fml_parsed, .set, .wst) {
   # prep inputs
-  namelist <- fml_parsed$rhs_names
+  namelist <- fml_parsed$rhs_names[!fml_parsed$select_lgl]
   if (is.null(.set)) {
     sets_namelists <- NULL
   } else {
