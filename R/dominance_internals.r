@@ -852,16 +852,26 @@ dominance_scalar2 <-
     sets <- grepl("^set", names(.nms))
     sets <- .nms[sets]
     subset_matrix <- subset_matrix_constructor(.nms, sets, wsts)
-    subset_matrix <- subset_matrix[-c(1, nrow(subset_matrix)),]
-    subsets <- apply(subset_matrix, 1, function(row) names(subset_matrix)[row])
+    #subset_matrix <- subset_matrix[-c(1, nrow(subset_matrix)),]
+    #subsets <- apply(subset_matrix, 1, function(row) names(subset_matrix)[row])
+    subsets <- 
+      apply(
+        subset_matrix[-c(1, nrow(subset_matrix)),], 
+        1, 
+        function(row) names(subset_matrix)[row]
+      )
     value_vector <- sapply(subsets, obtain_value2, .obj, .fct, .arg, .prg)
+    value_vector <- append(.adj + .all, value_vector)
+    value_vector <- append(value_vector, .val)
+    names(value_vector) <- rownames(subset_matrix)
+    print(subset_matrix) # ~~
     print(value_vector) # ~~
     print(.nms) # ~~
     
-    # ---- ended here 4/27 ----
+    # ---- ended here 5/4 ----
     conditional_dominance <- 
       compute_conditional_dominance(value_vector, subset_matrix, .nms, .cdl)
-    # ---- ended here 4/27 ----
+    # ---- ended here 5/4 ----
     
   }
 
@@ -959,43 +969,88 @@ compute_conditional_dominance <-
       length(unlist(.nms[grep("^wst", names(.nms))])) + 
       length(.nms[grep("^set|^var", names(.nms))])
     conditional_dominance <- matrix(NA, num_names, num_names)
-    print(conditional_dominance) # ~~
+    #print(conditional_dominance) # ~~
     # !! loop over names, sets, and wsets
     # !! determine their weights in 'subset_matrix'
     # !! map 'subset_matrix' to 'value_vector'
     # !! average then plug into dom matrix
-    m_vector <- m_determiner(subset_matrix, .nms) # m value from paper
-    print(m_vector) # ~~
+    m_vector <- name_counter(subset_matrix, .nms) # m value from paper
+    #print(m_vector) # ~~
     for (name in .nms) {
-      in_wst <- any(name %in% unlist(.nms[grep("^wst", names(.nms))]))
-      if (in_wst) {
-        wst_names <- which(sapply(.nms, function(elem) all(name %in% elem)))
-        wst_names <- .nms[wst_names]
-        # k_vector <- ...
-      } else {
-        k_vector <- rep(1, times = length(m_mector)) # k value from paper
+      in_wst <- all(name %in% unlist(.nms[grep("^wst", names(.nms))]))
+      namelist_locs <- which(sapply(.nms, function(elem) all(name %in% elem)))
+      namelist <- .nms[namelist_locs]
+      if (in_wst) namelist <- unlist(namelist)
+      print(namelist) # ~~
+      k_vector <- name_counter(subset_matrix, namelist) # k value from paper
+      #print(k_vector) # ~~
+      subset_matrix_for_name <- subset_matrix[k_vector > 0, ]
+      value_vector_for_name <- value_vector[k_vector > 0]
+      m_vector_for_name <- m_vector[k_vector > 0]
+      k_vector_for_name <- k_vector[k_vector > 0]
+      for (inc_seq in seq_len(length(.nms))) { # <-- this does not differentiate between names within a wst
+        # so we'll need this many columns, but the number of rows will be differentiated by names within a wst
+        # ...
+        # Watch the the composition of subsets - wst mixing still occurs as they're not filtered properly
+        # needs to be on more than just 'm_vector_for_name' as full wsts need to be included, and partial ones ex-
+        k_vector_for_name_at_inc_seq <- 
+          k_vector_for_name[m_vector_for_name == inc_seq]
+        value_vector_for_name_at_inc_seq <- 
+          value_vector_for_name[m_vector_for_name == inc_seq]
+        weight_vector <- 
+          lfactorial(inc_seq - 1) + lfactorial(length(.nms) - inc_seq) + 
+          lfactorial(k_vector_for_name_at_inc_seq - 1) + 
+          lfactorial(length(namelist) - k_vector_for_name_at_inc_seq) - 
+          (lfactorial(length(.nms) - 1) + lfactorial(length(namelist))) #check this guy - he correct?
+        #print(exp(weight_vector)) # ~~
+        value_with_name <- value_vector_for_name_at_inc_seq*exp(weight_vector)
+        print(value_with_name) # ~~
+        increment_rows <- 
+          find_increments(
+            subset_matrix, 
+            subset_matrix_for_name[m_vector_for_name == inc_seq, ], 
+            unlist(namelist)
+          )
+        print(value_vector[increment_rows]) # ~~
+        # ---- still need to get increments by selecting times with name not in ----
+        # try to get the subtrahend to sort the same way as their minuend
       }
-      print(wst_names) # ~~
     }
   } else {
     return(NULL)
   }
 }
-
 #' TBD
-m_determiner <- function(subset_matrix, .nms) {
-  m_vec <- 
-    apply(
-      subset_matrix, 1, 
-      function(row) {
-        val <- 
+name_counter <- function(subset_matrix, .nms) {
+  apply(
+    subset_matrix, 1, 
+    function(row) {
+      val <- 
         sapply(
           .nms, 
           function(elem) any(elem %in% names(subset_matrix)[row])
         )
-        sum(val)
-      }
+      sum(val)
+    }
+  )
+}
+
+#' TBD
+find_increments <- function(subset_matrix, subset_matrix_for_name, namelist) {
+  subset_matrix_for_name_delta <- subset_matrix_for_name
+  subset_matrix_for_name_delta[namelist] <- FALSE
+  rows_delta <- 
+    merge(
+      subset_matrix, 
+      data.frame(subset_matrix_for_name_delta, flag = 1),
+      all.x = TRUE
     )
+  rows_delta$flag[is.na(rows_delta$flag)] <- 0
+  rows_delta[rows_delta$flag == 1, "flag"] <- which(rows_delta$flag == 1)
+  rows_delta <- rows_delta[!is.na(rows_delta$flag), ]
+  rows_delta[namelist] <- TRUE
+  final_index <- merge(subset_matrix_for_name, rows_delta, sort = FALSE)
+  final_index$flag[final_index$flag > 0]
 }
 
 #' TBD

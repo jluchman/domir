@@ -350,20 +350,20 @@ domir.formula <- function(
   adj_value <- est_adj_value(.adj, fml_parsed, .fct, ...)
   print(adj_value) # ~~
   fml_parsed <- fml_all_update(.all, fml_parsed)
-  all_value <- est_all_value(.all, fml_parsed, .fct, ...)
+  all_value <- est_all_value(.all, fml_parsed, .fct, adj_value, ...)
   print(all_value) # ~~
   fml_set_checker(.set, fml_parsed, "'.set'")
   fml_set_checker(.wst, fml_parsed, "'.wst'")
   check_namelists(fml_parsed, .set, .wst, .all)
   names_for_dominance <- determine_dominance_names(fml_parsed, .set, .wst)
   
-  # ended here: 4/27 ----
+  # ended here: 5/4 ----
   #return_list <-
     dominance_scalar2(
       fml_parsed, .fct, names_for_dominance, entire_namelist_value, 
       adj_value, all_value, .cdl, .cpt, .rev, .cst, .prg, list(...))
   stop("sorry, that's it!", call. = FALSE)
-  # ---- ended here: 4/27 ----
+  # ---- ended here: 5/4 ----
   
   
   # ~~ take processes involving this and make them into function
@@ -821,7 +821,7 @@ fml_adj_checker <- function(.adj, fml_parsed) {
 }
 #' TBD
 est_adj_value <- function(.adj, fml_parsed, .fct, ...) {
-  value <- NULL
+  value <- 0
   if (.adj) {
     fml <- 
       stats::reformulate(
@@ -858,8 +858,8 @@ fml_all_update <- function(.all, fml_parsed) {
   return(fml_parsed)
 }
 #' TBD
-est_all_value <- function(.all, fml_parsed, .fct, ...) {
-  value <- NULL
+est_all_value <- function(.all, fml_parsed, .fct, .adj, ...) {
+  value <- 0
   if (!is.null(.all)) {
     all_parsed <- formula_parse(.all)
     fml <- 
@@ -869,7 +869,7 @@ est_all_value <- function(.all, fml_parsed, .fct, ...) {
         intercept = fml_parsed$intercept_lgl)
     value <- formula_output_check(fml, .fct, ...)
   }
-  value
+  value - .adj
 }
 #' TBD
 fml_set_checker <- function(.set, fml_parsed, .typ) {
