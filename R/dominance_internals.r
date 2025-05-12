@@ -851,26 +851,35 @@ dominance_scalar2 <-
     wsts <- .nms[wsts]
     sets <- grepl("^set", names(.nms))
     sets <- .nms[sets]
+    
+    
+    # ---- 5/11 provisonally works ----
+    # confirm this works with different combos of wst, set, and vars before 
+    # going back to conditional dom
     subset_matrix <- subset_matrix_constructor(.nms, sets, wsts)
-    #subset_matrix <- subset_matrix[-c(1, nrow(subset_matrix)),]
-    #subsets <- apply(subset_matrix, 1, function(row) names(subset_matrix)[row])
-    subsets <- 
-      apply(
-        subset_matrix[-c(1, nrow(subset_matrix)),], 
-        1, 
-        function(row) names(subset_matrix)[row]
-      )
-    value_vector <- sapply(subsets, obtain_value2, .obj, .fct, .arg, .prg)
-    value_vector <- append(.adj + .all, value_vector)
-    value_vector <- append(value_vector, .val)
-    names(value_vector) <- rownames(subset_matrix)
+    # ---- 5/11 ----
+    
+    # not sure if I was using the two lines below - probably not
+    ##subset_matrix <- subset_matrix[-c(1, nrow(subset_matrix)),]
+    ##subsets <- apply(subset_matrix, 1, function(row) names(subset_matrix)[row])
+    
+    # subsets <- 
+    #   apply(
+    #     subset_matrix[-c(1, nrow(subset_matrix)),], 
+    #     1, 
+    #     function(row) names(subset_matrix)[row]
+    #   )
+    # value_vector <- sapply(subsets, obtain_value2, .obj, .fct, .arg, .prg)
+    # value_vector <- append(.adj + .all, value_vector)
+    # value_vector <- append(value_vector, .val)
+    # names(value_vector) <- rownames(subset_matrix)
     print(subset_matrix) # ~~
-    print(value_vector) # ~~
-    print(.nms) # ~~
+    #print(value_vector) # ~~
+    #print(.nms) # ~~
     
     # ---- ended here 5/4 ----
-    conditional_dominance <- 
-      compute_conditional_dominance(value_vector, subset_matrix, .nms, .cdl)
+    # conditional_dominance <- 
+    #   compute_conditional_dominance(value_vector, subset_matrix, .nms, .cdl)
     # ---- ended here 5/4 ----
     
   }
@@ -878,10 +887,8 @@ dominance_scalar2 <-
 #' TBD
 subset_matrix_constructor <- function(.nms, .set, .wst) {
   in_out_constructor <- function(name) {c(FALSE, TRUE)}
-  in_out_namelist <- 
-    lapply(seq_len(length(.nms)), in_out_constructor)
-  subset_matrix <- 
-    expand.grid(in_out_namelist, KEEP.OUT.ATTRS = FALSE)
+  in_out_namelist <- lapply(seq_len(length(.nms)), in_out_constructor)
+  subset_matrix <- expand.grid(in_out_namelist, KEEP.OUT.ATTRS = FALSE)
   names(subset_matrix) <- names(.nms)
   # ---- sets ----
   if (length(.set) > 0) {
@@ -901,7 +908,6 @@ subset_matrix_constructor <- function(.nms, .set, .wst) {
         )
       subset_matrix <- 
         merge(subset_matrix, merge_matrix, by = merge_name)
-      print(subset_matrix) # ~~
     }
     subset_matrix <- 
       subset_matrix[-which(names(subset_matrix) %in% names(.set))]
@@ -911,28 +917,70 @@ subset_matrix_constructor <- function(.nms, .set, .wst) {
     in_out_namelist_wst <- 
       lapply(
         seq_len(length(.wst)),
-        function(elem) {
-          lapply(seq_len(length(.wst[[elem]])), in_out_constructor)
-        }
+        function(elem) lapply(seq_len(length(.wst[[elem]])), in_out_constructor)
       )
     subset_matrices_wst <- 
       lapply(
         in_out_namelist_wst,
-        function(elem) {
-          expand.grid(elem, KEEP.OUT.ATTRS = FALSE)
+        function(elem) expand.grid(elem, KEEP.OUT.ATTRS = FALSE)
+      )
+    for (wst in seq_len(length(subset_matrices_wst))) {
+      names(subset_matrices_wst[[wst]]) <- .wst[[wst]]
+    }
+    names(subset_matrices_wst) <- names(.wst)
+    between_wst_subsets <- lapply(seq_len(length(.wst)), in_out_constructor)
+    between_wst_subsets <- 
+      expand.grid(between_wst_subsets, KEEP.OUT.ATTRS = FALSE)
+    names(between_wst_subsets) <- names(.wst)
+    add_subsets <- 
+      lapply(
+        seq_len(length(subset_matrices_wst)),
+        function(matrix) {
+          merge_name <- names(.wst)[[matrix]]
+          subset_combs <- 
+            subset_matrices_wst[[matrix]][
+              -c(1,nrow(subset_matrices_wst[[matrix]])),
+            ]
+          merge_matrix <- data.frame(name = TRUE, subset_combs)
+          names(merge_matrix)[1] <- merge_name
+          merge_matrix <- 
+            merge(between_wst_subsets, merge_matrix, by = merge_name)
+          other_wsts <- subset_matrices_wst[-matrix]
+          merge_others <- 
+            lapply(
+              names(other_wsts),
+              function(other_wst) {
+                other_names <- names(other_wsts[[other_wst]])
+                other_df <- as.data.frame(matrix(ncol = length(other_names)))
+                names(other_df) <- other_names
+                merge_matrix <- 
+                  data.frame(merge_matrix, other_df)
+                merge_matrix[, other_names] <- merge_matrix[[other_wst]]
+                merge_matrix[, other_names]
+              }
+            )
+          merge_matrix <- 
+            cbind(merge_matrix, merge_others)
+        })
+    add_subsets <- do.call("rbind", add_subsets)
+    subset_matrix_wst <-
+      merge(subset_matrix, add_subsets)
+    wst_subset_merge <- 
+      lapply(
+        names(subset_matrices_wst),
+        function(matrix) {
+          cols <- ncol(subset_matrices_wst[[matrix]]) + 1
+          temp_mat <- 
+            data.frame(matrix(rep(c(FALSE, TRUE), times = cols), ncol = cols))
+          names(temp_mat) <- 
+            c(matrix, names(subset_matrices_wst[[matrix]]))
+          temp_mat
         }
       )
-    names(subset_matrices_wst) <- names(.wst)
-    for (matrix in seq_len(length(subset_matrices_wst))) {
-      merge_name <- names(.wst)[matrix]
-      merge_matrix <- 
-        data.frame(name = TRUE, subset_matrices_wst[matrix])
-      names(merge_matrix)[1] <- merge_name
-      subset_matrix <- 
-        merge(subset_matrix, merge_matrix, by = merge_name)
+    for (matrix in wst_subset_merge) {
+      subset_matrix <- merge(subset_matrix, matrix)
     }
-    subset_matrix <- 
-      subset_matrix[-which(names(subset_matrix) %in% names(.wst))]
+    subset_matrix <- rbind(subset_matrix, subset_matrix_wst)
   }
   # ---- update names ----
   name_locator <- grep("^var", names(subset_matrix))
@@ -941,7 +989,8 @@ subset_matrix_constructor <- function(.nms, .set, .wst) {
   names(subset_matrix)[name_locator] <-
     .nms[grep("^var", names(.nms))]
   names(subset_matrix)[set_locator] <- unlist(.set)
-  names(subset_matrix)[wst_locator] <- unlist(.wst)
+  #names(subset_matrix)[wst_locator] <- unlist(.wst)
+  subset_matrix <- subset_matrix[,-wst_locator]
   # ---- return subsets ----
   subset_matrix
 }
