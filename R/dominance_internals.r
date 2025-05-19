@@ -846,41 +846,37 @@ perm_computer_cpt <- function(subset_matrix, wst_names, current_name) {
 #' TBD
 dominance_scalar2 <- 
   function(.obj, .fct, .nms, .val, .adj, .all, 
-           .cdl, .cpt, .rev, .cls, .prg, .arg) {
+           .cdl, .cpt, # remove
+           .rev, .cls, .prg, .arg) {
     wsts <- grepl("^wst", names(.nms))
     wsts <- .nms[wsts]
     sets <- grepl("^set", names(.nms))
     sets <- .nms[sets]
-    
-    
-    # ---- 5/11 provisonally works ----
-    # confirm this works with different combos of wst, set, and vars before 
-    # going back to conditional dom
     subset_matrix <- subset_matrix_constructor(.nms, sets, wsts)
-    # ---- 5/11 ----
-    
-    # not sure if I was using the two lines below - probably not
-    ##subset_matrix <- subset_matrix[-c(1, nrow(subset_matrix)),]
-    ##subsets <- apply(subset_matrix, 1, function(row) names(subset_matrix)[row])
-    
-    # subsets <- 
-    #   apply(
-    #     subset_matrix[-c(1, nrow(subset_matrix)),], 
-    #     1, 
-    #     function(row) names(subset_matrix)[row]
-    #   )
-    # value_vector <- sapply(subsets, obtain_value2, .obj, .fct, .arg, .prg)
-    # value_vector <- append(.adj + .all, value_vector)
-    # value_vector <- append(value_vector, .val)
-    # names(value_vector) <- rownames(subset_matrix)
+    subsets <-
+      apply(
+        subset_matrix[-c(1, nrow(subset_matrix)),],
+        1,
+        function(row) names(subset_matrix)[row]
+      )
+    value_vector <- sapply(subsets, obtain_value2, .obj, .fct, .arg, .prg)
+    value_vector <- append(.adj + .all, value_vector)
+    value_vector <- append(value_vector, .val)
+    names(value_vector) <- rownames(subset_matrix)
     print(subset_matrix) # ~~
-    #print(value_vector) # ~~
-    #print(.nms) # ~~
+    print(value_vector) # ~~
+    print(.nms) # ~~
+    conditional_dominance <-
+      compute_conditional_dominance(value_vector, subset_matrix, .nms)
+    print(conditional_dominance) # ~~
+    general_dominance <- rowMeans(conditional_dominance)
+    print(general_dominance)
     
-    # ---- ended here 5/4 ----
-    # conditional_dominance <- 
-    #   compute_conditional_dominance(value_vector, subset_matrix, .nms, .cdl)
-    # ---- ended here 5/4 ----
+    # ---- ended here 5/18 ----
+    complete_dominance <- 
+      compute_complete_dominance(value_vector, subset_matrix, .nms)
+    print(complete_dominance) # ~~
+    # ---- ended here 5/18 ----
     
   }
 
@@ -959,12 +955,12 @@ subset_matrix_constructor <- function(.nms, .set, .wst) {
                 merge_matrix[, other_names]
               }
             )
-          merge_matrix <- 
-            cbind(merge_matrix, merge_others)
+          if (length(merge_others) > 0) 
+            merge_matrix <- cbind(merge_matrix, merge_others)
+          merge_matrix
         })
     add_subsets <- do.call("rbind", add_subsets)
-    subset_matrix_wst <-
-      merge(subset_matrix, add_subsets)
+    subset_matrix_wst <- merge(subset_matrix, add_subsets)
     wst_subset_merge <- 
       lapply(
         names(subset_matrices_wst),
@@ -981,16 +977,14 @@ subset_matrix_constructor <- function(.nms, .set, .wst) {
       subset_matrix <- merge(subset_matrix, matrix)
     }
     subset_matrix <- rbind(subset_matrix, subset_matrix_wst)
+    wst_locator <- grep("^wst", names(subset_matrix))
+    subset_matrix <- subset_matrix[,-wst_locator]
   }
   # ---- update names ----
   name_locator <- grep("^var", names(subset_matrix))
   set_locator <- grep("^set", names(subset_matrix))
-  wst_locator <- grep("^wst", names(subset_matrix))
-  names(subset_matrix)[name_locator] <-
-    .nms[grep("^var", names(.nms))]
+  names(subset_matrix)[name_locator] <- .nms[grep("^var", names(.nms))]
   names(subset_matrix)[set_locator] <- unlist(.set)
-  #names(subset_matrix)[wst_locator] <- unlist(.wst)
-  subset_matrix <- subset_matrix[,-wst_locator]
   # ---- return subsets ----
   subset_matrix
 }
@@ -1012,72 +1006,106 @@ obtain_value2 <-
 
 #' TBD
 compute_conditional_dominance <- 
-  function(value_vector, subset_matrix, .nms, .cdl) {
-  if (.cdl) {
+  function(value_vector, subset_matrix, .nms) {
     num_names <- 
       length(unlist(.nms[grep("^wst", names(.nms))])) + 
       length(.nms[grep("^set|^var", names(.nms))])
-    conditional_dominance <- matrix(NA, num_names, num_names)
-    #print(conditional_dominance) # ~~
-    # !! loop over names, sets, and wsets
-    # !! determine their weights in 'subset_matrix'
-    # !! map 'subset_matrix' to 'value_vector'
-    # !! average then plug into dom matrix
-    m_vector <- name_counter(subset_matrix, .nms) # m value from paper
-    #print(m_vector) # ~~
+    conditional_dominance <- matrix(NA, nrow = num_names, ncol = length(.nms))
+    m_vector_inclusive <- name_counter(subset_matrix, .nms, inclusive = TRUE) # m value from paper
+    m_vector_exclusive <- name_counter(subset_matrix, .nms, inclusive = FALSE) # m value from paper
+    #print(m_vector_inclusive) # ~~
+    #print(m_vector_exclusive) # ~~
+    name_loc <- 1
     for (name in .nms) {
       in_wst <- all(name %in% unlist(.nms[grep("^wst", names(.nms))]))
       namelist_locs <- which(sapply(.nms, function(elem) all(name %in% elem)))
       namelist <- .nms[namelist_locs]
       if (in_wst) namelist <- unlist(namelist)
-      print(namelist) # ~~
-      k_vector <- name_counter(subset_matrix, namelist) # k value from paper
-      #print(k_vector) # ~~
-      subset_matrix_for_name <- subset_matrix[k_vector > 0, ]
-      value_vector_for_name <- value_vector[k_vector > 0]
-      m_vector_for_name <- m_vector[k_vector > 0]
-      k_vector_for_name <- k_vector[k_vector > 0]
-      for (inc_seq in seq_len(length(.nms))) { # <-- this does not differentiate between names within a wst
-        # so we'll need this many columns, but the number of rows will be differentiated by names within a wst
-        # ...
-        # Watch the the composition of subsets - wst mixing still occurs as they're not filtered properly
-        # needs to be on more than just 'm_vector_for_name' as full wsts need to be included, and partial ones ex-
-        k_vector_for_name_at_inc_seq <- 
-          k_vector_for_name[m_vector_for_name == inc_seq]
-        value_vector_for_name_at_inc_seq <- 
-          value_vector_for_name[m_vector_for_name == inc_seq]
-        weight_vector <- 
-          lfactorial(inc_seq - 1) + lfactorial(length(.nms) - inc_seq) + 
-          lfactorial(k_vector_for_name_at_inc_seq - 1) + 
-          lfactorial(length(namelist) - k_vector_for_name_at_inc_seq) - 
-          (lfactorial(length(.nms) - 1) + lfactorial(length(namelist))) #check this guy - he correct?
-        #print(exp(weight_vector)) # ~~
-        value_with_name <- value_vector_for_name_at_inc_seq*exp(weight_vector)
-        print(value_with_name) # ~~
-        increment_rows <- 
-          find_increments(
-            subset_matrix, 
-            subset_matrix_for_name[m_vector_for_name == inc_seq, ], 
-            unlist(namelist)
-          )
-        print(value_vector[increment_rows]) # ~~
-        # ---- still need to get increments by selecting times with name not in ----
-        # try to get the subtrahend to sort the same way as their minuend
+      #print(namelist) # ~~
+      k_vectors <- 
+        lapply(
+          namelist,
+          function(elem) {
+            return_vec <- name_counter(subset_matrix, elem, inclusive = TRUE) # k value from paper
+            if (!in_wst) 
+              return_vec <- 
+                return_vec*as.integer(m_vector_inclusive == m_vector_exclusive)
+            return_vec
+          }
+        )
+      #print(k_vectors) # ~~
+      processed <- 
+        lapply(
+          k_vectors,
+          function(elem) {
+            return_list <- 
+              list(
+                subset_matrix_for_name = subset_matrix[elem > 0, ],
+                value_vector_for_name = value_vector[elem > 0],
+                k_vector_for_name = elem[elem > 0]
+              )
+            if (in_wst) {
+              add_list <- list(m_vector_for_name = m_vector_inclusive[elem > 0])
+            } else {
+              add_list <- list(m_vector_for_name = m_vector_exclusive[elem > 0])
+            }
+            append(return_list, add_list)
+          }
+        )
+      #print(processed) # ~~
+      for (var in seq_len(length(processed))) { # by row
+        for (inc_seq in seq_len(length(.nms))) { # by column
+          select_at_inc <- processed[[var]][["m_vector_for_name"]] == inc_seq
+          k_vector_for_name_at_inc_seq <- processed[[var]][["k_vector_for_name"]]
+          k_vector_for_name_at_inc_seq <- 
+            k_vector_for_name_at_inc_seq[select_at_inc]
+          value_vector_for_name_at_inc_seq <- 
+            processed[[var]][["value_vector_for_name"]]
+          value_vector_for_name_at_inc_seq <- 
+            value_vector_for_name_at_inc_seq[select_at_inc]
+          weight_vector <- 
+            lfactorial(inc_seq - 1) + lfactorial(length(.nms) - inc_seq) + 
+            lfactorial(k_vector_for_name_at_inc_seq - 1) + 
+            lfactorial(length(namelist) - k_vector_for_name_at_inc_seq) - 
+            (lfactorial(length(.nms) - 1) + lfactorial(length(namelist)))
+          value_with_name <- value_vector_for_name_at_inc_seq*exp(weight_vector)
+          subset_matrix_for_name_at_inc_seq <- 
+            processed[[var]][["subset_matrix_for_name"]]
+          subset_matrix_for_name_at_inc_seq <- 
+            subset_matrix_for_name_at_inc_seq[select_at_inc, ]
+          increment_rows <- 
+            find_increments(
+              subset_matrix, 
+              subset_matrix_for_name_at_inc_seq, 
+              namelist[[var]]
+            )
+          increment_with_name <- value_vector[increment_rows]*exp(weight_vector)
+          # print("value")
+          # print(value_vector_for_name_at_inc_seq) # ~~
+          # print("increment")
+          # print(value_vector[increment_rows]) # ~~
+          if (var > 1 & inc_seq == 1) name_loc <- name_loc + 1
+          conditional_dominance[name_loc, inc_seq] <-
+            sum(value_with_name - increment_with_name)
+        }
       }
+      name_loc <- name_loc + 1
     }
-  } else {
-    return(NULL)
-  }
+    conditional_dominance
 }
 #' TBD
-name_counter <- function(subset_matrix, .nms) {
+name_counter <- function(subset_matrix, .nms, inclusive) {
   apply(
     subset_matrix, 1, 
     function(row) {
       val <- 
         sapply(
           .nms, 
-          function(elem) any(elem %in% names(subset_matrix)[row])
+          if (inclusive) {
+            function(elem) any(elem %in% names(subset_matrix)[row])
+          } else {
+            function(elem) all(elem %in% names(subset_matrix)[row])
+          }
         )
       sum(val)
     }
@@ -1089,20 +1117,102 @@ find_increments <- function(subset_matrix, subset_matrix_for_name, namelist) {
   subset_matrix_for_name_delta <- subset_matrix_for_name
   subset_matrix_for_name_delta[namelist] <- FALSE
   rows_delta <- 
-    merge(
-      subset_matrix, 
-      data.frame(subset_matrix_for_name_delta, flag = 1),
-      all.x = TRUE
+    apply(
+      subset_matrix_for_name_delta,
+      1,
+      function(row1) {
+        which(apply(
+          subset_matrix,
+          1, 
+          function(row2) {
+            all(row1 == row2)
+          }
+        ))
+      }
     )
-  rows_delta$flag[is.na(rows_delta$flag)] <- 0
-  rows_delta[rows_delta$flag == 1, "flag"] <- which(rows_delta$flag == 1)
-  rows_delta <- rows_delta[!is.na(rows_delta$flag), ]
-  rows_delta[namelist] <- TRUE
-  final_index <- merge(subset_matrix_for_name, rows_delta, sort = FALSE)
-  final_index$flag[final_index$flag > 0]
+  rows_delta
 }
 
 #' TBD
-compute_complete_dominance <- function() {
-  
+compute_complete_dominance <- 
+  function(value_vector, subset_matrix, .nms) {
+    num_names <- 
+      length(unlist(.nms[grep("^wst", names(.nms))])) + 
+      length(.nms[grep("^set|^var", names(.nms))])
+    complete_dominance <- matrix(NA, num_names, num_names)
+    row_number <- 1
+    col_number <- 2
+    for (row in seq_len(length(.nms)-1)) {
+      row_name <- .nms[[row]]
+      print(row_name) # ~~
+      in_wst_row <- all(row_name %in% unlist(.nms[grep("^wst", names(.nms))]))
+      if (in_wst_row) {
+        print("wst!") # ~~
+        w_in_wst_result <- 
+          w_in_wst_cpt(value_vector, subset_matrix, row_name)
+        print(w_in_wst_result) # ~~
+      }
+      for (col in seq_len(length(.nms)-1)+1) {
+        col_name <- .nms[[col]]
+        in_wst_col <- all(col_name %in% unlist(.nms[grep("^wst", names(.nms))]))
+        if (in_wst_col && col == length(.nms) && row == length(.nms)-1) {
+          print("wst!") # ~~
+          w_in_wst_result <- 
+            w_in_wst_cpt(value_vector, subset_matrix, col_name)
+          print(w_in_wst_result) # ~~
+        }
+      }
+    }
+    complete_dominance
+  }
+
+#' TBD
+w_in_wst_cpt <- function(value_vector, subset_matrix, namelist) {
+  name_combs <- 
+    as.list(as.data.frame(t(utils::combn(namelist, 2))))
+  print(name_combs) # ~~
+  names(name_combs) <- c("name1", "name2")
+  select_comparisons <- 
+    function(name1, name2, subset_matrix) {
+      vec1 <- subset_matrix[[name1]]
+      vec2 <- subset_matrix[[name2]]
+      xor(vec1, vec2)
+    }
+  lgl_loc <-
+    .mapply(
+      select_comparisons, 
+      dots = name_combs, 
+      MoreArgs = list(subset_matrix = subset_matrix))
+  make_comparisons <- 
+    function(select_lgl, subset_matrix, value_vector, name1, name2) {
+      which1 <- which(names(subset_matrix) == name1)
+      which2 <- which(names(subset_matrix) == name2)
+      df <- 
+        data.frame(
+          subset_matrix[select_lgl,], 
+          `.vals` = value_vector[select_lgl]
+        )
+      df1 <- df[df[[which1]],-c(which1,which2)]
+      df2 <- df[df[[which2]],-c(which1,which2)]
+      merged <- merge(df1, df2)
+      merged
+    }
+  # result <- 
+  #   lapply(
+  #     lgl_loc,
+  #     function(elem) {
+  #       subset_matrix[elem,]
+  #     }
+  #  )
+  lapply(
+    seq_len(length(lgl_loc)),
+    function(elem) {
+      make_comparisons(
+        lgl_loc[[elem]], 
+        subset_matrix, value_vector, 
+        name_combs[[1]][[elem]], name_combs[[2]][[elem]]
+      )
+    }
+  )
+  #lgl_loc
 }

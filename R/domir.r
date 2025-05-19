@@ -336,7 +336,7 @@ domir.formula <- function(
     .obj, .fct,
     .set = NULL, .wst = NULL,
     .all = NULL, .adj = FALSE,
-    .cdl = TRUE, .cpt = TRUE, .rev = FALSE,
+    .cdl = TRUE, .cpt = TRUE, .rev = FALSE, # depreciate '.cdl' and '.cpt' - move to print method
     .cst = NULL, .prg = FALSE, ...) {
   # process arguments and prepare for sub-model estimation ----
   domir_arg_checker(.wst, .rev, .cpt, .cdl, .prg, .cst)
