@@ -872,11 +872,11 @@ dominance_scalar2 <-
     general_dominance <- rowMeans(conditional_dominance)
     print(general_dominance)
     
-    # ---- ended here 5/18 ----
-    complete_dominance <- 
+    # ---- ended here 6/8 ----
+    complete_dominance <-
       compute_complete_dominance(value_vector, subset_matrix, .nms)
     print(complete_dominance) # ~~
-    # ---- ended here 5/18 ----
+    # ---- ended here 6/8 ----
     
   }
 
@@ -1013,8 +1013,8 @@ compute_conditional_dominance <-
     conditional_dominance <- matrix(NA, nrow = num_names, ncol = length(.nms))
     m_vector_inclusive <- name_counter(subset_matrix, .nms, inclusive = TRUE) # m value from paper
     m_vector_exclusive <- name_counter(subset_matrix, .nms, inclusive = FALSE) # m value from paper
-    #print(m_vector_inclusive) # ~~
-    #print(m_vector_exclusive) # ~~
+    # print(m_vector_inclusive) # ~~
+    # print(m_vector_exclusive) # ~~
     name_loc <- 1
     for (name in .nms) {
       in_wst <- all(name %in% unlist(.nms[grep("^wst", names(.nms))]))
@@ -1026,10 +1026,15 @@ compute_conditional_dominance <-
         lapply(
           namelist,
           function(elem) {
-            return_vec <- name_counter(subset_matrix, elem, inclusive = TRUE) # k value from paper
-            if (!in_wst) 
-              return_vec <- 
-                return_vec*as.integer(m_vector_inclusive == m_vector_exclusive)
+            return_vec <- 
+              name_counter(subset_matrix, namelist, inclusive = TRUE) # k value from paper
+            condit_vec <- 
+              (m_vector_inclusive == m_vector_exclusive) | 
+              (m_vector_inclusive > 0 & return_vec > 0 & 
+                 m_vector_inclusive != m_vector_exclusive) &
+                 (return_vec != length(namelist))
+            select_vec <- apply(subset_matrix[elem], 1, all)
+            return_vec <-return_vec*condit_vec*select_vec
             return_vec
           }
         )
@@ -1080,9 +1085,9 @@ compute_conditional_dominance <-
               namelist[[var]]
             )
           increment_with_name <- value_vector[increment_rows]*exp(weight_vector)
-          # print("value")
+          # print("value") # ~~
           # print(value_vector_for_name_at_inc_seq) # ~~
-          # print("increment")
+          # print("increment") # ~~
           # print(value_vector[increment_rows]) # ~~
           if (var > 1 & inc_seq == 1) name_loc <- name_loc + 1
           conditional_dominance[name_loc, inc_seq] <-
@@ -1148,17 +1153,18 @@ compute_complete_dominance <-
       in_wst_row <- all(row_name %in% unlist(.nms[grep("^wst", names(.nms))]))
       if (in_wst_row) {
         print("wst!") # ~~
-        w_in_wst_result <- 
-          w_in_wst_cpt(value_vector, subset_matrix, row_name)
+        w_in_wst_result <- w_in_wst_cpt(value_vector, subset_matrix, row_name)
         print(w_in_wst_result) # ~~
+      } else {
+        print("btw") # ~~
+        btw_result <- btw_wst_cpt(value_vector, subset_matrix, row_name, .nms)
       }
       for (col in seq_len(length(.nms)-1)+1) {
         col_name <- .nms[[col]]
         in_wst_col <- all(col_name %in% unlist(.nms[grep("^wst", names(.nms))]))
         if (in_wst_col && col == length(.nms) && row == length(.nms)-1) {
           print("wst!") # ~~
-          w_in_wst_result <- 
-            w_in_wst_cpt(value_vector, subset_matrix, col_name)
+          w_in_wst_result <- w_in_wst_cpt(value_vector, subset_matrix, col_name)
           print(w_in_wst_result) # ~~
         }
       }
@@ -1183,6 +1189,7 @@ w_in_wst_cpt <- function(value_vector, subset_matrix, namelist) {
       select_comparisons, 
       dots = name_combs, 
       MoreArgs = list(subset_matrix = subset_matrix))
+  print(lgl_loc) # ~~
   make_comparisons <- 
     function(select_lgl, subset_matrix, value_vector, name1, name2) {
       which1 <- which(names(subset_matrix) == name1)
@@ -1215,4 +1222,9 @@ w_in_wst_cpt <- function(value_vector, subset_matrix, namelist) {
     }
   )
   #lgl_loc
+}
+
+#' TBD
+btw_wst_cpt <- function(value_vector, subset_matrix, namelist, .nms) {
+  
 }
