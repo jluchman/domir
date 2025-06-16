@@ -872,11 +872,11 @@ dominance_scalar2 <-
     general_dominance <- rowMeans(conditional_dominance)
     print(general_dominance)
     
-    # ---- ended here 6/8 ----
+    # ---- ended here 6/15 ----
     complete_dominance <-
       compute_complete_dominance(value_vector, subset_matrix, .nms)
     print(complete_dominance) # ~~
-    # ---- ended here 6/8 ----
+    # ---- ended here 6/15 ----
     
   }
 
@@ -1147,26 +1147,22 @@ compute_complete_dominance <-
     complete_dominance <- matrix(NA, num_names, num_names)
     row_number <- 1
     col_number <- 2
-    for (row in seq_len(length(.nms)-1)) {
-      row_name <- .nms[[row]]
+    for (row in seq_len(length(.nms))) {
+      row_name <- names(.nms)[[row]]
       print(row_name) # ~~
       in_wst_row <- all(row_name %in% unlist(.nms[grep("^wst", names(.nms))]))
       if (in_wst_row) {
         print("wst!") # ~~
         w_in_wst_result <- w_in_wst_cpt(value_vector, subset_matrix, row_name)
         print(w_in_wst_result) # ~~
-      } else {
-        print("btw") # ~~
-        btw_result <- btw_wst_cpt(value_vector, subset_matrix, row_name, .nms)
       }
-      for (col in seq_len(length(.nms)-1)+1) {
-        col_name <- .nms[[col]]
-        in_wst_col <- all(col_name %in% unlist(.nms[grep("^wst", names(.nms))]))
-        if (in_wst_col && col == length(.nms) && row == length(.nms)-1) {
-          print("wst!") # ~~
-          w_in_wst_result <- w_in_wst_cpt(value_vector, subset_matrix, col_name)
-          print(w_in_wst_result) # ~~
-        }
+      for (col in seq_len(length(.nms)-row)+row) {
+        col_name <- names(.nms)[[col]]
+        print(col_name) # ~~
+        btw_result <- 
+          btw_wst_cpt(
+            value_vector, subset_matrix, row_name, col_name, .nms
+          )
       }
     }
     complete_dominance
@@ -1225,6 +1221,29 @@ w_in_wst_cpt <- function(value_vector, subset_matrix, namelist) {
 }
 
 #' TBD
-btw_wst_cpt <- function(value_vector, subset_matrix, namelist, .nms) {
-  
-}
+btw_wst_cpt <- 
+  function(value_vector, subset_matrix, row_name, col_name, .nms) {
+    other_nms <- setdiff(names(.nms), c(row_name, col_name))
+    other_nms_lgl <- 
+      lapply(seq_len(length(other_nms)), function(elem) c(TRUE, FALSE))
+    names(other_nms_lgl) <- other_nms
+    name_combs <- do.call("expand.grid", other_nms_lgl)
+    print(name_combs) # ~~
+    compare_across_names <- 
+      as.data.frame(
+        matrix(
+          NA, 
+          nrow = nrow(name_combs), 
+          ncol = length(.nms[[row_name]]) + length(.nms[[col_name]])
+        )
+      )
+    names(compare_across_names) <- c(.nms[[row_name]], .nms[[col_name]])
+    print(compare_across_names) # ~~
+    # ---- ended here ----
+    for (row_var in .nms[[row_name]]) {
+        # want to select all varis in the 'other_nms' and none of the names in 
+        # col - then compute the increment for just the name in 'row_var' and 
+        # put it into the appropriate row of 'compare_across_names'
+    }
+    # ---- ended here ----
+  }
