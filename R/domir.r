@@ -327,7 +327,7 @@
 # review below for integration with .wst ----
 # use this revision time to simplify functions here? ----
 # domir is getting complex ----
-domir <- function(.obj, ...) {
+domir <- function(.obj, ...) { # increment to 2.0? or just 1.3?
   UseMethod("domir")
 }
 #' @rdname domir

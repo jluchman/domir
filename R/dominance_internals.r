@@ -872,11 +872,11 @@ dominance_scalar2 <-
     general_dominance <- rowMeans(conditional_dominance)
     print(general_dominance)
     
-    # ---- ended here 6/15 ----
+    # ---- ended here 6/22 ----
     complete_dominance <-
       compute_complete_dominance(value_vector, subset_matrix, .nms)
     print(complete_dominance) # ~~
-    # ---- ended here 6/15 ----
+    # ---- ended here 6/22 ----
     
   }
 
@@ -1150,10 +1150,12 @@ compute_complete_dominance <-
     for (row in seq_len(length(.nms))) {
       row_name <- names(.nms)[[row]]
       print(row_name) # ~~
-      in_wst_row <- all(row_name %in% unlist(.nms[grep("^wst", names(.nms))]))
+      #in_wst_row <- all(row_name %in% unlist(.nms[grep("^wst", names(.nms))]))
+      in_wst_row <- grepl("^wst", row_name)
       if (in_wst_row) {
         print("wst!") # ~~
-        w_in_wst_result <- w_in_wst_cpt(value_vector, subset_matrix, row_name)
+        w_in_wst_result <- 
+          w_in_wst_cpt(value_vector, subset_matrix, row_name, .nms)
         print(w_in_wst_result) # ~~
       }
       for (col in seq_len(length(.nms)-row)+row) {
@@ -1163,61 +1165,107 @@ compute_complete_dominance <-
           btw_wst_cpt(
             value_vector, subset_matrix, row_name, col_name, .nms
           )
+        for (rep in length(btw_result)) {
+          complete_dominance[row, col] <- btw_result
+          complete_dominance[col, row] <- 1 - btw_result
+        }
       }
     }
     complete_dominance
   }
 
 #' TBD
-w_in_wst_cpt <- function(value_vector, subset_matrix, namelist) {
-  name_combs <- 
-    as.list(as.data.frame(t(utils::combn(namelist, 2))))
+w_in_wst_cpt <- function(value_vector, subset_matrix, wst_name, .nms) {
+  namelist <- .nms[[wst_name]]
+  name_combs <- utils::combn(namelist, 2)
   print(name_combs) # ~~
-  names(name_combs) <- c("name1", "name2")
-  select_comparisons <- 
-    function(name1, name2, subset_matrix) {
-      vec1 <- subset_matrix[[name1]]
-      vec2 <- subset_matrix[[name2]]
-      xor(vec1, vec2)
-    }
-  lgl_loc <-
-    .mapply(
-      select_comparisons, 
-      dots = name_combs, 
-      MoreArgs = list(subset_matrix = subset_matrix))
-  print(lgl_loc) # ~~
-  make_comparisons <- 
-    function(select_lgl, subset_matrix, value_vector, name1, name2) {
-      which1 <- which(names(subset_matrix) == name1)
-      which2 <- which(names(subset_matrix) == name2)
-      df <- 
-        data.frame(
-          subset_matrix[select_lgl,], 
-          `.vals` = value_vector[select_lgl]
+  # nms_lgl <- lapply(seq_len(length(namelist)), function(elem) c(TRUE, FALSE))
+  # name_combs <- do.call("expand.grid", nms_lgl)
+  # names(name_combs) <- namelist
+  # print(name_combs) # ~~
+  other_nms <- setdiff(names(.nms), wst_name)
+  other_nms_lgl <- 
+    lapply(seq_len(length(other_nms)), function(elem) c(TRUE, FALSE))
+  names(other_nms_lgl) <- other_nms
+  other_combs <- do.call("expand.grid", other_nms_lgl)
+  print(other_combs) # ~~
+  # ---- ended here ----
+  within_res_list <- 
+    apply(
+      name_combs,
+      2, 
+      function(pair) {
+        focal_locs <- 
+          which(xor(subset_matrix[[pair[[1]]]], subset_matrix[[pair[[2]]]]))
+        sub_subset_matrix <- subset_matrix[focal_locs, unlist(.nms[other_nms])]
+        print(sub_subset_matrix) # ~~
+        apply(
+          other_combs,
+          1,
+          function(row) {
+            names_tr <- unlist(.nms[names(other_combs)][row])
+            vec_tr <- rep(TRUE, times = length(names_tr))
+            names(vec_tr) <- names_tr
+            names_fl <- unlist(.nms[names(other_combs)][!row])
+            vec_fl <- rep(FALSE, times = length(names_fl))
+            names(vec_fl) <- names_fl
+            vec <- c(vec_tr, vec_fl)
+            vec <- vec[names(sub_subset_matrix)]
+            print(vec) # ~~
+            other_loc <- 
+              apply(
+                sub_subset_matrix,
+                1,
+                function(sub_row) all(sub_row == vec)
+              )
+            focal_other_locs <- focal_locs[other_loc]
+            print(focal_other_locs) # ~~
+            first_loc <- subset_matrix[focal_other_locs, pair[[1]]]
+            second_loc <- subset_matrix[focal_other_locs, pair[[2]]]
+            # first_loc and second_loc select specific values to compare - do so then average them
+          }
         )
-      df1 <- df[df[[which1]],-c(which1,which2)]
-      df2 <- df[df[[which2]],-c(which1,which2)]
-      merged <- merge(df1, df2)
-      merged
-    }
-  # result <- 
-  #   lapply(
-  #     lgl_loc,
-  #     function(elem) {
-  #       subset_matrix[elem,]
-  #     }
-  #  )
-  lapply(
-    seq_len(length(lgl_loc)),
-    function(elem) {
-      make_comparisons(
-        lgl_loc[[elem]], 
-        subset_matrix, value_vector, 
-        name_combs[[1]][[elem]], name_combs[[2]][[elem]]
-      )
-    }
-  )
-  #lgl_loc
+      }
+    )
+  stop("ouch!")
+  # probably all the stuff below is not essential and can be eliminated
+  # ---- ended here ----
+  # select_comparisons <- 
+  #   function(name1, name2, subset_matrix) {
+  #     vec1 <- subset_matrix[[name1]]
+  #     vec2 <- subset_matrix[[name2]]
+  #     xor(vec1, vec2)
+  #   }
+  # lgl_loc <-
+  #   .mapply(
+  #     select_comparisons, 
+  #     dots = name_combs, 
+  #     MoreArgs = list(subset_matrix = subset_matrix))
+  # print(lgl_loc) # ~~
+  # make_comparisons <- 
+  #   function(select_lgl, subset_matrix, value_vector, name1, name2) {
+  #     which1 <- which(names(subset_matrix) == name1)
+  #     which2 <- which(names(subset_matrix) == name2)
+  #     df <- 
+  #       data.frame(
+  #         subset_matrix[select_lgl,], 
+  #         `.vals` = value_vector[select_lgl]
+  #       )
+  #     df1 <- df[df[[which1]],-c(which1,which2)]
+  #     df2 <- df[df[[which2]],-c(which1,which2)]
+  #     merged <- merge(df1, df2)
+  #     merged
+  #   }
+  # lapply(
+  #   seq_len(length(lgl_loc)),
+  #   function(elem) {
+  #     make_comparisons(
+  #       lgl_loc[[elem]], 
+  #       subset_matrix, value_vector, 
+  #       name_combs[[1]][[elem]], name_combs[[2]][[elem]]
+  #     )
+  #   }
+  # )
 }
 
 #' TBD
@@ -1228,8 +1276,10 @@ btw_wst_cpt <-
       lapply(seq_len(length(other_nms)), function(elem) c(TRUE, FALSE))
     names(other_nms_lgl) <- other_nms
     name_combs <- do.call("expand.grid", other_nms_lgl)
+    is_wst_first <- grepl("^wst", row_name) 
+    is_wst_second <- grepl("^wst", col_name) 
     print(name_combs) # ~~
-    compare_across_names <- 
+    compare_across_names <- # !! restrict name length to 1 for set and reg IVs
       as.data.frame(
         matrix(
           NA, 
@@ -1238,12 +1288,138 @@ btw_wst_cpt <-
         )
       )
     names(compare_across_names) <- c(.nms[[row_name]], .nms[[col_name]])
+    first_set <- # !! this doesn't work for a wst yet !! 
+      apply(
+        name_combs, 
+        1,
+        function(row) { # consider making the below into a function since I use it basically twice
+          first_names <- unlist(.nms[[row_name]])
+          second_names <- unlist(.nms[[col_name]])
+          other_names <- unlist(.nms[names(name_combs)][row])
+          other_non_names <- unlist(.nms[names(name_combs)][!row])
+          merge_other <- 
+            data.frame(as.list(
+              c(rep(TRUE, times = length(other_names)),
+                rep(FALSE, times = length(other_non_names))
+              )))
+          names(merge_other) <- c(other_names, other_non_names)
+          merge_second <- 
+            data.frame(as.list(rep(FALSE, times = length(second_names))))
+          names(merge_second) <- second_names
+          merge_df <- cbind(merge_second, merge_other)
+          #print(merge_df) # ~~
+          merge_locs <- 
+            t(apply(
+              subset_matrix[,names(merge_df)],
+              1,
+              function(row) row == unlist(merge_df)
+            ))
+          merge_locs <-
+            which(
+              apply(
+                merge_locs,
+                1,
+                all
+              )
+            )
+          merged <- subset_matrix[merge_locs,]
+          value_subset <- value_vector[merge_locs]
+          #print(data.frame(merged, r2 = value_subset)) # ~~
+          wgt <- btw_cpt_wgt(merged[, first_names, drop = FALSE], .nms[[row_name]], is_wst_first) # comes out as a list
+          #print(wgt) # ~~
+          lapply(
+            wgt,
+            function(wgt) 
+              sum(exp(wgt)*value_subset*merged[first_names] + 
+                    exp(wgt)*value_subset*(!merged[first_names])*-1)
+          )
+          # sum(exp(wgt[[1]])*value_subset*merged[first_names] + 
+          #   exp(wgt[[1]])*value_subset*(!merged[first_names])*-1)
+        }
+      )
+    second_set <- 
+      apply(
+        name_combs, 
+        1,
+        function(row) {
+          first_names <- unlist(.nms[[row_name]])
+          second_names <- unlist(.nms[[col_name]])
+          other_names <- unlist(.nms[names(name_combs)][row])
+          other_non_names <- unlist(.nms[names(name_combs)][!row])
+          merge_other <- 
+            data.frame(as.list(
+              c(rep(TRUE, times = length(other_names)),
+                rep(FALSE, times = length(other_non_names))
+              )))
+          names(merge_other) <- c(other_names, other_non_names)
+          merge_first <- 
+            data.frame(as.list(rep(FALSE, times = length(first_names))))
+          names(merge_first) <- first_names
+          merge_df <- cbind(merge_first, merge_other)
+          #print(merge_df) # ~~
+          merge_locs <- 
+            t(apply(
+              subset_matrix[,names(merge_df)],
+              1,
+              function(row) row == unlist(merge_df)
+            ))
+          merge_locs <-
+            which(
+              apply(
+                merge_locs,
+                1,
+                all
+              )
+            )
+          merged <- subset_matrix[merge_locs,]
+          value_subset <- value_vector[merge_locs]
+          #print(data.frame(merged, r2 = value_subset)) # ~~
+          wgt <- btw_cpt_wgt(merged[, second_names, drop = FALSE], .nms[[col_name]], is_wst_second)
+          #print(wgt) # ~~
+          lapply(
+            wgt,
+            function(wgt) 
+              sum(exp(wgt)*value_subset*merged[first_names] + 
+                    exp(wgt)*value_subset*(!merged[first_names])*-1)
+          )
+          # sum(exp(wgt[[1]])*value_subset*merged[second_names] + 
+          #   exp(wgt[[1]])*value_subset*(!merged[second_names])*-1)
+        }
+      )
+    compare_across_names[,1] <- first_set
+    compare_across_names[,2] <- second_set
     print(compare_across_names) # ~~
-    # ---- ended here ----
-    for (row_var in .nms[[row_name]]) {
-        # want to select all varis in the 'other_nms' and none of the names in 
-        # col - then compute the increment for just the name in 'row_var' and 
-        # put it into the appropriate row of 'compare_across_names'
-    }
-    # ---- ended here ----
+    mean(compare_across_names[,1] > compare_across_names[,2])
   }
+
+#' TBD
+btw_cpt_wgt <- function(subset_matrix, wst, is_wst) {
+  #print(subset_matrix) # ~~
+  if (is_wst) {
+    use_wst <- wst
+  } else {
+    use_wst <- wst[[1]]
+  }
+  lapply( # note that this will be repeated for each variable in the wst as applicable
+    wst,
+    function(name) {
+      num_in <- rowSums(subset_matrix)
+      focal_var <- subset_matrix[[name]]
+      wgt <- vector(length = length(focal_var))
+      wgt <- 
+        replace(
+          wgt, 
+          focal_var, 
+          lfactorial(num_in[focal_var] - 1) + 
+            lfactorial(length(wst) - num_in[focal_var]) - lfactorial(length(wst))
+          )
+      wgt <- 
+        replace(
+          wgt, 
+          !focal_var, 
+          lfactorial(num_in[!focal_var]) + 
+            lfactorial(length(wst) - (num_in[!focal_var] + 1)) - lfactorial(length(wst))
+        )
+    }
+  )
+}
