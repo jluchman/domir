@@ -923,6 +923,11 @@ check_namelists <- function(fml_parsed, .set, .wst, .all) {
   sets_namelists <- lapply(sets_parsed, function(elem) {elem$rhs_names})
   wsts_parsed <- lapply(.wst, formula_parse)
   wsts_namelists <- lapply(wsts_parsed, function(elem) {elem$rhs_names})
+  if (
+    (length(namelist) == length(unlist(wsts_namelists)) && 
+     length(wsts_namelists) == 1)
+  ) 
+    stop("All names in '.obj' cannot be groupd into a single '.wst'.", call. = FALSE)
   all_parsed <- lapply(list(.all), formula_parse)
   all_namelist <- lapply(all_parsed, function(elem) {elem$rhs_names})
   set_names <- set_labeller2(.set) # !! remove '2' when competing `set_labeller` function removed
