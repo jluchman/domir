@@ -324,9 +324,9 @@
 #'   )
 #' }
 #'
-# review below for integration with .wst ----
-# use this revision time to simplify functions here? ----
-# domir is getting complex ----
+# notes: review below for integration with .wst ----
+# notes: use this revision time to simplify functions here? ----
+# notes: domir is getting complex ----
 domir <- function(.obj, ...) { # increment to 2.0? or just 1.3?
   UseMethod("domir")
 }
@@ -340,7 +340,7 @@ domir.formula <- function(
     .cst = NULL, .prg = FALSE, ...) {
   # process arguments and prepare for sub-model estimation ----
   domir_arg_checker(.wst, .rev, .cpt, .cdl, .prg, .cst)
-  # TODO: formula_parse in external file ----
+  # TODO 3: formula_parse in external file ----
   fml_parsed <- formula_parse(.obj)
   if (length(fml_parsed$rhs_names) == 0)
     stop("The formula in '.obj' must have one or more terms.", call. = FALSE)
@@ -356,14 +356,14 @@ domir.formula <- function(
   fml_set_checker(.wst, fml_parsed, "'.wst'")
   check_namelists(fml_parsed, .set, .wst, .all)
   names_for_dominance <- determine_dominance_names(fml_parsed, .set, .wst)
-  
-  # ended here: 5/4 ----
-  #return_list <-
+  return_list <-
     dominance_scalar2(
       fml_parsed, .fct, names_for_dominance, entire_namelist_value, 
       adj_value, all_value, .cdl, .cpt, .rev, .cst, .prg, list(...))
+  # ended here: 8/4 ----
+  # link return list to reporting - redo or comment all between there an here out?
   stop("sorry, that's it!", call. = FALSE)
-  # ---- ended here: 5/4 ----
+  # ---- ended here: 8/4 ----
   
   
   # ~~ take processes involving this and make them into function
@@ -437,7 +437,7 @@ domir.formula <- function(
       do.call(.fct, append(list(fml), args_2_fct))
     }
   # define arguments to `dominance_scalar` ----
-  # TODO: restructure 'args_list' into directly submitted args to 'dominance _scalar()' ----
+  # TODO 2: restructure 'args_list' into directly submitted args to 'dominance _scalar()' ----
   args_list <-
     list(RHS = selector_locations,
          fml_parsed = fml_parsed,
@@ -455,7 +455,7 @@ domir.formula <- function(
   } else {
     IV_labels <- c(fml_parsed$rhs_names[keep_in_nmlst_lgl], set_labels)
   }
-  # !! the below is a patch, needs reformat for both sets and wsets !! ----
+  # notes: !! the below is a patch, needs reformat for both sets and wsets !! ----
   # begin
   if (!is.null(.wst)) {
     wst_names <- fml_parsed$rhs_names[unlist(selector_locations_wsts)]
@@ -644,7 +644,7 @@ domir.formula_list <- function(
       do.call(.fct, append(list(fml_lst), args_2_fct))
     }
   # define arguments to `dominance_scalar` ----
-  # TODO: restructure 'args_list' into directly submitted args to 'dominance _scalar()' ----
+  # TODO 2: restructure 'args_list' into directly submitted args to 'dominance _scalar()' ----
   args_list <-
     list(RHS = selector_locations,
          list_parsed = list_parsed,
