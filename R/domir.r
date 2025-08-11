@@ -338,9 +338,8 @@ domir.formula <- function(
     .all = NULL, .adj = FALSE,
     .cdl = TRUE, .cpt = TRUE, .rev = FALSE, # depreciate '.cdl' and '.cpt' - move to print method
     .cst = NULL, .prg = FALSE, ...) {
-  # process arguments and prepare for sub-model estimation ----
   domir_arg_checker(.wst, .rev, .cpt, .cdl, .prg, .cst)
-  # TODO 3: formula_parse in external file ----
+  # TODO 3: formula_parse in external file as it is used by 'formula_list'? ----
   fml_parsed <- formula_parse(.obj)
   if (length(fml_parsed$rhs_names) == 0)
     stop("The formula in '.obj' must have one or more terms.", call. = FALSE)
@@ -359,150 +358,22 @@ domir.formula <- function(
   return_list <-
     dominance_scalar2(
       fml_parsed, .fct, names_for_dominance, entire_namelist_value, 
-      adj_value, all_value, .cdl, .cpt, .rev, .cst, .prg, list(...))
-  # ended here: 8/4 ----
-  # link return list to reporting - redo or comment all between there an here out?
-  stop("sorry, that's it!", call. = FALSE)
-  # ---- ended here: 8/4 ----
-  
-  
-  # ~~ take processes involving this and make them into function
-  keep_in_nmlst_lgl <- rep(TRUE, times = length(fml_parsed$rhs_names))
-  # create vector of 'select_lgl' locations;
-  # used as a convenience to select elements from this list that
-  # can contain 1 or more 'select_lgl' locations
-  selector_locations <- lapply(which(!fml_parsed$select_lgl), invisible)
-  adj_value <- est_adj_model(fml_parsed, .fct, .adj, "formula", ...)
-  all_value <-
-    est_all_model(fml_parsed, .fct, .all, "formula",
-                  NULL, selector_locations, ...)
-  # activate names in '.all' as TRUE in 'select_lgl';
-  # indicate that they are to be removed in name removal list
-  pos_all_name <- which(fml_parsed$rhs_names %in% formula_parse(.all)$rhs_names)
-  fml_parsed$select_lgl[pos_all_name] <- TRUE
-  keep_in_nmlst_lgl[pos_all_name] <- FALSE
-  # process '.set' ----
-  # indicate that names in '.set' are to be removed in name removal list
-  selector_locations_sets <- 
-    proc_set_fml(fml_parsed, .set, "formula", NULL, ".set")
-  keep_in_nmlst_lgl[unlist(selector_locations_sets)] <- FALSE
-  # apply labels to '.set'
-  set_labels <- set_labeller(.set, fml_parsed$rhs_names)
-  # process '.wst' ----
-  # indicate that names in '.wst' are to be removed in name removal list
-  selector_locations_wsts <- 
-    proc_set_fml(fml_parsed, .wst, "formula", NULL, ".wst")
-  keep_in_nmlst_lgl[unlist(selector_locations_wsts)] <- FALSE
-  # subset adjustment and check ----
-  # use name removal list to pare down selector_location list;
-  # add '.set's and '.wst's as selector locations
-  if (!is.null(selector_locations_sets) || !is.null(all_value) || 
-      !is.null(selector_locations_wsts)) {
-    selector_locations <- selector_locations[keep_in_nmlst_lgl]
-    selector_locations <- append(selector_locations, selector_locations_sets)
-    selector_locations <- append(selector_locations, selector_locations_wsts)
-  }
-  # flag locations of .'wst's within selector_location list
-  if (is.null(selector_locations_wsts)) {
-    which_wsts <- NULL
-  } else {
-    which_wsts <-
-      ((length(selector_locations)-length(selector_locations_wsts))+1):
-      length(selector_locations)
-  }
-  # check number of subsets
-  if ((length(selector_locations) < 2) &&
-      ifelse(is.null(selector_locations_wsts), 
-             TRUE, sum(sapply(selector_locations_wsts, length)) < 2))
-    stop("At least two names, within-set names, or sets of names are needed ",
-         "for a dominance analysis.",
-         call. = FALSE)
-  # define formula-based meta-function to coordinate .fct calls ----
-  meta_domir_fml <-
-    function(Selector_lgl, fml_parsed, .fct, RHS, args_2_fct, ...) {
-      # indicate which names have been selected for inclusion
-      # by 'Selector_lgl' implemented/passed by `dominance_scalar()`
-      for (elem in RHS[Selector_lgl]) {
-        fml_parsed$select_lgl[elem] <- TRUE
-      }
-      # reconstruct the formula with selected names for application to
-      # value generating function
-      fml <-
-        stats::reformulate(
-          c(fml_parsed$rhs_names[fml_parsed$select_lgl], fml_parsed$offset),
-          response = fml_parsed$lhs_names,
-          intercept = fml_parsed$intercept_lgl
-        )
-      # submit formula_list to '.fct'
-      do.call(.fct, append(list(fml), args_2_fct))
-    }
-  # define arguments to `dominance_scalar` ----
-  # TODO 2: restructure 'args_list' into directly submitted args to 'dominance _scalar()' ----
-  args_list <-
-    list(RHS = selector_locations,
-         fml_parsed = fml_parsed,
-         .fct = .fct,
-         .all = all_value, .adj = adj_value,
-         .wst = which_wsts,
-         args_2_fct = list(...))
-  # implement dominance analysis
-  return_list <-
-    dominance_scalar(meta_domir_fml, args_list, entire_namelist_value, 
-                     .cdl, .cpt, .rev, .cst, .prg)
-  # finalize returned values and attributes ----
-  if (is.null(.set)) {
-    IV_labels <- fml_parsed$rhs_names[keep_in_nmlst_lgl]
-  } else {
-    IV_labels <- c(fml_parsed$rhs_names[keep_in_nmlst_lgl], set_labels)
-  }
-  # notes: !! the below is a patch, needs reformat for both sets and wsets !! ----
-  # begin
-  if (!is.null(.wst)) {
-    wst_names <- fml_parsed$rhs_names[unlist(selector_locations_wsts)]
-    IV_labels <- c(fml_parsed$rhs_names[keep_in_nmlst_lgl], wst_names)
-  }
-  # end
-  names(return_list$General_Dominance) <- IV_labels
-  names(return_list$General_Dominance_Ranks) <- IV_labels
-  if (.cdl) {
-    dimnames(return_list$Conditional_Dominance) <-
-      list(names(return_list$General_Dominance),
-           paste0("include_at_",
-                  seq_len(ncol(return_list$Conditional_Dominance))))
-  }
-  if (.cpt) {
-    dimnames(return_list$Complete_Dominance) <-
-    list(paste0(names(return_list$General_Dominance), "_>"),
-         paste0(">_", names(return_list$General_Dominance)))
-  }
-  if (!.rev) {
-    Standardized <-
-      return_list$General_Dominance /
-      (
-        return_list$Value -
-          ifelse(length(return_list$Adj_result) > 0, return_list$Adj_result, 0)
-      )
-  } else {
-    Standardized <-
-      -return_list$General_Dominance /
-      -(
-        return_list$Value -
-          ifelse(length(return_list$Adj_result) > 0, return_list$Adj_result, 0)
-      )
-  }
-  # apply class and return
-  return_list <- list(
-    "General_Dominance" = return_list$General_Dominance,
-    "Standardized" = Standardized,
-    "Ranks" = return_list$General_Dominance_Ranks,
-    "Complete_Dominance" = return_list$Complete_Dominance,
-    "Conditional_Dominance" = return_list$Conditional_Dominance,
-    "Value" = return_list$Value,
-    "Value_All" =
-      return_list$All_result -
-      ifelse(is.null(return_list$Adj_result), 0, return_list$Adj_result),
-    "Value_Adjust" = return_list$Adj_result,
-    "Call" = match.call()
+      adj_value, all_value, #.cdl, .cpt, 
+      .rev, .cst, .prg, list(...))
+  print(names_for_dominance) # ~~
+  names_for_printing <- 
+    determine_display_names(names_for_dominance, .set)
+  print(names_for_printing) # ~~
+  return_list <- name_return_list(return_list, names_for_printing)
+  return_list <- 
+    append(
+      return_list,
+    list(
+      Value = entire_namelist_value,
+      Value_All = all_value,
+      Value_Adjust = adj_value,
+      Call = match.call()
+    )
   )
   class(return_list) <- c("domir")
   return_list
@@ -644,7 +515,6 @@ domir.formula_list <- function(
       do.call(.fct, append(list(fml_lst), args_2_fct))
     }
   # define arguments to `dominance_scalar` ----
-  # TODO 2: restructure 'args_list' into directly submitted args to 'dominance _scalar()' ----
   args_list <-
     list(RHS = selector_locations,
          list_parsed = list_parsed,
@@ -1007,6 +877,7 @@ check_namelists <- function(fml_parsed, .set, .wst, .all) {
 }
 #' TBD
 set_labeller2 <- function(.set) {
+  if (is.null(.set)) return(NULL)
   if (is.null(names(.set))) {
     set_labels <- paste0("set", seq_len(length(.set)))
   } else {
@@ -1085,6 +956,14 @@ determine_dominance_names <- function(fml_parsed, .set, .wst) {
   submitter_list
 }
 #' TBD
+determine_display_names <- 
+  function(namelist, .set) {
+    regular_names <- namelist[grepl("var", names(namelist))]
+    set_names <- set_labeller2(.set)
+    wst_names <- namelist[grepl("wst", names(namelist))]
+    c(unlist(regular_names), set_names, unlist(wst_names))
+  }
+#' TBD
 meta_domir_fml2 <- #update name eventually
   function(submodel_names_lgl, namelist, fml_parsed, .fct, args_2_fct) {
     for (elem in namelist[submodel_names_lgl]) {
@@ -1098,6 +977,21 @@ meta_domir_fml2 <- #update name eventually
       )
     do.call(.fct, append(list(fml), args_2_fct))
   }
+#' TBD
+name_return_list <- function(return_list, names_for_printing) {
+  names(return_list$general) <- names_for_printing
+  names(return_list$ranks) <- names_for_printing
+  names(return_list$standard) <- names_for_printing
+  rownames(return_list$conditional) <- names_for_printing
+  colnames(return_list$conditional) <- 
+    paste("include_at_", seq_len(ncol(return_list$conditional)), sep = "")
+  rownames(return_list$complete) <- paste(names_for_printing, "_>", sep = "")
+  colnames(return_list$complete) <- paste(">_", names_for_printing, sep = "")
+  names(return_list) <- 
+    c("General_Dominance", "Conditional_Dominance", "Complete_Dominance", 
+      "Ranks", "Standardized")
+  return_list
+}
 
 
 
@@ -1106,8 +1000,7 @@ meta_domir_fml2 <- #update name eventually
 
 
 
-
-
+# ---- old helpers ----
 # adjustment to returned value function ----
 est_adj_model <- function(fml_prs, .fct, .adj, .sty, ...) {
   if (!is.logical(.adj) || (length(.adj) > 1))
@@ -1514,6 +1407,10 @@ domir_arg_checker <-
         ),
         " must be logical.", call. = FALSE
       )
+    if (!.cpt || !.cdl) 
+      warning("'.cpt' and 'cdl' are depreciated as arguments to 'domir' as of ", 
+              "version 1.3.\nUse '.cdl' and .'cpt' as arguments to 'print()' ",
+              "instead.", call. = FALSE)
     if (!is.null(.cst) && .prg)
       stop("Progress bars do not yet work with parallelized value ",
            "estimation.", call. = FALSE)
