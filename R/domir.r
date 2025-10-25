@@ -336,8 +336,8 @@ domir.formula <- function(
     .obj, .fct,
     .set = NULL, .wst = NULL,
     .all = NULL, .adj = FALSE,
-    .cdl = TRUE, .cpt = TRUE, .rev = FALSE, # depreciate '.cdl' and '.cpt' - move to print method
-    .cst = NULL, .prg = FALSE, ...) {
+    .cdl = TRUE, .cpt = TRUE, # depreciate '.cdl' and '.cpt' - move to print method
+    .rev = FALSE, .cst = NULL, .prg = FALSE, ...) {
   domir_arg_checker(.wst, .rev, .cpt, .cdl, .prg, .cst)
   # TODO 3: formula_parse in external file as it is used by 'formula_list'? ----
   fml_parsed <- formula_parse(.obj)
@@ -361,8 +361,7 @@ domir.formula <- function(
       adj_value, all_value, #.cdl, .cpt, 
       .rev, .cst, .prg, list(...))
   print(names_for_dominance) # ~~
-  names_for_printing <- 
-    determine_display_names(names_for_dominance, .set)
+  names_for_printing <- determine_display_names(names_for_dominance, .set)
   print(names_for_printing) # ~~
   return_list <- name_return_list(return_list, names_for_printing)
   return_list <- 
@@ -378,7 +377,6 @@ domir.formula <- function(
   class(return_list) <- c("domir")
   return_list
 }
-
 #' @rdname domir
 #' @exportS3Method
 domir.formula_list <- function(
@@ -386,14 +384,8 @@ domir.formula_list <- function(
     .set = NULL, .wst = NULL, .all = NULL, .adj = FALSE,
     .cdl = TRUE, .cpt = TRUE, .rev = FALSE,
     .cst = NULL, .prg = FALSE, ...) {
-  # !! documentation for this function only focuses on key differences
-  # from 'formula'-based domir; most differences are in applying same
-  # processes to a list of formulas as opposed to an individual formula !!
-  # check domir arguments ----
   domir_arg_checker(.wst, .rev, .cpt, .cdl, .prg, .cst)
-  # process and check 'formula_list' ----
   list_parsed <- lapply(.obj, formula_parse)
-  # no empty formulas check
   rhs_term_counts <- sapply(list_parsed, function(elem) length(elem$rhs_names))
   if (any(rhs_term_counts == 0)) {
     stop(
@@ -964,19 +956,19 @@ determine_display_names <-
     c(unlist(regular_names), set_names, unlist(wst_names))
   }
 #' TBD
-meta_domir_fml2 <- #update name eventually
-  function(submodel_names_lgl, namelist, fml_parsed, .fct, args_2_fct) {
-    for (elem in namelist[submodel_names_lgl]) {
-      fml_parsed$select_lgl[elem] <- TRUE
-    }
-    fml <-
-      stats::reformulate(
-        c(fml_parsed$rhs_names[fml_parsed$select_lgl], fml_parsed$offset),
-        response = fml_parsed$lhs_names,
-        intercept = fml_parsed$intercept_lgl
-      )
-    do.call(.fct, append(list(fml), args_2_fct))
-  }
+# meta_domir_fml2 <- #update name eventually
+#   function(submodel_names_lgl, namelist, fml_parsed, .fct, args_2_fct) {
+#     for (elem in namelist[submodel_names_lgl]) {
+#       fml_parsed$select_lgl[elem] <- TRUE
+#     }
+#     fml <-
+#       stats::reformulate(
+#         c(fml_parsed$rhs_names[fml_parsed$select_lgl], fml_parsed$offset),
+#         response = fml_parsed$lhs_names,
+#         intercept = fml_parsed$intercept_lgl
+#       )
+#     do.call(.fct, append(list(fml), args_2_fct))
+#   }
 #' TBD
 name_return_list <- function(return_list, names_for_printing) {
   names(return_list$general) <- names_for_printing
@@ -985,8 +977,10 @@ name_return_list <- function(return_list, names_for_printing) {
   rownames(return_list$conditional) <- names_for_printing
   colnames(return_list$conditional) <- 
     paste("include_at_", seq_len(ncol(return_list$conditional)), sep = "")
-  rownames(return_list$complete) <- paste(names_for_printing, "_>", sep = "")
-  colnames(return_list$complete) <- paste(">_", names_for_printing, sep = "")
+  if (!is.null(return_list$complete)) {
+    rownames(return_list$complete) <- paste(names_for_printing, "_>", sep = "")
+    colnames(return_list$complete) <- paste(">_", names_for_printing, sep = "")
+  }
   names(return_list) <- 
     c("General_Dominance", "Conditional_Dominance", "Complete_Dominance", 
       "Ranks", "Standardized")
