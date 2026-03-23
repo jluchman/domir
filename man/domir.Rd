@@ -15,8 +15,8 @@ domir(.obj, ...)
   .wst = NULL,
   .all = NULL,
   .adj = FALSE,
-  .cdl = TRUE,
-  .cpt = TRUE,
+  .cdl = NULL,
+  .cpt = NULL,
   .rev = FALSE,
   .cst = NULL,
   .prg = FALSE,
@@ -30,8 +30,8 @@ domir(.obj, ...)
   .wst = NULL,
   .all = NULL,
   .adj = FALSE,
-  .cdl = TRUE,
-  .cpt = TRUE,
+  .cdl = NULL,
+  .cpt = NULL,
   .rev = FALSE,
   .cst = NULL,
   .prg = FALSE,
@@ -61,7 +61,9 @@ Must return a length 1/scalar, numeric, atomic vector.}
 Must be comprised of elements of the same class as \code{.obj}.
 Elements of the list can be named.}
 
-\item{.wst}{Not yet used.}
+\item{.wst}{A \code{list}.
+
+Must be comprised of elements of the same class as \code{.obj}.}
 
 \item{.all}{A \code{formula} or \code{formula_list}.
 
@@ -73,13 +75,15 @@ If \code{TRUE} then a model including only an intercept is submitted to \code{.f
 and the value returned is subtracted from the values returned from all
 subsets in the dominance analysis.}
 
-\item{.cdl}{Logical.
+\item{.cdl}{\code{NULL}.
 
-If \code{FALSE} then conditional dominance matrix is not computed.}
+Depreciated. Use \code{print(.cdl = FALSE)} to suppress display of conditional
+dominance statistics.}
 
-\item{.cpt}{Logical.
+\item{.cpt}{\code{NULL}.
 
-If \code{FALSE} then complete dominance matrix is not computed.}
+Depreciated. Use \code{print(.cpt = FALSE)} to suppress display of complete
+dominance proportions.}
 
 \item{.rev}{Logical.
 
@@ -109,7 +113,7 @@ Each row represents an element in \code{.obj};
 each column represents a number of elements from \code{.obj} in a subset.}
 \item{\code{Complete_Dominance}}{Matrix of proportions of subsets where the
 name in the row has a larger value than the name in the column.
-The se proportions determine complete dominance when a value of
+These proportions determine complete dominance when a value of
 1 or 0.}
 \item{\code{Value}}{Value returned by \code{.fct} with all elements (i.e.,
 from \code{.obj}, \code{.all}, and \code{.adj}.}
@@ -173,9 +177,10 @@ If \code{\link{offset}}s are included, they are passed, like intercepts, while
 \subsection{Changing Element Parsing}{
 
 All methods' default behavior that considers all value-generating names
-to be of equal priority can be overriden using \code{.set} and \code{.all} arguments.
+to be of equal priority can be overriden using \code{.set}, \code{.wst}, and \code{.all}
+arguments.
 
-Names in \code{.set} and \code{.all} must also be present in \code{.obj}.
+Names in \code{.set}, \code{.wst}, and \code{.all} must also be present in \code{.obj}.
 \subsection{\code{.set}}{
 
 \code{.set} binds together value-generating names such that
@@ -187,10 +192,26 @@ value-generating name.
 
 If list elements in \code{.set} are named, this name will be used in all
 returned results as the name of the set of value-generating names bound
-together.
+together. Names of \code{.set}s cannot contain the period character '.'.
 
 \code{.set} thus considers the value-generating names an 'inseparable set' in the
-dominance analysis and are always included or excluded together.
+dominance analysis and are always included or excluded together
+simultaneously.
+}
+
+\subsection{\code{.wst}}{
+
+\code{.wst} binds together value-generating names such that
+they are inseparable when being compared to other value generating names,
+but use an additional process that ascribes value to each member of the
+set.
+The elements in \code{.wst} are bound together and contribute jointly to the
+returned value and but are not considered a single value generating
+name.
+
+\code{.wst} thus considers the value-generating names a 'union' in the
+dominance analysis which pools their impact on the value and requires that
+members of the set are included contiguously but not always together.
 }
 
 \subsection{\code{.all}}{
@@ -338,9 +359,9 @@ domir(
   lm_r2,
   data = mtcars,
   .set =
-    list( 
+    list(
       trns = ~ am + gear,
-      eng = ~ cyl + vs, 
+      eng = ~ cyl + vs,
       misc = ~ qsec + drat
     )
 )
