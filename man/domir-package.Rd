@@ -2,27 +2,23 @@
 % Please edit documentation in R/domir-package.r
 \name{domir-package}
 \alias{domir-package}
-\title{Tools to Support Relative Importance Analysis}
+\title{Dominance Analysis Methods}
 \description{
-Methods to apply dominance analysis-based relative importance analysis for
-predictive modeling functions.
+Dominance analysis methods intended for predictive modeling functions.
 }
 \details{
-This package supports the determination of importance for inputs
-(i.e., independent variables, predictors, features, parameter estimates;
-called 'names' in the package) using dominance analysis
-(Azen & Budescu, 2004; Budescu, 1993).
+This package implements several methods to compute dominance analysis
+(Azen & Budescu, 2004; Budescu, 1993). Dominance analysis is a relative
+importance analysis approach that derives conceptually from Shapley values
+(e.g.,  Grömping, 200;  Lipovsky & Conklin, 2001) in that it ascribes
+'values' from some function to inputs (known as 'names' in the package)
+to that function.
 
-Dominance analysis resolves the indeterminancy of ascribing
-the value returned by a predictive modeling function to inputs/names when
-it is not possible to do so analytically. The most common use case for the
-application of dominance analysis is in comparing inputs/names in terms of
-their contribution to a predictive model's fit statistic or metric.
-
-Dominance analysis is a common, and generally well accepted, method for
-determining the relative importance of inputs/names that is, in part,
-a conceptual extension of the well-known Shapley value
-decomposition (e.g., Grömping, 2007; Lipovetsky & Conklin, 2001).
+When applied to predictive models, the method compares components of a
+fit metric ascribed to each 'name' (i.e., independent variable,
+predictor, feature, or parameter estimate) to each other 'name' in a
+pairwise fashion to determine a hierarchy of dominance or
+relative importance.
 }
 \references{
 \itemize{

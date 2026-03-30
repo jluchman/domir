@@ -1,21 +1,15 @@
 Package: domir
-Title: Tools to Support Relative Importance Analysis
+Title: Dominance Analysis Methods
 Version: 1.2.0.99
-Date: 2024-5-4
+Date: 2026-5-4
 Authors@R: 
     person(given = "Joseph",
            family = "Luchman",
            role = c("aut", "cre"),
            email = "jluchman@gmail.com",
            comment = c(ORCID = "0000-0002-8886-9717"))
-Description: Methods to apply decomposition-based relative importance 
-  analysis for R functions. This package supports the application of 
-  decomposition methods by providing 'lapply'- or 'Map'-like meta-functions that 
-  compute dominance analysis (Azen, R., & Budescu, D. V. (2003) 
-  <doi:10.1037/1082-989X.8.2.129>; Grömping, U. (2007) 
-  <doi:10.1198/000313007X188252>) an extension of Shapley value regression 
-  (Lipovetsky, S., & Conklin, M. (2001) <doi:10.1002/asmb.446>)
-  based on the values returned from other functions.
+Description: Dominance analysis relative importance methods that are intended 
+    for predictive models.
 Imports:
     parallel,
     stats,
@@ -44,7 +38,7 @@ URL: https://github.com/jluchman/domir, https://jluchman.github.io/domir/
 BugReports: https://github.com/jluchman/domir/issues
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
-RoxygenNote: 7.3.1
+RoxygenNote: 7.3.3
 Config/testthat/edition: 3
 VignetteBuilder: knitr
 Language: en-US

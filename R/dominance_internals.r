@@ -1,13 +1,32 @@
 #' @title Dominance analysis meta-function that returns scalar
 #' @description Internal dominance analysis computation function assuming scalar
 #' or vector of length 1 returned value.
+#' @param .obj `formula` or `formula_list` processed with `formula_parse()`.
+#' @param .fct A `function` or string function name.
+#' @param .nms A named list. Groups the results in `.set` and `.wst` together 
+#' and is used to determine valid name combinations.
+#' @param .val Numeric vector of length 1/scalar. Value associated with all 
+#' names included.
+#' @param .adj Numeric vector of length 1/scalar. Value associated with no 
+#' names included.
+#' @param .all Numeric vector of length 1/scalar. Value associated with names 
+#' in `.all` included.
+#' @param .rev Logical. Reverses interpretation for values that are better 
+#' when low.
+#' @param .cst Object of class c("SOCKcluster", "cluster") from
+#' [`parallel-package`].
+#' @param .prg Logical. Shows progress bar.
+#' @param .arg List. Additional arguments from `...` to submit to `.fct`.
+#' @param .is_fmllst Logical. Changes from `formula` to `formula_list` methods.
+#' @return A list of dominance analysis results. To be renamed and used as 
+#' `domir`'s list of returned results.
 #' @noRd
 #' @export
 dominance_scalar <- 
-  function(.obj, .fct, .nms, .val, .adj, .all, .rev, .cls, .prg, 
+  function(.obj, .fct, .nms, .val, .adj, .all, .rev, .cst, .prg, 
            .arg, .is_fmllst) {
-    print("dominance object") # ~~
-    print(.obj) # ~~
+    #print("dominance object") # ~~
+    #print(.obj) # ~~
     selector_locations <- 
       as.data.frame(
         matrix(
@@ -20,45 +39,61 @@ dominance_scalar <-
       )
     selector_locations$eq <- as.numeric(selector_locations$eq)
     selector_locations$elem <- as.numeric(selector_locations$elem)
-    print("selector locations") # ~~
-    print(selector_locations) # ~~
-    print("names that receive value; formatted as list") # ~~
-    print(.nms) # ~~
+    #print("selector locations") # ~~
+    #print(selector_locations) # ~~
+    #print("names that receive value; formatted as list") # ~~
+    #print(.nms) # ~~
     wsts <- grepl("^wst", names(.nms))
     wsts <- .nms[wsts]
     sets <- grepl("^set", names(.nms))
     sets <- .nms[sets]
     subset_matrix <- 
       subset_matrix_constructor(.nms, sets, wsts, selector_locations)
-    print("overall subset matrix") # ~~
-    print(subset_matrix) # ~~
+    #print("overall subset matrix") # ~~
+    #print(subset_matrix) # ~~
+    if (.prg) {
+      pg_bar <-
+        utils::txtProgressBar(min = 0, max = nrow(subset_matrix) - 1, style = 3)
+    } else {
+      pg_bar <- NULL
+    }
     if (.is_fmllst) {
       obtain_value2 <- obtain_value_fmllst
     } else {
       obtain_value2 <- obtain_value_fml
     }
-    value_vector <- 
-      sapply(seq_len(nrow(subset_matrix)), obtain_value2,
-             .obj, .fct, .arg, .prg, .val, .adj, .all, selector_locations, 
-             subset_matrix)
+    if (is.null(.cst)) {
+      value_vector <- 
+        sapply(seq_len(nrow(subset_matrix)), obtain_value2,
+               .obj, .fct, .arg, pg_bar, .val, .adj, .all, selector_locations, 
+               subset_matrix)
+    } else {
+      value_vector <- 
+        parallel::parSapply(
+          cl = .cst,
+          seq_len(nrow(subset_matrix)),
+          obtain_value2,
+          .obj, .fct, .arg, pg_bar, .val, .adj, .all, selector_locations, 
+          subset_matrix)
+    }
     names(value_vector) <- rownames(subset_matrix)
-    print("R2s") # ~~
-    print(value_vector) # ~~
+    # print("R2s") # ~~
+    # print(value_vector) # ~~
     conditional_dominance <-
       compute_conditional_dominance(value_vector, subset_matrix, .nms)
-    print("conditional dominance") # ~~
-    print(conditional_dominance) # ~~
+    # print("conditional dominance") # ~~
+    # print(conditional_dominance) # ~~
     general_dominance <- rowMeans(conditional_dominance)
-    print("general dominance") # ~~
-    print(general_dominance) # ~~
-    print("complete dominance") # ~~
+    # print("general dominance") # ~~
+    # print(general_dominance) # ~~
+    # print("complete dominance") # ~~
     if (length(wsts) == 0) {
       complete_dominance <-
         compute_complete_dominance(value_vector, subset_matrix, .nms)
     } else {
       complete_dominance <- NULL
     }
-    print(complete_dominance) # ~~
+    #print(complete_dominance) # ~~
     if (.rev) {
       if (!is.null(complete_dominance)) {
         complete_dominance <- (1 - complete_dominance)*-1
@@ -84,9 +119,8 @@ subset_matrix_constructor <- function(.nms, .set, .wst, .loc) {
   in_out_namelist <- lapply(seq_len(length(.nms)), in_out_constructor)
   subset_matrix <- expand.grid(in_out_namelist, KEEP.OUT.ATTRS = FALSE)
   names(subset_matrix) <- names(.nms)
-  print("initial subset matrix") # ~~
-  print(subset_matrix) # ~~
-  # ---- sets ----
+  # print("initial subset matrix") # ~~
+  # print(subset_matrix) # ~~
   if (length(.set) > 0) {
     for (matrix in seq_len(length(.set))) {
       merge_name <- names(.set)[matrix]
@@ -100,14 +134,13 @@ subset_matrix_constructor <- function(.nms, .set, .wst, .loc) {
         )
       names(merge_matrix) <- 
         c(merge_name, paste(merge_name, ".Var", seq_len(num_names), sep = ""))
-      print(merge_matrix) # ~~
+      #print(merge_matrix) # ~~
       subset_matrix <- 
         merge(subset_matrix, merge_matrix, by = merge_name)
     }
     subset_matrix <- 
       subset_matrix[-which(names(subset_matrix) %in% names(.set))]
   }
-  # ---- within-sets ----
   if (length(.wst) > 0) {
     in_out_namelist_wst <- 
       lapply(
@@ -180,21 +213,19 @@ subset_matrix_constructor <- function(.nms, .set, .wst, .loc) {
     wst_locator <- grep("^wst", names(subset_matrix))
     subset_matrix <- subset_matrix[,-wst_locator]
   }
-  # ---- update names ----
   name_locator <- grep("^var", names(subset_matrix))
   set_locator <- grep("^set", names(subset_matrix))
   names(subset_matrix)[name_locator] <- .nms[grep("^var", names(.nms))]
   names(subset_matrix)[set_locator] <- unlist(.set)
   subset_matrix <- subset_matrix[, .loc$name]
-  # ---- return subsets ----
   subset_matrix
 }
 #' TBD
 #' @noRd
 obtain_value_fml <-
   function(subset, .obj, .fct, .arg, .prg, .val, .adj, .all, .loc, .mat) {
-    #if (!is.null(.prg)) utils::setTxtProgressBar(.prg, subset)
-    lgl_vec <- unlist(.mat[subset, ]) # see if I can harmonize fmllst and fml - why is this a list?
+    if (!is.null(.prg)) utils::setTxtProgressBar(.prg, subset)
+    lgl_vec <- unlist(.mat[subset, ])
     which_change <- which(lgl_vec) 
     select_lgl_change <- .loc$elem[which_change]
     .obj$select_lgl[select_lgl_change] <- TRUE
@@ -216,11 +247,11 @@ obtain_value_fml <-
 #' @noRd
 obtain_value_fmllst <-
   function(subset, .obj, .fct, .arg, .prg, .val, .adj, .all, .loc, .mat) {
-    #if (!is.null(.prg)) utils::setTxtProgressBar(.prg, subset)
-    lgl_vec <- unlist(.mat[subset, , drop = TRUE]) # see if I can harmonize fmllst and fml
+    if (!is.null(.prg)) utils::setTxtProgressBar(.prg, subset)
+    lgl_vec <- unlist(.mat[subset, , drop = TRUE])
     which_change <- which(lgl_vec)
     chosen_selectors <- .loc[which_change, ]
-    print(chosen_selectors)
+    #print(chosen_selectors)
     for (chg in seq_len(nrow(chosen_selectors))) {
       .obj[[chosen_selectors$eq[[chg]]]]$select_lgl[[
         chosen_selectors$elem[[chg]]
@@ -245,7 +276,7 @@ obtain_value_fmllst <-
           }
         )
       fmllst <- do.call("formula_list", fmllst)
-      print(fmllst) # ~~
+      #print(fmllst) # ~~
       return(do.call(.fct, append(list(fmllst), .arg)))
     }
   }

@@ -4,10 +4,16 @@
 \alias{print.domir}
 \title{Print method for \code{domir}}
 \usage{
-\method{print}{domir}(x, ...)
+\method{print}{domir}(x, .cdl = TRUE, .cpt = TRUE, ...)
 }
 \arguments{
 \item{x}{an object of class "domir".}
+
+\item{.cdl}{Logical.
+If \code{TRUE} then conditional dominance statistics will be reported.}
+
+\item{.cpt}{Logical.
+If \code{TRUE} then complete dominance proportions will be reported.}
 
 \item{...}{further arguments passed to \code{\link{print.default}}.}
 }
@@ -27,10 +33,13 @@ following results:
 \item{Matrix describing general dominance values, standardized
 general dominance values, and the ranking of the general
 dominance values.}
-\item{Matrix describing the conditional dominance values, if computed}
-\item{Matrix describing the complete dominance designations, if evaluated}
+\item{Matrix describing the conditional dominance values
+if \code{.cdl} is \code{TRUE}.}
+\item{Matrix describing the complete dominance designations
+if \code{.cpt} is \code{TRUE}.}
 \item{If following \code{\link{summary.domir}}, matrix describing the strongest
-dominance designations between all elements.}}
+dominance designations between all elements if both \code{.cdl} and \code{.cpt}
+are \code{TRUE}.}}
 
 The \code{domir} print method alters dimension names for readability and they
 do not display as stored in the \code{domir} object.
