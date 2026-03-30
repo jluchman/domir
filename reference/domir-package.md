@@ -1,0 +1,41 @@
+# Dominance Analysis Methods
+
+Dominance analysis methods intended for predictive modeling functions.
+
+## Details
+
+This package implements several methods to compute dominance analysis
+(Azen & Budescu, 2004; Budescu, 1993). Dominance analysis is a relative
+importance analysis approach that derives conceptually from Shapley
+values (e.g., Grömping, 200; Lipovsky & Conklin, 2001) in that it
+ascribes 'values' from some function to inputs (known as 'names' in the
+package) to that function.
+
+When applied to predictive models, the method compares components of a
+fit metric ascribed to each 'name' (i.e., independent variable,
+predictor, feature, or parameter estimate) to each other 'name' in a
+pairwise fashion to determine a hierarchy of dominance or relative
+importance.
+
+## References
+
+- Azen, R., & Budescu, D. V. (2003). The dominance analysis approach for
+  comparing predictors in multiple regression. Psychological Methods,
+  8(2), 129-148. doi:10.1037/1082-989X.8.2.129
+
+- Budescu, D. V. (1993). Dominance analysis: A new approach to the
+  problem of relative importance of predictors in multiple regression.
+  Psychological Bulletin, 114(3), 542-551.
+  doi:10.1037/0033-2909.114.3.542
+
+- Grömping, U. (2007). Estimators of relative importance in linear
+  regression based on variance decomposition. The American Statistician,
+  61(2), 139-147. doi:10.1198/000313007X188252
+
+- Lipovetsky, S, & and Conklin, M. (2001). Analysis of regression in
+  game theory approach. Applied Stochastic Models in Business and
+  Industry, 17(4), 319-330. doi:10.1002/asmb.446
+
+## Author
+
+Joseph Luchman <jluchman@gmail.com>
