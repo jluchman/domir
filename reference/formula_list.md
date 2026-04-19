@@ -2,7 +2,7 @@
 
 Defines a list object composed of `formula`s. The purpose of this class
 of object is to impose structure of the list to ensure that it can be
-used to obtain RHS-LHS pairs and will be able to be parsed in
+used to obtain response-term pairs and will be able to be parsed in
 [`domir`](https://jluchman.github.io/domir/reference/domir.md).
 
 ## Usage

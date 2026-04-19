@@ -138,9 +138,8 @@ domir(
     summary(lm_model)[["r.squared"]]
   }
 )
+#> 
 #> Overall Value:      0.8113023 
-#> All Subset Value:   0 
-#> Adjustment Value:   0 
 #> 
 #> General Dominance Values:
 #>      General Dominance Standardized Ranks
@@ -412,7 +411,7 @@ dominance statistics and designations reported on above.
 
 #### Complete Dominance Proportions
 
-Complete dominance proprtions between two IVs are computed by:
+Complete dominance proportions between two IVs are computed by:
 
 $$C_{X_{v}X_{z}} = \,\frac{\Sigma_{j = 1}^{2^{p - 2}}{\{\begin{matrix}
 {if\, F_{X_{v}\; \cup \; S_{j}}\, > F_{X_{z}\; \cup \; S_{j}}\,\, then\, 1\,} \\
@@ -790,13 +789,13 @@ In many cases, methods that focus on relative importance are probably
 best used for model selection. When applied to model selection, a method
 would identify when an IV should be included in the model or not. The
 process of determining whether or not an IV should be included in the
-model is desribed by Azen et al. as reflecting *IV Criticality*.
+model is described by Azen et al. as reflecting *IV Criticality*.
 
 In the view of the author, methods such as posterior inclusion
 probability, Akaike weights, and permutation importance are actually IV
 criticality, as opposed to importance, measures. These methods are
 criticality methods as they tend to be informative for identifying
-whether an IV has trivial or non-trivial conribution to prediction but
+whether an IV has trivial or non-trivial contribution to prediction but
 is less informative for identifying the magnitude of their contribution.
 
 ### Importance: Model Evaluation

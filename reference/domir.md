@@ -90,13 +90,13 @@ domir(
 
 - .cdl:
 
-  `NULL`. Depreciated. Use `print(.cdl = FALSE)` to suppress display of
-  conditional dominance values.
+  `NULL`. Depreciated. Use `.cdl = FALSE` in `domir`'s `print` method to
+  suppress display of conditional dominance values.
 
 - .cpt:
 
-  `NULL`. Depreciated. Use `print(.cpt = FALSE)` to suppress display of
-  complete dominance values.
+  `NULL`. Depreciated. Use `.cpt = FALSE` in `domir`'s `print` method to
+  suppress display of complete dominance values.
 
 - .rev:
 
@@ -128,7 +128,7 @@ Returns an object of [`class`](https://rdrr.io/r/base/class.html)
 
 - `Standardized`:
 
-  Vector of general dominance values normalized to sum to 1.
+  Vector of general dominance values standardized to sum to 1.
 
 - `Ranks`:
 
@@ -156,7 +156,7 @@ Returns an object of [`class`](https://rdrr.io/r/base/class.html)
 
 - `Value_Adjust`:
 
-  Value of `.fct` associated no included names.
+  Value of `.fct` returned when no names are included.
 
 - `Call`:
 
@@ -276,19 +276,18 @@ of names, a
 the subsets of names will have to be processed in `.fct` to obtain the
 correct `class`.
 
-The all names will be submitted to `.fct` as the first, unnamed
-argument.
+The `formula` or `formula_list` of names will be submitted to `.fct` as
+the first, unnamed argument.
 
 ### `.fct` as Analysis Pipeline
 
 `.fct` is expected to be a complete analysis pipeline that receives a
 subset of names of the same `class` as `.obj` and uses these names in
 the `class` as submitted to generate a returned value of the appropriate
-type to dominance analyze. Typically, the returned value is a scalar fit
-statistic/metric extracted from a predictive model.
-
-At current, only atomic (i.e., non-`list`), numeric scalars (i.e.,
-vectors of length 1) are allowed as returned values.
+type to dominance analyze. At current, only atomic (i.e., non-`list`),
+numeric scalars (i.e., vectors of length 1) are allowed as returned
+values. `domir` is designed for use with predictive models and assumes
+the returned value is a scalar-valued fit statistic/metric.
 
 The `.fct` argument is strict about names submitted and returned value
 requirements for functions used. A series of checks to ensure the
@@ -302,9 +301,8 @@ to satisfy the checks.
 ## Notes
 
 Prior to version 1.1.0, the `formula` method allowed a `formula` to be
-submitted to `.adj`. Submitting an intercept-only `formula` as opposed
-to a logical has been depreciated and submitting a `formula` with more
-than an intercept is defunct.
+submitted to `.adj`. Submitting any argument other than a logical is now
+defunct.
 
 The `formula` and `formula_list` methods can be used to pass responses,
 intercepts, and `offset`s to all combinations of names. If the user
@@ -312,13 +310,13 @@ seeks to include other model components integral to estimation (i.e., a
 random effect term in
 [`lme4::glmer()`](https://rdrr.io/pkg/lme4/man/glmer.html)) include them
 as [`update`](https://rdrr.io/r/stats/update.formula.html) to the
-submitted `formula` or `formula_list` imbedded in `.fct`.
+submitted `formula` or `formula_list` embedded in `.fct`.
 
 Second-order or higher terms (i.e., interactions like `~ a*b`) are
 parsed by default but not used differently from first-order terms for
-producing subsets. The values ascribed to such terms may not be valid
-unless the user ensures that second-order and higher terms are used
-appropriately in `.fct`.
+generating valid combinations. The values ascribed to such names may not
+be valid unless the user ensures that second-order and higher term names
+are used appropriately in `.fct`.
 
 ## References
 
@@ -344,9 +342,8 @@ lm_r2 <-
  }
 
 domir(mpg ~ am + vs + cyl, lm_r2, data = mtcars)
+#> 
 #> Overall Value:      0.7619773 
-#> All Subset Value:   0 
-#> Adjustment Value:   0 
 #> 
 #> General Dominance Values:
 #>     General Dominance Standardized Ranks
@@ -374,33 +371,32 @@ domir(
   .set = list(~ carb + gear, ~ disp + wt),
   data = mtcars
 )
+#> 
 #> Overall Value:      0.851596 
-#> All Subset Value:   0 
-#> Adjustment Value:   0 
 #> 
 #> General Dominance Values:
-#>       General Dominance Standardized Ranks
-#> am           0.09446712    0.1109295     5
-#> vs           0.10957434    0.1286694     4
-#> cyl          0.19767129    0.2321186     3
-#> set 1        0.20978183    0.2463396     2
-#> set 2        0.24010141    0.2819429     1
+#>      General Dominance Standardized Ranks
+#> am          0.09446712    0.1109295     5
+#> vs          0.10957434    0.1286694     4
+#> cyl         0.19767129    0.2321186     3
+#> set1        0.20978183    0.2463396     2
+#> set2        0.24010141    0.2819429     1
 #> 
 #> Conditional Dominance Values:
-#>       Include At: 1 Include At: 2 Include At: 3 Include At: 4 Include At: 5
-#> am        0.3597989    0.07688044    0.01944026   0.010342235  0.0058737118
-#> vs        0.4409477    0.09276443    0.01167477   0.001799976  0.0006848322
-#> cyl       0.7261800    0.19877978    0.04304518   0.015251991  0.0050994979
-#> set 1     0.7343966    0.20916653    0.05695739   0.030887988  0.0175006137
-#> set 2     0.7809306    0.24778381    0.08623238   0.051865275  0.0336949874
+#>      Include At: 1 Include At: 2 Include At: 3 Include At: 4 Include At: 5
+#> am       0.3597989    0.07688044    0.01944026   0.010342235  0.0058737118
+#> vs       0.4409477    0.09276443    0.01167477   0.001799976  0.0006848322
+#> cyl      0.7261800    0.19877978    0.04304518   0.015251991  0.0050994979
+#> set1     0.7343966    0.20916653    0.05695739   0.030887988  0.0175006137
+#> set2     0.7809306    0.24778381    0.08623238   0.051865275  0.0336949874
 #> 
 #> Complete Dominance Proportions:
-#>          > am  > vs > cyl > set 1 > set 2
-#> am >       NA 0.625  0.25       0       0
-#> vs >    0.375    NA  0.00       0       0
-#> cyl >   0.750 1.000    NA       0       0
-#> set 1 > 1.000 1.000  1.00      NA       0
-#> set 2 > 1.000 1.000  1.00       1      NA
+#>         > am  > vs > cyl > set1 > set2
+#> am >      NA 0.625  0.25      0      0
+#> vs >   0.375    NA  0.00      0      0
+#> cyl >  0.750 1.000    NA      0      0
+#> set1 > 1.000 1.000  1.00     NA      0
+#> set2 > 1.000 1.000  1.00      1     NA
 #> 
 
 ## Multivariate regression with multivariate r-square and
@@ -409,18 +405,38 @@ if (requireNamespace("performance", quietly = TRUE)) {
   mlm_rxy <-
     function(fml, data) {
       mlm_res <- lm(fml, data = data)
-      performance::r2_mlm(mlm_res)[["R_xy"]]
+      performance::r2_mlm(mlm_res)[["Symmetric Rxy"]]
     }
 
   domir(
     cbind(wt, mpg) ~ vs + cyl + am + carb,
     mlm_rxy,
     .all = ~ carb,
-    data = mtcars,
-    dvnames = c("wt", "mpg")
+    data = mtcars
   )
 }
-#> Error in (function (fml, data) {    mlm_res <- lm(fml, data = data)    performance::r2_mlm(mlm_res)[["R_xy"]]})(cbind(wt, mpg) ~ vs + cyl + am + carb, data = structure(list(    mpg = c(21, 21, 22.8, 21.4, 18.7, 18.1, 14.3, 24.4, 22.8,     19.2, 17.8, 16.4, 17.3, 15.2, 10.4, 10.4, 14.7, 32.4, 30.4,     33.9, 21.5, 15.5, 15.2, 13.3, 19.2, 27.3, 26, 30.4, 15.8,     19.7, 15, 21.4), cyl = c(6, 6, 4, 6, 8, 6, 8, 4, 4, 6, 6,     8, 8, 8, 8, 8, 8, 4, 4, 4, 4, 8, 8, 8, 8, 4, 4, 4, 8, 6,     8, 4), disp = c(160, 160, 108, 258, 360, 225, 360, 146.7,     140.8, 167.6, 167.6, 275.8, 275.8, 275.8, 472, 460, 440,     78.7, 75.7, 71.1, 120.1, 318, 304, 350, 400, 79, 120.3, 95.1,     351, 145, 301, 121), hp = c(110, 110, 93, 110, 175, 105,     245, 62, 95, 123, 123, 180, 180, 180, 205, 215, 230, 66,     52, 65, 97, 150, 150, 245, 175, 66, 91, 113, 264, 175, 335,     109), drat = c(3.9, 3.9, 3.85, 3.08, 3.15, 2.76, 3.21, 3.69,     3.92, 3.92, 3.92, 3.07, 3.07, 3.07, 2.93, 3, 3.23, 4.08,     4.93, 4.22, 3.7, 2.76, 3.15, 3.73, 3.08, 4.08, 4.43, 3.77,     4.22, 3.62, 3.54, 4.11), wt = c(2.62, 2.875, 2.32, 3.215,     3.44, 3.46, 3.57, 3.19, 3.15, 3.44, 3.44, 4.07, 3.73, 3.78,     5.25, 5.424, 5.345, 2.2, 1.615, 1.835, 2.465, 3.52, 3.435,     3.84, 3.845, 1.935, 2.14, 1.513, 3.17, 2.77, 3.57, 2.78),     qsec = c(16.46, 17.02, 18.61, 19.44, 17.02, 20.22, 15.84,     20, 22.9, 18.3, 18.9, 17.4, 17.6, 18, 17.98, 17.82, 17.42,     19.47, 18.52, 19.9, 20.01, 16.87, 17.3, 15.41, 17.05, 18.9,     16.7, 16.9, 14.5, 15.5, 14.6, 18.6), vs = c(0, 0, 1, 1, 0,     1, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0,     0, 1, 0, 1, 0, 0, 0, 1), am = c(1, 1, 1, 0, 0, 0, 0, 0, 0,     0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 1, 1, 1,     1, 1, 1, 1), gear = c(4, 4, 4, 3, 3, 3, 3, 4, 4, 4, 4, 3,     3, 3, 3, 3, 3, 4, 4, 4, 3, 3, 3, 3, 3, 4, 5, 5, 5, 5, 5,     4), carb = c(4, 4, 1, 1, 2, 1, 4, 2, 2, 4, 4, 3, 3, 3, 4,     4, 4, 1, 2, 1, 1, 2, 2, 4, 2, 1, 2, 2, 4, 6, 8, 2)), row.names = c("Mazda RX4", "Mazda RX4 Wag", "Datsun 710", "Hornet 4 Drive", "Hornet Sportabout", "Valiant", "Duster 360", "Merc 240D", "Merc 230", "Merc 280", "Merc 280C", "Merc 450SE", "Merc 450SL", "Merc 450SLC", "Cadillac Fleetwood", "Lincoln Continental", "Chrysler Imperial", "Fiat 128", "Honda Civic", "Toyota Corolla", "Toyota Corona", "Dodge Challenger", "AMC Javelin", "Camaro Z28", "Pontiac Firebird", "Fiat X1-9", "Porsche 914-2", "Lotus Europa", "Ford Pantera L", "Ferrari Dino", "Maserati Bora", "Volvo 142E"), class = "data.frame"), dvnames = c("wt", "mpg")): unused argument (dvnames = c("wt", "mpg"))
+#> 
+#> Overall Value:      0.8556762 
+#> All Subset Value:   0.3137993 
+#> 
+#> General Dominance Values:
+#>     General Dominance Standardized Ranks
+#> vs         0.07302069    0.1347551     3
+#> cyl        0.21522440    0.3971832     2
+#> am         0.25363177    0.4680616     1
+#> 
+#> Conditional Dominance Values:
+#>     Include At: 1 Include At: 2 Include At: 3
+#> vs      0.1790665    0.03876834   0.001227216
+#> cyl     0.4392894    0.18097204   0.025411763
+#> am      0.4528423    0.21937941   0.088673582
+#> 
+#> Complete Dominance Proportions:
+#>       > vs > cyl > am
+#> vs >    NA     0    0
+#> cyl >    1    NA    0
+#> am >     1     1   NA
+#> 
 
 ## Named sets
 domir(
@@ -434,9 +450,8 @@ domir(
       misc = ~ qsec + drat
     )
 )
+#> 
 #> Overall Value:      0.7723016 
-#> All Subset Value:   0 
-#> Adjustment Value:   0 
 #> 
 #> General Dominance Values:
 #>      General Dominance Standardized Ranks
@@ -471,8 +486,8 @@ domir(
   .rev = TRUE,
   data = mtcars
  )
+#> 
 #> Overall Value:      161.392 
-#> All Subset Value:   0 
 #> Adjustment Value:   208.7555 
 #> 
 #> General Dominance Values:
@@ -483,15 +498,15 @@ domir(
 #> 
 #> Conditional Dominance Values:
 #>      Include At: 1 Include At: 2 Include At: 3
-#> am        196.4844     -13.71691     -216.9460
-#> carb      199.1807     -11.18702     -214.5825
-#> cyl       169.3064     -29.43173     -221.1977
+#> am      -12.271136     -13.71691     -8.190499
+#> carb     -9.574847     -11.18702     -5.827017
+#> cyl     -39.449099     -29.43173    -12.442191
 #> 
 #> Complete Dominance Proportions:
 #>        > am > carb > cyl
-#> am >     NA     -1     0
+#> am >     NA      1     0
 #> carb >    0     NA     0
-#> cyl >    -1     -1    NA
+#> cyl >     1      1    NA
 #> 
 
 ## 'systemfit' with 'formula_list' method returning AIC
@@ -505,8 +520,8 @@ if (requireNamespace("systemfit", quietly = TRUE)) {
     .adj = TRUE, .rev = TRUE
   )
 }
+#> 
 #> Overall Value:      249.6543 
-#> All Subset Value:   0 
 #> Adjustment Value:   331.5366 
 #> 
 #> General Dominance Values:
@@ -536,11 +551,45 @@ if (requireNamespace("systemfit", quietly = TRUE)) {
 #> 
 #> Complete Dominance Proportions:
 #>             > mpg~am > mpg~cyl > mpg~carb > qsec~wt > qsec~cyl > qsec~carb
-#> mpg~am >          NA   -0.1250    -0.7500   -0.6875    -0.5000     -0.5000
-#> mpg~cyl >    -0.8750        NA    -0.9375   -0.9375    -0.8125     -0.8125
-#> mpg~carb >   -0.2500   -0.0625         NA   -0.6875    -0.3125     -0.3125
-#> qsec~wt >    -0.3125   -0.0625    -0.3125        NA    -0.0625     -0.3750
-#> qsec~cyl >   -0.5000   -0.1875    -0.6875   -0.9375         NA     -0.5000
-#> qsec~carb >  -0.5000   -0.1875    -0.6875   -0.6250    -0.5000          NA
+#> mpg~am >          NA    0.1250     0.7500    0.6875     0.5000      0.5000
+#> mpg~cyl >     0.8750        NA     0.9375    0.9375     0.8125      0.8125
+#> mpg~carb >    0.2500    0.0625         NA    0.6875     0.3125      0.3125
+#> qsec~wt >     0.3125    0.0625     0.3125        NA     0.0625      0.3750
+#> qsec~cyl >    0.5000    0.1875     0.6875    0.9375         NA      0.5000
+#> qsec~carb >   0.5000    0.1875     0.6875    0.6250     0.5000          NA
+#> 
+
+## within-set or within-group dominance analysis
+domir(
+  mpg ~ am + gear + cyl + vs + qsec + drat,
+  lm_r2,
+  data = mtcars,
+  .wst =
+    list(
+      ~ am + gear,
+      ~ cyl + vs,
+      ~ qsec + drat
+    )
+)
+#> 
+#> Overall Value:      0.7723016 
+#> 
+#> General Dominance Values:
+#>      General Dominance Standardized Ranks
+#> am          0.11396574   0.14756636     3
+#> gear        0.04286517   0.05550314     6
+#> cyl         0.24709381   0.31994471     1
+#> vs          0.10890451   0.14101292     4
+#> qsec        0.09646857   0.12491048     5
+#> drat        0.16300381   0.21106238     2
+#> 
+#> Conditional Dominance Values:
+#>      Include At: 1 Include At: 2 Include At: 3
+#> am       0.2444837   0.072048469  0.0253650654
+#> gear     0.1153582   0.009008409  0.0042289046
+#> cyl      0.5067626   0.186868294  0.0476505476
+#> vs       0.2215303   0.093355993  0.0118272575
+#> qsec     0.1517481   0.137379941  0.0002776212
+#> drat     0.4404470   0.046318412  0.0022460483
 #> 
 ```

@@ -28,10 +28,10 @@ element added.
 
   Matrix comparing the element in the first row to the element in the
   third row. The second row denotes the strongest designation between
-  the two elements.
+  the two names.
 
 ## Details
 
 The summary method for class `domir` objects is used for obtaining the
 strongest dominance designations (i.e., general, conditional, or
-complete) among all pairs of dominance analyzed elements.
+complete) among all pairs of dominance analyzed names.

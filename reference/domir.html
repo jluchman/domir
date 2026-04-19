@@ -13,7 +13,7 @@ values based on the returned values from the function."><meta property="og:image
 
     <a class="navbar-brand me-2" href="../index.html">domir</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.2.0.99</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.3.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -138,14 +138,14 @@ subsets in the dominance analysis.</p></dd>
 
 <dt id="arg--cdl">.cdl<a class="anchor" aria-label="anchor" href="#arg--cdl"></a></dt>
 <dd><p><code>NULL</code>.
-Depreciated. Use <code>print(.cdl = FALSE)</code> to suppress display of conditional
-dominance values.</p></dd>
+Depreciated. Use <code>.cdl = FALSE</code> in <code>domir</code>'s <code>print</code> method to suppress
+display of conditional dominance values.</p></dd>
 
 
 <dt id="arg--cpt">.cpt<a class="anchor" aria-label="anchor" href="#arg--cpt"></a></dt>
 <dd><p><code>NULL</code>.
-Depreciated. Use <code>print(.cpt = FALSE)</code> to suppress display of complete
-dominance values.</p></dd>
+Depreciated. Use <code>.cpt = FALSE</code> in <code>domir</code>'s <code>print</code> method to suppress
+display of complete dominance values.</p></dd>
 
 
 <dt id="arg--rev">.rev<a class="anchor" aria-label="anchor" href="#arg--rev"></a></dt>
@@ -173,7 +173,7 @@ to indicate progress.</p></dd>
 <dd><p>Vector of general dominance values.</p></dd>
 
 <dt><code>Standardized</code></dt>
-<dd><p>Vector of general dominance values normalized
+<dd><p>Vector of general dominance values standardized
 to sum to 1.</p></dd>
 
 <dt><code>Ranks</code></dt>
@@ -199,7 +199,7 @@ in <code>.all</code>;
 when <code>.adj</code> is <code>TRUE</code>, this value will be adjusted for <code>Value_Adjust</code>.</p></dd>
 
 <dt><code>Value_Adjust</code></dt>
-<dd><p>Value of <code>.fct</code> associated no included names.</p></dd>
+<dd><p>Value of <code>.fct</code> returned when no names are included.</p></dd>
 
 <dt><code>Call</code></dt>
 <dd><p>The matched call.</p></dd>
@@ -345,7 +345,8 @@ In the case that <code>.fct</code> requires a different <code>class</code> (e.g.
 a character vector of names, a <code><a href="https://rdrr.io/pkg/Formula/man/Formula.html" class="external-link">Formula::Formula</a></code> see <code><a href="fmllst2Fml.html">fmllst2Fml</a></code>) the
 subsets of names will have to be processed in <code>.fct</code> to obtain the correct
 <code>class</code>.</p>
-<p>The all names will be submitted to <code>.fct</code> as the first, unnamed argument.</p>
+<p>The <code>formula</code> or <code>formula_list</code> of names will be submitted to <code>.fct</code> as the
+first, unnamed argument.</p>
 </div>
 
 
@@ -358,13 +359,15 @@ subsets of names will have to be processed in <code>.fct</code> to obtain the co
 <p><code>.fct</code> is expected to be a complete analysis pipeline that receives a
 subset of names of the same <code>class</code> as <code>.obj</code> and uses these names in the
 <code>class</code> as submitted to generate a returned value of the appropriate
-type to dominance analyze. Typically, the returned value is a
-scalar fit statistic/metric extracted from a predictive model.</p>
-<p>At current, only atomic (i.e., non-<code>list</code>), numeric scalars (i.e.,
-vectors of length 1) are allowed as returned values.</p>
+type to dominance analyze.
+At current, only atomic (i.e., non-<code>list</code>), numeric scalars (i.e.,
+vectors of length 1) are allowed as returned values.
+<code>domir</code> is designed for use with predictive models and assumes the returned
+value is a scalar-valued fit statistic/metric.</p>
 <p>The <code>.fct</code> argument is strict about names submitted and returned value
-requirements for functions used. A series of checks to ensure the submitted
-names and returned value adhere to these requirements.
+requirements for functions used.
+A series of checks to ensure the submitted names and returned value adhere
+to these requirements.
 The checks include whether the <code>.obj</code> can be submitted to <code>.fct</code> without
 producing an error and whether the returned value from <code>.fct</code> is a length 1,
 atomic, numeric vector.
@@ -377,20 +380,18 @@ anonymous function to supply as <code>.fct</code> to satisfy the checks.</p>
     <h2 id="notes">Notes<a class="anchor" aria-label="anchor" href="#notes"></a></h2>
     <p>Prior to version 1.1.0, the <code>formula</code> method allowed a <code>formula</code>
 to be submitted to <code>.adj</code>.
-Submitting an intercept-only <code>formula</code> as opposed to a
-logical has been depreciated and submitting a <code>formula</code> with more than an
-intercept is defunct.</p>
+Submitting any argument other than a logical is now defunct.</p>
 <p>The <code>formula</code> and <code>formula_list</code> methods can be used to pass responses,
 intercepts, and <code>offset</code>s to all combinations of names.
 If the user seeks to include other model components integral to
 estimation (i.e., a random effect term in <code><a href="https://rdrr.io/pkg/lme4/man/glmer.html" class="external-link">lme4::glmer()</a></code>) include them as
 <code><a href="https://rdrr.io/r/stats/update.formula.html" class="external-link">update</a></code> to the submitted <code>formula</code> or <code>formula_list</code>
-imbedded in <code>.fct</code>.</p>
+embedded in <code>.fct</code>.</p>
 <p>Second-order or higher terms (i.e., interactions like <code>~ a*b</code>) are parsed
-by default but not used differently from first-order terms for producing
-subsets.
-The values ascribed to such terms may not be valid unless the user ensures
-that second-order and higher terms are used appropriately in <code>.fct</code>.</p>
+by default but not used differently from first-order terms for generating
+valid combinations.
+The values ascribed to such names may not be valid unless the user ensures
+that second-order and higher term names are used appropriately in <code>.fct</code>.</p>
     </div>
     <div class="section level2">
     <h2 id="references">References<a class="anchor" aria-label="anchor" href="#references"></a></h2>
@@ -415,9 +416,8 @@ doi:https://doi.org/10.35566/jbds/luchman</p></li>
 <span class="r-in"><span> <span class="op">}</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="fu">domir</span><span class="op">(</span><span class="va">mpg</span> <span class="op">~</span> <span class="va">am</span> <span class="op">+</span> <span class="va">vs</span> <span class="op">+</span> <span class="va">cyl</span>, <span class="va">lm_r2</span>, data <span class="op">=</span> <span class="va">mtcars</span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Overall Value:      0.7619773 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> All Subset Value:   0 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Adjustment Value:   0 </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> General Dominance Values:</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>     General Dominance Standardized Ranks</span>
@@ -445,33 +445,32 @@ doi:https://doi.org/10.35566/jbds/luchman</p></li>
 <span class="r-in"><span>  .set <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="op">~</span> <span class="va">carb</span> <span class="op">+</span> <span class="va">gear</span>, <span class="op">~</span> <span class="va">disp</span> <span class="op">+</span> <span class="va">wt</span><span class="op">)</span>,</span></span>
 <span class="r-in"><span>  data <span class="op">=</span> <span class="va">mtcars</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Overall Value:      0.851596 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> All Subset Value:   0 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Adjustment Value:   0 </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> General Dominance Values:</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>       General Dominance Standardized Ranks</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> am           0.09446712    0.1109295     5</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> vs           0.10957434    0.1286694     4</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> cyl          0.19767129    0.2321186     3</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> set 1        0.20978183    0.2463396     2</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> set 2        0.24010141    0.2819429     1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>      General Dominance Standardized Ranks</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> am          0.09446712    0.1109295     5</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> vs          0.10957434    0.1286694     4</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> cyl         0.19767129    0.2321186     3</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> set1        0.20978183    0.2463396     2</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> set2        0.24010141    0.2819429     1</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Conditional Dominance Values:</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>       Include At: 1 Include At: 2 Include At: 3 Include At: 4 Include At: 5</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> am        0.3597989    0.07688044    0.01944026   0.010342235  0.0058737118</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> vs        0.4409477    0.09276443    0.01167477   0.001799976  0.0006848322</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> cyl       0.7261800    0.19877978    0.04304518   0.015251991  0.0050994979</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> set 1     0.7343966    0.20916653    0.05695739   0.030887988  0.0175006137</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> set 2     0.7809306    0.24778381    0.08623238   0.051865275  0.0336949874</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>      Include At: 1 Include At: 2 Include At: 3 Include At: 4 Include At: 5</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> am       0.3597989    0.07688044    0.01944026   0.010342235  0.0058737118</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> vs       0.4409477    0.09276443    0.01167477   0.001799976  0.0006848322</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> cyl      0.7261800    0.19877978    0.04304518   0.015251991  0.0050994979</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> set1     0.7343966    0.20916653    0.05695739   0.030887988  0.0175006137</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> set2     0.7809306    0.24778381    0.08623238   0.051865275  0.0336949874</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Complete Dominance Proportions:</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>          &gt; am  &gt; vs &gt; cyl &gt; set 1 &gt; set 2</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> am &gt;       NA 0.625  0.25       0       0</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> vs &gt;    0.375    NA  0.00       0       0</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> cyl &gt;   0.750 1.000    NA       0       0</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> set 1 &gt; 1.000 1.000  1.00      NA       0</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> set 2 &gt; 1.000 1.000  1.00       1      NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>         &gt; am  &gt; vs &gt; cyl &gt; set1 &gt; set2</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> am &gt;      NA 0.625  0.25      0      0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> vs &gt;   0.375    NA  0.00      0      0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> cyl &gt;  0.750 1.000    NA      0      0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> set1 &gt; 1.000 1.000  1.00     NA      0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> set2 &gt; 1.000 1.000  1.00      1     NA</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co">## Multivariate regression with multivariate r-square and</span></span></span>
@@ -480,18 +479,38 @@ doi:https://doi.org/10.35566/jbds/luchman</p></li>
 <span class="r-in"><span>  <span class="va">mlm_rxy</span> <span class="op">&lt;-</span></span></span>
 <span class="r-in"><span>    <span class="kw">function</span><span class="op">(</span><span class="va">fml</span>, <span class="va">data</span><span class="op">)</span> <span class="op">{</span></span></span>
 <span class="r-in"><span>      <span class="va">mlm_res</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/lm.html" class="external-link">lm</a></span><span class="op">(</span><span class="va">fml</span>, data <span class="op">=</span> <span class="va">data</span><span class="op">)</span></span></span>
-<span class="r-in"><span>      <span class="fu">performance</span><span class="fu">::</span><span class="fu"><a href="https://easystats.github.io/performance/reference/r2_mlm.html" class="external-link">r2_mlm</a></span><span class="op">(</span><span class="va">mlm_res</span><span class="op">)</span><span class="op">[[</span><span class="st">"R_xy"</span><span class="op">]</span><span class="op">]</span></span></span>
+<span class="r-in"><span>      <span class="fu">performance</span><span class="fu">::</span><span class="fu"><a href="https://easystats.github.io/performance/reference/r2_mlm.html" class="external-link">r2_mlm</a></span><span class="op">(</span><span class="va">mlm_res</span><span class="op">)</span><span class="op">[[</span><span class="st">"Symmetric Rxy"</span><span class="op">]</span><span class="op">]</span></span></span>
 <span class="r-in"><span>    <span class="op">}</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span>  <span class="fu">domir</span><span class="op">(</span></span></span>
 <span class="r-in"><span>    <span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">cbind</a></span><span class="op">(</span><span class="va">wt</span>, <span class="va">mpg</span><span class="op">)</span> <span class="op">~</span> <span class="va">vs</span> <span class="op">+</span> <span class="va">cyl</span> <span class="op">+</span> <span class="va">am</span> <span class="op">+</span> <span class="va">carb</span>,</span></span>
 <span class="r-in"><span>    <span class="va">mlm_rxy</span>,</span></span>
 <span class="r-in"><span>    .all <span class="op">=</span> <span class="op">~</span> <span class="va">carb</span>,</span></span>
-<span class="r-in"><span>    data <span class="op">=</span> <span class="va">mtcars</span>,</span></span>
-<span class="r-in"><span>    dvnames <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"wt"</span>, <span class="st">"mpg"</span><span class="op">)</span></span></span>
+<span class="r-in"><span>    data <span class="op">=</span> <span class="va">mtcars</span></span></span>
 <span class="r-in"><span>  <span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">}</span></span></span>
-<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error in (function (fml, data) {    mlm_res &lt;- lm(fml, data = data)    performance::r2_mlm(mlm_res)[["R_xy"]]})(cbind(wt, mpg) ~ vs + cyl + am + carb, data = structure(list(    mpg = c(21, 21, 22.8, 21.4, 18.7, 18.1, 14.3, 24.4, 22.8,     19.2, 17.8, 16.4, 17.3, 15.2, 10.4, 10.4, 14.7, 32.4, 30.4,     33.9, 21.5, 15.5, 15.2, 13.3, 19.2, 27.3, 26, 30.4, 15.8,     19.7, 15, 21.4), cyl = c(6, 6, 4, 6, 8, 6, 8, 4, 4, 6, 6,     8, 8, 8, 8, 8, 8, 4, 4, 4, 4, 8, 8, 8, 8, 4, 4, 4, 8, 6,     8, 4), disp = c(160, 160, 108, 258, 360, 225, 360, 146.7,     140.8, 167.6, 167.6, 275.8, 275.8, 275.8, 472, 460, 440,     78.7, 75.7, 71.1, 120.1, 318, 304, 350, 400, 79, 120.3, 95.1,     351, 145, 301, 121), hp = c(110, 110, 93, 110, 175, 105,     245, 62, 95, 123, 123, 180, 180, 180, 205, 215, 230, 66,     52, 65, 97, 150, 150, 245, 175, 66, 91, 113, 264, 175, 335,     109), drat = c(3.9, 3.9, 3.85, 3.08, 3.15, 2.76, 3.21, 3.69,     3.92, 3.92, 3.92, 3.07, 3.07, 3.07, 2.93, 3, 3.23, 4.08,     4.93, 4.22, 3.7, 2.76, 3.15, 3.73, 3.08, 4.08, 4.43, 3.77,     4.22, 3.62, 3.54, 4.11), wt = c(2.62, 2.875, 2.32, 3.215,     3.44, 3.46, 3.57, 3.19, 3.15, 3.44, 3.44, 4.07, 3.73, 3.78,     5.25, 5.424, 5.345, 2.2, 1.615, 1.835, 2.465, 3.52, 3.435,     3.84, 3.845, 1.935, 2.14, 1.513, 3.17, 2.77, 3.57, 2.78),     qsec = c(16.46, 17.02, 18.61, 19.44, 17.02, 20.22, 15.84,     20, 22.9, 18.3, 18.9, 17.4, 17.6, 18, 17.98, 17.82, 17.42,     19.47, 18.52, 19.9, 20.01, 16.87, 17.3, 15.41, 17.05, 18.9,     16.7, 16.9, 14.5, 15.5, 14.6, 18.6), vs = c(0, 0, 1, 1, 0,     1, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0,     0, 1, 0, 1, 0, 0, 0, 1), am = c(1, 1, 1, 0, 0, 0, 0, 0, 0,     0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 1, 1, 1,     1, 1, 1, 1), gear = c(4, 4, 4, 3, 3, 3, 3, 4, 4, 4, 4, 3,     3, 3, 3, 3, 3, 4, 4, 4, 3, 3, 3, 3, 3, 4, 5, 5, 5, 5, 5,     4), carb = c(4, 4, 1, 1, 2, 1, 4, 2, 2, 4, 4, 3, 3, 3, 4,     4, 4, 1, 2, 1, 1, 2, 2, 4, 2, 1, 2, 2, 4, 6, 8, 2)), row.names = c("Mazda RX4", "Mazda RX4 Wag", "Datsun 710", "Hornet 4 Drive", "Hornet Sportabout", "Valiant", "Duster 360", "Merc 240D", "Merc 230", "Merc 280", "Merc 280C", "Merc 450SE", "Merc 450SL", "Merc 450SLC", "Cadillac Fleetwood", "Lincoln Continental", "Chrysler Imperial", "Fiat 128", "Honda Civic", "Toyota Corolla", "Toyota Corona", "Dodge Challenger", "AMC Javelin", "Camaro Z28", "Pontiac Firebird", "Fiat X1-9", "Porsche 914-2", "Lotus Europa", "Ford Pantera L", "Ferrari Dino", "Maserati Bora", "Volvo 142E"), class = "data.frame"), dvnames = c("wt", "mpg")):</span> unused argument (dvnames = c("wt", "mpg"))</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Overall Value:      0.8556762 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> All Subset Value:   0.3137993 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> General Dominance Values:</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     General Dominance Standardized Ranks</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> vs         0.07302069    0.1347551     3</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> cyl        0.21522440    0.3971832     2</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> am         0.25363177    0.4680616     1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Conditional Dominance Values:</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     Include At: 1 Include At: 2 Include At: 3</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> vs      0.1790665    0.03876834   0.001227216</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> cyl     0.4392894    0.18097204   0.025411763</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> am      0.4528423    0.21937941   0.088673582</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Complete Dominance Proportions:</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>       &gt; vs &gt; cyl &gt; am</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> vs &gt;    NA     0    0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> cyl &gt;    1    NA    0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> am &gt;     1     1   NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co">## Named sets</span></span></span>
 <span class="r-in"><span><span class="fu">domir</span><span class="op">(</span></span></span>
@@ -505,9 +524,8 @@ doi:https://doi.org/10.35566/jbds/luchman</p></li>
 <span class="r-in"><span>      misc <span class="op">=</span> <span class="op">~</span> <span class="va">qsec</span> <span class="op">+</span> <span class="va">drat</span></span></span>
 <span class="r-in"><span>    <span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Overall Value:      0.7723016 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> All Subset Value:   0 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Adjustment Value:   0 </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> General Dominance Values:</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>      General Dominance Standardized Ranks</span>
@@ -542,8 +560,8 @@ doi:https://doi.org/10.35566/jbds/luchman</p></li>
 <span class="r-in"><span>  .rev <span class="op">=</span> <span class="cn">TRUE</span>,</span></span>
 <span class="r-in"><span>  data <span class="op">=</span> <span class="va">mtcars</span></span></span>
 <span class="r-in"><span> <span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Overall Value:      161.392 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> All Subset Value:   0 </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Adjustment Value:   208.7555 </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> General Dominance Values:</span>
@@ -554,15 +572,15 @@ doi:https://doi.org/10.35566/jbds/luchman</p></li>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Conditional Dominance Values:</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>      Include At: 1 Include At: 2 Include At: 3</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> am        196.4844     -13.71691     -216.9460</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> carb      199.1807     -11.18702     -214.5825</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> cyl       169.3064     -29.43173     -221.1977</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> am      -12.271136     -13.71691     -8.190499</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> carb     -9.574847     -11.18702     -5.827017</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> cyl     -39.449099     -29.43173    -12.442191</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Complete Dominance Proportions:</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>        &gt; am &gt; carb &gt; cyl</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> am &gt;     NA     -1     0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> am &gt;     NA      1     0</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> carb &gt;    0     NA     0</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> cyl &gt;    -1     -1    NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> cyl &gt;     1      1    NA</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co">## 'systemfit' with 'formula_list' method returning AIC</span></span></span>
@@ -576,8 +594,8 @@ doi:https://doi.org/10.35566/jbds/luchman</p></li>
 <span class="r-in"><span>    .adj <span class="op">=</span> <span class="cn">TRUE</span>, .rev <span class="op">=</span> <span class="cn">TRUE</span></span></span>
 <span class="r-in"><span>  <span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">}</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Overall Value:      249.6543 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> All Subset Value:   0 </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Adjustment Value:   331.5366 </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> General Dominance Values:</span>
@@ -607,12 +625,46 @@ doi:https://doi.org/10.35566/jbds/luchman</p></li>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Complete Dominance Proportions:</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>             &gt; mpg~am &gt; mpg~cyl &gt; mpg~carb &gt; qsec~wt &gt; qsec~cyl &gt; qsec~carb</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> mpg~am &gt;          NA   -0.1250    -0.7500   -0.6875    -0.5000     -0.5000</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> mpg~cyl &gt;    -0.8750        NA    -0.9375   -0.9375    -0.8125     -0.8125</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> mpg~carb &gt;   -0.2500   -0.0625         NA   -0.6875    -0.3125     -0.3125</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> qsec~wt &gt;    -0.3125   -0.0625    -0.3125        NA    -0.0625     -0.3750</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> qsec~cyl &gt;   -0.5000   -0.1875    -0.6875   -0.9375         NA     -0.5000</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> qsec~carb &gt;  -0.5000   -0.1875    -0.6875   -0.6250    -0.5000          NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> mpg~am &gt;          NA    0.1250     0.7500    0.6875     0.5000      0.5000</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> mpg~cyl &gt;     0.8750        NA     0.9375    0.9375     0.8125      0.8125</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> mpg~carb &gt;    0.2500    0.0625         NA    0.6875     0.3125      0.3125</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> qsec~wt &gt;     0.3125    0.0625     0.3125        NA     0.0625      0.3750</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> qsec~cyl &gt;    0.5000    0.1875     0.6875    0.9375         NA      0.5000</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> qsec~carb &gt;   0.5000    0.1875     0.6875    0.6250     0.5000          NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co">## within-set or within-group dominance analysis</span></span></span>
+<span class="r-in"><span><span class="fu">domir</span><span class="op">(</span></span></span>
+<span class="r-in"><span>  <span class="va">mpg</span> <span class="op">~</span> <span class="va">am</span> <span class="op">+</span> <span class="va">gear</span> <span class="op">+</span> <span class="va">cyl</span> <span class="op">+</span> <span class="va">vs</span> <span class="op">+</span> <span class="va">qsec</span> <span class="op">+</span> <span class="va">drat</span>,</span></span>
+<span class="r-in"><span>  <span class="va">lm_r2</span>,</span></span>
+<span class="r-in"><span>  data <span class="op">=</span> <span class="va">mtcars</span>,</span></span>
+<span class="r-in"><span>  .wst <span class="op">=</span></span></span>
+<span class="r-in"><span>    <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span></span>
+<span class="r-in"><span>      <span class="op">~</span> <span class="va">am</span> <span class="op">+</span> <span class="va">gear</span>,</span></span>
+<span class="r-in"><span>      <span class="op">~</span> <span class="va">cyl</span> <span class="op">+</span> <span class="va">vs</span>,</span></span>
+<span class="r-in"><span>      <span class="op">~</span> <span class="va">qsec</span> <span class="op">+</span> <span class="va">drat</span></span></span>
+<span class="r-in"><span>    <span class="op">)</span></span></span>
+<span class="r-in"><span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Overall Value:      0.7723016 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> General Dominance Values:</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>      General Dominance Standardized Ranks</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> am          0.11396574   0.14756636     3</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> gear        0.04286517   0.05550314     6</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> cyl         0.24709381   0.31994471     1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> vs          0.10890451   0.14101292     4</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> qsec        0.09646857   0.12491048     5</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> drat        0.16300381   0.21106238     2</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Conditional Dominance Values:</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>      Include At: 1 Include At: 2 Include At: 3</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> am       0.2444837   0.072048469  0.0253650654</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> gear     0.1153582   0.009008409  0.0042289046</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> cyl      0.5067626   0.186868294  0.0476505476</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> vs       0.2215303   0.093355993  0.0118272575</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> qsec     0.1517481   0.137379941  0.0002776212</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> drat     0.4404470   0.046318412  0.0022460483</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 </code></pre></div>
     </div>

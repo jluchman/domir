@@ -23,7 +23,7 @@
 
     <a class="navbar-brand me-2" href="index.html">domir</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.2.0.99</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.3.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -55,7 +55,7 @@
 <div class="row">
   <main id="main" class="col-md-9"><div class="section level1">
 <div class="page-header">
-<img src="logo.png" class="logo" alt=""><h1 id="tools-to-support-relative-importance-analysis">Tools to Support Relative Importance Analysis<a class="anchor" aria-label="anchor" href="#tools-to-support-relative-importance-analysis"></a>
+<img src="logo.png" class="logo" alt=""><h1 id="dominance-analysis-methods">Dominance Analysis Methods<a class="anchor" aria-label="anchor" href="#dominance-analysis-methods"></a>
 </h1>
 </div>
 </div>
@@ -67,23 +67,22 @@
 <div class="section level1">
 <h1 id="overview">Overview<a class="anchor" aria-label="anchor" href="#overview"></a>
 </h1>
-<p>The <strong>domir</strong> package supports determining the relative importance of inputs (i.e., independent variables, predictors, or features referred to as <em>names</em> in the package) in a user’s statistical or machine learning model.</p>
-<p>The intention of this package is to provide a flexible user interface to <em>Dominance Analysis</em>—a relatively assumption-free methodology for comparing the predictive value, usefulness, or importance associated with of model inputs/names.</p>
-<p>Dominance analysis resolves the indeterminancy of ascribing the value returned by a predictive modeling function to inputs/names when it is not possible to do so analytically. The most common use case for the application of dominance analysis is in comparing inputs/names in terms of their contribution to a predictive model’s fit statistic or metric.</p>
+<p><strong>domir</strong> implements several methods to compute dominance analysis<a class="footnote-ref" tabindex="0" data-bs-toggle="popover" data-bs-content='&lt;p&gt;see this &lt;a href="https://CRAN.R-project.org/package=domir/vignettes/domir_basics.html" class="external-link"&gt;vignette&lt;/a&gt; for a conceptual discussion of dominance analysis&lt;/p&gt;'><sup>1</sup></a>. Dominance analysis is a relative importance analysis approach that derives conceptually from Shapley values in that it ascribes ‘values’ from some function to inputs (known as ‘names’ in the package) to that function.</p>
+<p>When applied to predictive models, the method compares components of a fit metric ascribed to each ‘name’ (i.e., independent variable, predictor, feature, or parameter estimate) to each other ‘name’ in a pairwise fashion to determine a hierarchy of dominance or relative importance.</p>
 </div>
 <div class="section level1">
 <h1 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
 </h1>
 <p>To install the most recent version of <strong>domir</strong> from CRAN use:</p>
 <p><code>install.packages("domir")</code></p>
-<p><strong>domir</strong> is also used as the computational engine underlying the <a href="https://easystats.github.io/parameters/reference/dominance_analysis.html" class="external-link"><code>dominance_analysis()</code></a> function for the <a href="https://easystats.github.io/parameters/" class="external-link"><strong>parameters</strong></a> package in the <a href="https://easystats.github.io/easystats/" class="external-link"><strong>easystats</strong></a> framework/collection.</p>
+<p><strong>domir</strong> is also used as the computational engine underlying the <a href="https://easystats.github.io/parameters/reference/dominance_analysis.html" class="external-link"><code>dominance_analysis()</code></a> function for the <a href="https://easystats.github.io/parameters/" class="external-link"><strong>parameters</strong></a> package in <a href="https://easystats.github.io/easystats/" class="external-link"><strong>easystats</strong></a>.</p>
 </div>
 <div class="section level1">
-<h1 id="what-domir-does">What <strong>domir</strong> Does<a class="anchor" aria-label="anchor" href="#what-domir-does"></a>
+<h1 id="what-domir-does">What <strong><code>domir</code></strong> Does<a class="anchor" aria-label="anchor" href="#what-domir-does"></a>
 </h1>
-<p><code>domir</code> computes three different sets of results based on a set of inputs/names and the values returned from a function like this linear regression model.</p>
+<p><code>domir</code> computes dominance analysis results based on a set of inputs/names and the values returned from a function like this linear regression model.</p>
 <p><code>lm(mpg ~ am + vs + cyl, data = mtcars)</code></p>
-<p>Using the variance explained <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi>R</mi><mn>2</mn></msup><annotation encoding="application/x-tex">R^2</annotation></semantics></math> as fit statistic as implemented by <code>lm</code>‘s <code>summary</code> method as the returned value, <code>domir</code> can implement a ’classic’ dominance analysis<a class="footnote-ref" tabindex="0" data-bs-toggle="popover" data-bs-content='&lt;p&gt;see this &lt;a href="https://CRAN.R-project.org/package=domir/vignettes/domir_basics.html" class="external-link"&gt;vignette&lt;/a&gt; for a conceptual discussion of dominance analysis&lt;/p&gt;'><sup>1</sup></a> as:</p>
+<p>Using the variance explained <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi>R</mi><mn>2</mn></msup><annotation encoding="application/x-tex">R^2</annotation></semantics></math> as fit statistic as implemented by <code>lm</code>’s <code>summary</code> method as the returned value, <code>domir</code> produces:</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">lm_wrapper</span> <span class="op">&lt;-</span>       </span>
 <span>  <span class="kw">function</span><span class="op">(</span><span class="va">formula</span>, <span class="va">data</span><span class="op">)</span> <span class="op">{</span></span>
@@ -93,31 +92,28 @@
 <span>  <span class="op">}</span></span>
 <span></span>
 <span><span class="fu"><a href="reference/domir.html">domir</a></span><span class="op">(</span><span class="va">mpg</span> <span class="op">~</span> <span class="va">am</span> <span class="op">+</span> <span class="va">vs</span> <span class="op">+</span> <span class="va">cyl</span>, <span class="va">lm_wrapper</span>, data <span class="op">=</span> <span class="va">mtcars</span><span class="op">)</span></span></code></pre></div>
-<div class="sourceCode" id="cb2"><pre class="sourceCode R"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a><span class="do">## Overall Value:      0.7619773 </span></span>
-<span id="cb2-2"><a href="#cb2-2" tabindex="-1"></a><span class="do">## </span></span>
-<span id="cb2-3"><a href="#cb2-3" tabindex="-1"></a><span class="do">## General Dominance Values:</span></span>
-<span id="cb2-4"><a href="#cb2-4" tabindex="-1"></a><span class="do">##     General Dominance Standardized Ranks</span></span>
-<span id="cb2-5"><a href="#cb2-5" tabindex="-1"></a><span class="do">## am          0.1774892    0.2329324     3</span></span>
-<span id="cb2-6"><a href="#cb2-6" tabindex="-1"></a><span class="do">## vs          0.2027032    0.2660226     2</span></span>
-<span id="cb2-7"><a href="#cb2-7" tabindex="-1"></a><span class="do">## cyl         0.3817849    0.5010450     1</span></span>
-<span id="cb2-8"><a href="#cb2-8" tabindex="-1"></a><span class="do">## </span></span>
-<span id="cb2-9"><a href="#cb2-9" tabindex="-1"></a><span class="do">## Conditional Dominance Values:</span></span>
-<span id="cb2-10"><a href="#cb2-10" tabindex="-1"></a><span class="do">##     Include At: 1 Include At: 2 Include At: 3</span></span>
-<span id="cb2-11"><a href="#cb2-11" tabindex="-1"></a><span class="do">## am      0.3597989     0.1389842   0.033684441</span></span>
-<span id="cb2-12"><a href="#cb2-12" tabindex="-1"></a><span class="do">## vs      0.4409477     0.1641982   0.002963748</span></span>
-<span id="cb2-13"><a href="#cb2-13" tabindex="-1"></a><span class="do">## cyl     0.7261800     0.3432799   0.075894823</span></span>
-<span id="cb2-14"><a href="#cb2-14" tabindex="-1"></a><span class="do">## </span></span>
-<span id="cb2-15"><a href="#cb2-15" tabindex="-1"></a><span class="do">## Complete Dominance Proportions:</span></span>
-<span id="cb2-16"><a href="#cb2-16" tabindex="-1"></a><span class="do">##       &gt; am &gt; vs &gt; cyl</span></span>
-<span id="cb2-17"><a href="#cb2-17" tabindex="-1"></a><span class="do">## am &gt;    NA  0.5     0</span></span>
-<span id="cb2-18"><a href="#cb2-18" tabindex="-1"></a><span class="do">## vs &gt;   0.5   NA     0</span></span>
-<span id="cb2-19"><a href="#cb2-19" tabindex="-1"></a><span class="do">## cyl &gt;  1.0  1.0    NA</span></span></code></pre></div>
-<p><code>domir</code> requires the set of inputs/names, submitted as a <code>formula</code> or a specialized <a href="https://jluchman.github.io/domir/reference/formula_list.html"><code>formula_list</code></a> object, and a function that accepts the input/names and returns a single, numeric value.</p>
-<p>Note the use of a wrapper function, <code>lm_wrapper</code>, that accepts a <code>formula</code> and returns the <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi>R</mi><mn>2</mn></msup><annotation encoding="application/x-tex">R^2</annotation></semantics></math>. These ‘analysis pipeline’ wrapper functions are necessary for the effective use of <code>domir</code> and the ability to use them to adapt predictive models to the computational engine used by <code>domir</code> makes this package able to apply to almost any model.</p>
-<p><code>domir</code> by default reports on complete dominance proportions, conditional dominance values, and general dominance values.</p>
-<p>Complete dominance proportions are the proportion of subsets of inputs/names where the name in the row obtains a bigger value than the name in the column.</p>
-<p>Conditional dominance values are the average value associated with the name when included sequentially at each possible position in the sequence of name slots.</p>
-<p>General dominance values are the average value associated with the name across all possible ways of including the name in the sequence of all names. These values are also equivalent to the <a href="https://en.wikipedia.org/wiki/Shapley_value" class="external-link">Shapley Value</a> for each name.</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode R"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a><span class="do">## </span></span>
+<span id="cb2-2"><a href="#cb2-2" tabindex="-1"></a><span class="do">## Overall Value:      0.7619773 </span></span>
+<span id="cb2-3"><a href="#cb2-3" tabindex="-1"></a><span class="do">## </span></span>
+<span id="cb2-4"><a href="#cb2-4" tabindex="-1"></a><span class="do">## General Dominance Values:</span></span>
+<span id="cb2-5"><a href="#cb2-5" tabindex="-1"></a><span class="do">##     General Dominance Standardized Ranks</span></span>
+<span id="cb2-6"><a href="#cb2-6" tabindex="-1"></a><span class="do">## am          0.1774892    0.2329324     3</span></span>
+<span id="cb2-7"><a href="#cb2-7" tabindex="-1"></a><span class="do">## vs          0.2027032    0.2660226     2</span></span>
+<span id="cb2-8"><a href="#cb2-8" tabindex="-1"></a><span class="do">## cyl         0.3817849    0.5010450     1</span></span>
+<span id="cb2-9"><a href="#cb2-9" tabindex="-1"></a><span class="do">## </span></span>
+<span id="cb2-10"><a href="#cb2-10" tabindex="-1"></a><span class="do">## Conditional Dominance Values:</span></span>
+<span id="cb2-11"><a href="#cb2-11" tabindex="-1"></a><span class="do">##     Include At: 1 Include At: 2 Include At: 3</span></span>
+<span id="cb2-12"><a href="#cb2-12" tabindex="-1"></a><span class="do">## am      0.3597989     0.1389842   0.033684441</span></span>
+<span id="cb2-13"><a href="#cb2-13" tabindex="-1"></a><span class="do">## vs      0.4409477     0.1641982   0.002963748</span></span>
+<span id="cb2-14"><a href="#cb2-14" tabindex="-1"></a><span class="do">## cyl     0.7261800     0.3432799   0.075894823</span></span>
+<span id="cb2-15"><a href="#cb2-15" tabindex="-1"></a><span class="do">## </span></span>
+<span id="cb2-16"><a href="#cb2-16" tabindex="-1"></a><span class="do">## Complete Dominance Proportions:</span></span>
+<span id="cb2-17"><a href="#cb2-17" tabindex="-1"></a><span class="do">##       &gt; am &gt; vs &gt; cyl</span></span>
+<span id="cb2-18"><a href="#cb2-18" tabindex="-1"></a><span class="do">## am &gt;    NA  0.5     0</span></span>
+<span id="cb2-19"><a href="#cb2-19" tabindex="-1"></a><span class="do">## vs &gt;   0.5   NA     0</span></span>
+<span id="cb2-20"><a href="#cb2-20" tabindex="-1"></a><span class="do">## cyl &gt;  1.0  1.0    NA</span></span></code></pre></div>
+<p><code>domir</code> requires a set of inputs/names, submitted as a <code>formula</code> or a specialized <a href="https://jluchman.github.io/domir/reference/formula_list.html"><code>formula_list</code></a> object, and a function that accepts the input/names and returns a single, numeric value.</p>
+<p>The function supplied to <code>domir</code> must then be a full ‘analysis pipeline’ function and is necessary for the effective use of <code>domir</code>. In fact, <code>domir</code>’s value is in that it allows the use of such pipelines as the user can define them to apply to almost any predictive model. This example uses wrapper function, <code>lm_wrapper</code>, that accepts a <code>formula</code> and returns the <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi>R</mi><mn>2</mn></msup><annotation encoding="application/x-tex">R^2</annotation></semantics></math>. A user could use an anonymous function defined within the <code>domir</code> call that has a similar format as an alternative.</p>
 </div>
 <div class="section level1">
 <h1 id="comparison-with-existing-relative-importance-packages">Comparison with Existing Relative Importance Packages<a class="anchor" aria-label="anchor" href="#comparison-with-existing-relative-importance-packages"></a>
