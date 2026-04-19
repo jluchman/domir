@@ -15,7 +15,7 @@ A \code{list} of class \code{formula_list}.
 \description{
 Defines a list object composed of \code{formula}s. The purpose of this
 class of object is to impose structure of the list to ensure that it
-can be used to obtain RHS-LHS pairs and will be able to be
+can be used to obtain response-term pairs and will be able to be
 parsed in \code{\link{domir}}.
 }
 \details{

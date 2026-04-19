@@ -21,7 +21,6 @@
 #' @return A list of dominance analysis results. To be renamed and used as 
 #' `domir`'s list of returned results.
 #' @noRd
-#' @export
 dominance_scalar <- 
   function(.obj, .fct, .nms, .val, .adj, .all, .rev, .cst, .prg, 
            .arg, .is_fmllst) {
@@ -58,13 +57,13 @@ dominance_scalar <-
       pg_bar <- NULL
     }
     if (.is_fmllst) {
-      obtain_value2 <- obtain_value_fmllst
+      obtain_value <- obtain_value_fmllst
     } else {
-      obtain_value2 <- obtain_value_fml
+      obtain_value <- obtain_value_fml
     }
     if (is.null(.cst)) {
       value_vector <- 
-        sapply(seq_len(nrow(subset_matrix)), obtain_value2,
+        sapply(seq_len(nrow(subset_matrix)), obtain_value,
                .obj, .fct, .arg, pg_bar, .val, .adj, .all, selector_locations, 
                subset_matrix)
     } else {
@@ -72,13 +71,13 @@ dominance_scalar <-
         parallel::parSapply(
           cl = .cst,
           seq_len(nrow(subset_matrix)),
-          obtain_value2,
+          obtain_value,
           .obj, .fct, .arg, pg_bar, .val, .adj, .all, selector_locations, 
           subset_matrix)
     }
     names(value_vector) <- rownames(subset_matrix)
-    # print("R2s") # ~~
-    # print(value_vector) # ~~
+    #print("R2s") # ~~
+    #print(value_vector) # ~~
     conditional_dominance <-
       compute_conditional_dominance(value_vector, subset_matrix, .nms)
     # print("conditional dominance") # ~~
@@ -96,7 +95,7 @@ dominance_scalar <-
     #print(complete_dominance) # ~~
     if (.rev) {
       if (!is.null(complete_dominance)) {
-        complete_dominance <- (1 - complete_dominance)*-1
+        complete_dominance <- (1 - complete_dominance)
       }
       ranks <- rank(general_dominance, ties.method = "min")
       standard <- 1 - (general_dominance/sum(general_dominance))
@@ -112,7 +111,16 @@ dominance_scalar <-
       standard = standard
     )
   }
-#' TBD
+#' @title Construct matrix of all valid names
+#' @description Internal function to construct a logical matrix where columns 
+#' represent names and each row is a different valid combination.
+#' @param .nms A named list. Groups the results in `.set` and `.wst` together 
+#' and is used to determine valid name combinations.
+#' @param .set Subset of `.nms` associated with sets.
+#' @param .wst Subset of `.nms` associated with within-group sets.
+#' @param .loc The result of `format_selector` applied to all names.
+#' @return A logical matrix with column names associated with each name in 
+#' `.nms`. 
 #' @noRd
 subset_matrix_constructor <- function(.nms, .set, .wst, .loc) {
   in_out_constructor <- function(name) {c(FALSE, TRUE)}
@@ -220,7 +228,24 @@ subset_matrix_constructor <- function(.nms, .set, .wst, .loc) {
   subset_matrix <- subset_matrix[, .loc$name]
   subset_matrix
 }
-#' TBD
+#' @title Reconstruct formula and submit
+#' @description Internal function to reconstruct a `formula` from a 
+#' combination of names, submit it to the value generating function, and 
+#' collect the returned value.
+#' @param subset An integer vector of length 1/scalar.
+#' @param .obj `formula` processed with `formula_parse()`.
+#' @param .fct A `function` or string function name.
+#' @param .arg List. Additional arguments from `...` to submit to `.fct`.
+#' @param .prg Object of class "txtProgressBar" from [`utils-package`].
+#' @param .val Numeric vector of length 1/scalar. Value associated with all 
+#' names included.
+#' @param .adj Numeric vector of length 1/scalar. Value associated with no 
+#' names included.
+#' @param .all Numeric vector of length 1/scalar. Value associated with names 
+#' in `.all` included.
+#' @param .loc A result of `format_selector` applied to all names.
+#' @param .mat A result of `subset_matrix_contructor` applied to all names.
+#' @return Numeric vector of length 1/scalar.
 #' @noRd
 obtain_value_fml <-
   function(subset, .obj, .fct, .arg, .prg, .val, .adj, .all, .loc, .mat) {
@@ -240,10 +265,28 @@ obtain_value_fml <-
           response = .obj$lhs_names,
           intercept = .obj$intercept_lgl
         )
-      return(do.call(.fct, append(list(fml), .arg)) + .adj + .all)
+      return(do.call(.fct, append(list(fml), .arg)))
     }
   }
-#' TBD
+#' @title Reconstruct formula_list and submit
+#' @description Internal function to reconstruct a `formula_list` from a 
+#' combination of names, submit it to the value generating function, and 
+#' collect the returned value.
+#' @param subset An integer vector of length 1/scalar.
+#' @param .obj `formula_list` processed with `formula_parse()`.
+#' @param .fct A `function` or string function name.
+#' @param .arg List. Additional arguments from `...` to submit to `.fct`.
+#' @param .prg Object of class "txtProgressBar" from [`utils-package`].
+#' @param .val Numeric vector of length 1/scalar. Value associated with all 
+#' names included.
+#' @param .adj Numeric vector of length 1/scalar. Value associated with no 
+#' names included.
+#' @param .all Numeric vector of length 1/scalar. Value associated with names 
+#' in `.all` included.
+#' @param .loc A result of `format_selector` applied to all names.
+#' @param .mat A result of `subset_matrix_contructor` applied to all names.
+#' A logical matrix with column names.
+#' @return Numeric vector of length 1/scalar.
 #' @noRd
 obtain_value_fmllst <-
   function(subset, .obj, .fct, .arg, .prg, .val, .adj, .all, .loc, .mat) {
@@ -251,7 +294,6 @@ obtain_value_fmllst <-
     lgl_vec <- unlist(.mat[subset, , drop = TRUE])
     which_change <- which(lgl_vec)
     chosen_selectors <- .loc[which_change, ]
-    #print(chosen_selectors)
     for (chg in seq_len(nrow(chosen_selectors))) {
       .obj[[chosen_selectors$eq[[chg]]]]$select_lgl[[
         chosen_selectors$elem[[chg]]
@@ -276,11 +318,19 @@ obtain_value_fmllst <-
           }
         )
       fmllst <- do.call("formula_list", fmllst)
-      #print(fmllst) # ~~
       return(do.call(.fct, append(list(fmllst), .arg)))
     }
   }
-#' TBD
+#' @title Conditional dominance computation
+#' @description Internal function to compute conditional dominance values for 
+#' each name at each valid  inclusion precedence position.
+#' @param value_vector A numeric vector.
+#' @param subset_matrix A result of `subset_matrix_contructor` applied to 
+#' all names. A logical matrix with column names.
+#' @param .nms A named list. Groups the results in `.set` and `.wst` together 
+#' and is used to determine valid name combinations.
+#' @return A numeric matrix. Names are associated with rows. Inclusion 
+#' precedence positions are associated with columns.
 #' @noRd
 compute_conditional_dominance <- 
   function(value_vector, subset_matrix, .nms) {
@@ -288,25 +338,20 @@ compute_conditional_dominance <-
       length(unlist(.nms[grep("^wst", names(.nms))])) + 
       length(.nms[grep("^set|^var", names(.nms))])
     conditional_dominance <- matrix(NA, nrow = num_names, ncol = length(.nms))
-    m_vector_inclusive <- name_counter(subset_matrix, .nms, inclusive = TRUE) # m value from paper
-    m_vector_exclusive <- name_counter(subset_matrix, .nms, inclusive = FALSE) # m value from paper
-    # print("M vector, inclusive") # ~~
-    # print(m_vector_inclusive) # ~~
-    # print("M vector, exclusive") # ~~
-    # print(m_vector_exclusive) # ~~
+    m_vector_inclusive <- name_counter(subset_matrix, .nms, inclusive = TRUE)
+    m_vector_exclusive <- name_counter(subset_matrix, .nms, inclusive = FALSE)
     name_loc <- 1
     for (name in .nms) {
       in_wst <- all(name %in% unlist(.nms[grep("^wst", names(.nms))]))
       namelist_locs <- which(sapply(.nms, function(elem) all(name %in% elem)))
       namelist <- .nms[namelist_locs]
       if (in_wst) namelist <- unlist(namelist)
-      #print(namelist) # ~~
       k_vectors <- 
         lapply(
           namelist,
           function(elem) {
             return_vec <- 
-              name_counter(subset_matrix, namelist, inclusive = TRUE) # k value from paper
+              name_counter(subset_matrix, namelist, inclusive = TRUE)
             condit_vec <- 
               (m_vector_inclusive == m_vector_exclusive) | 
               (m_vector_inclusive > 0 & return_vec > 0 & 
@@ -317,8 +362,6 @@ compute_conditional_dominance <-
             return_vec
           }
         )
-      #print("K vectors") # ~~
-      #print(k_vectors) # ~~
       processed <- 
         lapply(
           k_vectors,
@@ -337,12 +380,11 @@ compute_conditional_dominance <-
             append(return_list, add_list)
           }
         )
-      # print("processed") # ~~
-      # print(processed) # ~~
       for (var in seq_len(length(processed))) { # by row
         for (inc_seq in seq_len(length(.nms))) { # by column
           select_at_inc <- processed[[var]][["m_vector_for_name"]] == inc_seq
-          k_vector_for_name_at_inc_seq <- processed[[var]][["k_vector_for_name"]]
+          k_vector_for_name_at_inc_seq <- 
+            processed[[var]][["k_vector_for_name"]]
           k_vector_for_name_at_inc_seq <- 
             k_vector_for_name_at_inc_seq[select_at_inc]
           value_vector_for_name_at_inc_seq <- 
@@ -366,14 +408,6 @@ compute_conditional_dominance <-
               namelist[[var]]
             )
           increment_with_name <- value_vector[increment_rows]*exp(weight_vector)
-          # print(paste("value", var, inc_seq)) # ~~
-          # print(value_vector_for_name_at_inc_seq) # ~~
-          # print(paste("increment", var, inc_seq)) # ~~
-          # print(value_vector[increment_rows]) # ~~
-          # print(paste("weight vector", var, inc_seq)) # ~~
-          # print(weight_vector)  # ~~
-          # print(paste("k vector", var, inc_seq)) # ~~
-          # print(k_vector_for_name_at_inc_seq) # ~~
           if (var > 1 & inc_seq == 1) name_loc <- name_loc + 1
           conditional_dominance[name_loc, inc_seq] <-
             sum(value_with_name - increment_with_name)
@@ -383,7 +417,16 @@ compute_conditional_dominance <-
     }
     conditional_dominance
 }
-#' TBD
+#' @title Counts valid combinations by inclusion precedence position
+#' @description Internal function to count the number of combinations of names
+#' that are inclusive of any focal names (i.e., inclusive) or inclusive of all 
+#' focal names (i.e., exclusive) for conditional dominance computations.
+#' @param subset_matrix A result of `subset_matrix_contructor` applied 
+#' to all names. A logical matrix with column names.
+#' @param .nms A named list. Groups the results in `.set` and `.wst` together 
+#' and is used to determine valid name combinations.
+#' @param inclusive Logical. Inclusive or exclusive result.
+#' @return Integer vector. One value per row of `subset_matrix`.
 #' @noRd
 name_counter <- function(subset_matrix, .nms, inclusive) {
   apply(
@@ -402,7 +445,21 @@ name_counter <- function(subset_matrix, .nms, inclusive) {
     }
   )
 }
-#' TBD
+#' @title Computes increment to value given name inclusion
+#' @description Internal function to find the location of subsets in 
+#' `subset_matrix` that contain a combination of names that can be used to 
+#' compute an increment beyond a combination of names with a focal namelist.
+#' @param subset_matrix A result of `subset_matrix_contructor` applied 
+#' to all names. A logical matrix with column names.
+#' @param subset_matrix_for_name A logical matrix. Subset of `subset_matrix` 
+#' that identifies combinations at a specific inclusion precedence position 
+#' where the `namelist` is included.
+#' @param namelist A character vector of names. Focal names to identify 
+#' increments.
+#' @return Integer matrix with two rows. Top row corresponds to `subset_matrix`
+#' row index number of combination with `namelist` included. Bottowm row 
+#' corresponds to `subset_matrix` index number of combination with `namelist` 
+#' excluded. Each column is a distinct valid increment. 
 #' @noRd
 find_increments <- function(subset_matrix, subset_matrix_for_name, namelist) {
   subset_matrix_for_name_delta <- subset_matrix_for_name
@@ -423,7 +480,19 @@ find_increments <- function(subset_matrix, subset_matrix_for_name, namelist) {
     )
   rows_delta
 }
-#' TBD
+#' @title Constructs map of equation, name, and selector location
+#' @description Internal function to associate equation or left hand side names 
+#' with term or right hand side names and locations in the selector list.
+#' @param .obj `formula` or `formula_list` processed with `formula_parse()`.
+#' @param .is_fmllst Logical.
+#' @return A list with the following elements:
+#' \describe{
+#' \item{eq}{List index number for the equation or left hand side 
+#' of a `formula_list`.}
+#' \item{elem}{{List index number for the term or right hand side 
+#' of a `formula_list`.}
+#' \item{nm}{Character valued name.}
+#' }
 #' @noRd
 format_selector <- function(.obj, .is_fmllst) {
   if (!.is_fmllst) {
@@ -455,31 +524,28 @@ format_selector <- function(.obj, .is_fmllst) {
   }
   list_loc
 }
-#' TBD
+#' @title Complete dominance computation
+#' @description Internal function to compute complete dominance proportions for 
+#' each name pair.
+#' @param value_vector A numeric vector.
+#' @param subset_matrix A result of `subset_matrix_contructor` applied to 
+#' all names. A logical matrix with column names.
+#' @param .nms A named list. Groups the results in `.set` and `.wst` together 
+#' and is used to determine valid name combinations.
+#' @return A square numeric matrix. One name is associated with each column 
+#' (dominant name). One name is associaated with each row (non-dominant name).
 #' @noRd
 compute_complete_dominance <- 
   function(value_vector, subset_matrix, .nms) {
   name_count <- length(.nms)
   complete_dominance <- matrix(nrow = name_count, ncol = name_count)
   all_name_pairs <- utils::combn(1:name_count, 2)
-  # subset_0_matrix <- 
-  #   rbind(
-  #     matrix(
-  #       rep(FALSE, times = ncol(subset_matrix)),
-  #       nrow = 1,
-  #       dimnames = list(NULL, colnames(subset_matrix))
-  #     ),
-  #     subset_matrix
-  #   )
-  # value_0_vector <- c(result_adjustment, value_vector)
   for (name_pair in seq_len(ncol(all_name_pairs))) {
     selected_name_pair_locs <- 
       all_name_pairs[, name_pair]
     selected_name_pair <- 
       intersect(unlist(.nms[selected_name_pair_locs]), names(subset_matrix))
-    #print(selected_name_pair) # ~~
     unselected_names <- setdiff(names(subset_matrix), selected_name_pair)
-    #print(unselected_names) # ~~
     selected_names_matrix <-
       cbind(subset_matrix, seq_len(nrow(subset_matrix)))
     one_names <- unlist(.nms[[selected_name_pair_locs[[1]]]])
@@ -495,7 +561,6 @@ compute_complete_dominance <-
     sorting_df <- as.data.frame(sorting_matrix)
     selected_names_sorted <- 
       selected_names_matrix[do.call("order", sorting_df), ]
-    #print(selected_names_sorted) # ~~
     first_name_locs <- (seq_len(nrow(selected_names_sorted)) %% 2) == 0
     first_name_index <-
       selected_names_sorted[first_name_locs, ncol(selected_names_sorted)]

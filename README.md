@@ -1,4 +1,4 @@
-Tools to Support Relative Importance Analysis
+Dominance Analysis Methods
 ================
 
 # domir <img src="man/figures/logo.png" align="right" height="139"/>
@@ -9,21 +9,17 @@ version](http://www.r-pkg.org/badges/version-last-release/domir)](https://cran.r
 
 # Overview
 
-The **domir** package supports determining the relative importance of
-inputs (i.e., independent variables, predictors, or features referred to
-as *names* in the package) in a user’s statistical or machine learning
-model.
+**domir** implements several methods to compute dominance analysis[^1].
+Dominance analysis is a relative importance analysis approach that
+derives conceptually from Shapley values in that it ascribes ‘values’
+from some function to inputs (known as ‘names’ in the package) to that
+function.
 
-The intention of this package is to provide a flexible user interface to
-*Dominance Analysis*—a relatively assumption-free methodology for
-comparing the predictive value, usefulness, or importance associated
-with of model inputs/names.
-
-Dominance analysis resolves the indeterminancy of ascribing the value
-returned by a predictive modeling function to inputs/names when it is
-not possible to do so analytically. The most common use case for the
-application of dominance analysis is in comparing inputs/names in terms
-of their contribution to a predictive model’s fit statistic or metric.
+When applied to predictive models, the method compares components of a
+fit metric ascribed to each ‘name’ (i.e., independent variable,
+predictor, feature, or parameter estimate) to each other ‘name’ in a
+pairwise fashion to determine a hierarchy of dominance or relative
+importance.
 
 # Installation
 
@@ -34,21 +30,19 @@ To install the most recent version of **domir** from CRAN use:
 **domir** is also used as the computational engine underlying the
 [`dominance_analysis()`](https://easystats.github.io/parameters/reference/dominance_analysis.html)
 function for the
-[**parameters**](https://easystats.github.io/parameters/) package in the
-[**easystats**](https://easystats.github.io/easystats/)
-framework/collection.
+[**parameters**](https://easystats.github.io/parameters/) package in
+[**easystats**](https://easystats.github.io/easystats/).
 
-# What **domir** Does
+# What **`domir`** Does
 
-`domir` computes three different sets of results based on a set of
+`domir` computes dominance analysis results based on a set of
 inputs/names and the values returned from a function like this linear
 regression model.
 
 `lm(mpg ~ am + vs + cyl, data = mtcars)`
 
 Using the variance explained $R^2$ as fit statistic as implemented by
-`lm`‘s `summary` method as the returned value, `domir` can implement a
-’classic’ dominance analysis[^1] as:
+`lm`’s `summary` method as the returned value, `domir` produces:
 
 ``` r
 lm_wrapper <-       
@@ -61,6 +55,7 @@ lm_wrapper <-
 domir(mpg ~ am + vs + cyl, lm_wrapper, data = mtcars)
 ```
 
+    ## 
     ## Overall Value:      0.7619773 
     ## 
     ## General Dominance Values:
@@ -81,33 +76,19 @@ domir(mpg ~ am + vs + cyl, lm_wrapper, data = mtcars)
     ## vs >   0.5   NA     0
     ## cyl >  1.0  1.0    NA
 
-`domir` requires the set of inputs/names, submitted as a `formula` or a
+`domir` requires a set of inputs/names, submitted as a `formula` or a
 specialized
 [`formula_list`](https://jluchman.github.io/domir/reference/formula_list.html)
 object, and a function that accepts the input/names and returns a
 single, numeric value.
 
-Note the use of a wrapper function, `lm_wrapper`, that accepts a
-`formula` and returns the $R^2$. These ‘analysis pipeline’ wrapper
-functions are necessary for the effective use of `domir` and the ability
-to use them to adapt predictive models to the computational engine used
-by `domir` makes this package able to apply to almost any model.
-
-`domir` by default reports on complete dominance proportions,
-conditional dominance values, and general dominance values.
-
-Complete dominance proportions are the proportion of subsets of
-inputs/names where the name in the row obtains a bigger value than the
-name in the column.
-
-Conditional dominance values are the average value associated with the
-name when included sequentially at each possible position in the
-sequence of name slots.
-
-General dominance values are the average value associated with the name
-across all possible ways of including the name in the sequence of all
-names. These values are also equivalent to the [Shapley
-Value](https://en.wikipedia.org/wiki/Shapley_value) for each name.
+The function supplied to `domir` must then be a full ‘analysis pipeline’
+function and is necessary for the effective use of `domir`. In fact,
+`domir`’s value is in that it allows the use of such pipelines as the
+user can define them to apply to almost any predictive model. This
+example uses wrapper function, `lm_wrapper`, that accepts a `formula`
+and returns the $R^2$. A user could use an anonymous function defined
+within the `domir` call that has a similar format as an alternative.
 
 # Comparison with Existing Relative Importance Packages
 

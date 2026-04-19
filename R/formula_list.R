@@ -3,7 +3,7 @@
 #' @description
 #' Defines a list object composed of `formula`s. The purpose of this 
 #' class of object is to impose structure of the list to ensure that it 
-#' can be used to obtain RHS-LHS pairs and will be able to be 
+#' can be used to obtain response-term pairs and will be able to be 
 #' parsed in [`domir`].
 #' @param ... `formula`s, possibly named
 #' @details
@@ -57,13 +57,13 @@ formula_list <- function(...) {
 #' @param fmllst A `formula_list` classed object.
 #' @param drop_lhs An integer vector.
 #'
-#' Used as a selection vector to remove left hand side names prior to
+#' Used as a selection vector to remove response names prior to
 #' generating the `Formula` object. This vector must be composed of
 #' integers (e.g., 1L and not 1).
 #'
 #' This is useful for some `Formulas` that do not have a separate
-#' LHS for each LHS model part (e.g., [`pscl::zeroinfl`]) but are required
-#' to have separte LHS parts by `formula_list`.
+#' responses for each left hand side model part (e.g., [`pscl::zeroinfl`]) but 
+#' are required to have separate responses by `formula_list`.
 #' @return A `Formula::Formula` object.
 #' @rdname fmllst2Fml
 #' @export
@@ -73,7 +73,7 @@ fmllst2Fml <- function(fmllst, drop_lhs = NULL) {
   if (!requireNamespace("Formula"))
     stop("Package '{Formula}' not available.", call. = FALSE)
   list_parsed <-
-    lapply(fmllst, domir::formula_parse)
+    lapply(fmllst, formula_parse)
   if (!is.null(drop_lhs)) {
     if (!is.atomic(drop_lhs) || !is.integer(drop_lhs) || !length(drop_lhs)) {
       stop(paste(

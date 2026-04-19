@@ -1,3 +1,17 @@
+# domir 1.3.0
+
+## visible
+
+-  Package rename from "tools to support relative importance analysis" to "dominance analysis methods".
+-  `.wst` argument to implement within-group dominance analysis.
+-  `.cpt` and `.cdl` arguments depreciated. Both arguments can now be submitted to `print.domir` to suppress display.
+
+## internal
+
+-  Harmonized `formula` and `formula_list` methods.
+-  Internal functions no longer exported.
+-  Internal functions no longer generate documentation.
+
 # domir 1.2.0
 
 ## visible

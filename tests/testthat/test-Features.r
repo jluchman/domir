@@ -148,7 +148,7 @@ test_obj3_new <- domir(mpg ~ vs + cyl + carb + am,
                         res <- summary(lm(fml, data = data))
                         return(res[["r.squared"]])
                       },
-                      data = mtcars, .cpt = FALSE,
+                      data = mtcars, #.cpt = FALSE,
                       .set = list(~ carb + am))
 
 ### confirm complete can be nullified ----
@@ -157,9 +157,10 @@ test_that("Test Complete Dominance as \"off\": domin", {
   expect_null(test_obj3$Complete_Dominance
   )})
 
-test_that("Test Complete Dominance as \"off\": domir", {
-  expect_null(test_obj3_new$Complete_Dominance
-  )})
+# -- no longer used for domir --
+# test_that("Test Complete Dominance as \"off\": domir", {
+#   expect_null(test_obj3_new$Complete_Dominance
+#   )})
 
 ## constant model + reverse ----
 
@@ -299,8 +300,8 @@ test_obj_nocdl_new <- domir(mpg ~ vs + cyl + carb + am,
                               return(res[["r.squared"]])
                             },
                             data = mtcars, 
-                            .set = list(~ carb + am), 
-                            .cdl = FALSE)
+                            .set = list(~ carb + am)) #, 
+                            #.cdl = FALSE)
 
 ### confirm conditional can be nullified ----
 
@@ -309,10 +310,11 @@ test_that("'Conditional is False' General Dominance: domin", {
   )}
 )
 
-test_that("'Conditional is False' General Dominance: domir", {
-  expect_equal(test_obj_nocdl_new$General_Dominance, test_obj_new$General_Dominance
-  )}
-)
+# -- no longer used for domir --
+# test_that("'Conditional is False' General Dominance: domir", {
+#   expect_equal(test_obj_nocdl_new$General_Dominance, test_obj_new$General_Dominance
+#   )}
+# )
 
 # domir.formula_list ----
 

@@ -1,23 +1,18 @@
-## Minor version update: 1.2.0
+## Minor version update: 1.3.0
 
-This minor update provides an extensive update to documentation including a 
-*pkgdown* site, as well as new features such as a progress bar, parallel 
-sub-model estimation, and more informative error reports.
+This minor update changes the package's name, includes a new `.wst` feature, 
+harmonizes the methods implementing several internal functions, and removes 
+needless documentation and function exporting for several internal functions.
 
 ## CRAN check results
 
-    Check: Rd cross-references
-    Result: NOTE
-        Undeclared package ‘lme4’ in Rd xrefs
-    Flavor: r-devel-linux-x86_64-fedora-clang
-    
-Comment: `lme4`has been added to this package's list of suggested packages.
+Status of all checks: OK
 
 ## Test environments
 
--   pop!OS/ubuntu 22.04, R 4.3.1 (local)
+-   pop!OS/ubuntu 24.04, R 4.3.3 (local)
 -   win-builder (devel, release, and old-release)
--   macOS-builder (devel)
+-   macOS-builder (release, devel)
 
 ## R CMD check results
 

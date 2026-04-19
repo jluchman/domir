@@ -30,11 +30,11 @@
 #' and the value returned is subtracted from the values returned from all
 #' subsets in the dominance analysis.
 #' @param .cdl `NULL`.
-#' Depreciated. Use `print(.cdl = FALSE)` to suppress display of conditional
-#' dominance values.
+#' Depreciated. Use `.cdl = FALSE` in `domir`'s `print` method to suppress 
+#' display of conditional dominance values.
 #' @param .cpt `NULL`.
-#' Depreciated. Use `print(.cpt = FALSE)` to suppress display of complete
-#' dominance values.
+#' Depreciated. Use `.cpt = FALSE` in `domir`'s `print` method to suppress 
+#' display of complete dominance values.
 #' @param .rev Logical.
 #' If `TRUE` then standardized vector, ranks, and complete dominance
 #' designations are reversed in their interpretation.
@@ -51,7 +51,7 @@
 #' @return Returns an object of [`class`] "domir" composed of:
 #' \describe{
 #'  \item{`General_Dominance`}{Vector of general dominance values.}
-#'  \item{`Standardized`}{Vector of general dominance values normalized
+#'  \item{`Standardized`}{Vector of general dominance values standardized
 #'  to sum to 1.}
 #'  \item{`Ranks`}{Vector of ranks applied to the general dominance values.}
 #'  \item{`Conditional_Dominance`}{Matrix of conditional dominance values.
@@ -65,7 +65,7 @@
 #'  \item{`Value_All`}{Value of `.fct` associated with names included
 #'  in `.all`;
 #'  when `.adj` is `TRUE`, this value will be adjusted for `Value_Adjust`.}
-#'  \item{`Value_Adjust`}{Value of `.fct` associated no included names.}
+#'  \item{`Value_Adjust`}{Value of `.fct` returned when no names are included.}
 #'  \item{`Call`}{The matched call.}
 #' }
 #' @details
@@ -169,7 +169,8 @@
 #' subsets of names will have to be processed in `.fct` to obtain the correct
 #' `class`.
 #'
-#' The all names will be submitted to `.fct` as the first, unnamed argument.
+#' The `formula` or `formula_list` of names will be submitted to `.fct` as the 
+#' first, unnamed argument.
 #' ## `.fct` as Analysis Pipeline
 #' `.fct` is expected to be a complete analysis pipeline that receives a
 #' subset of names of the same `class` as `.obj` and uses these names in the
@@ -199,7 +200,7 @@
 #' If the user seeks to include other model components integral to
 #' estimation (i.e., a random effect term in [`lme4::glmer()`]) include them as
 #' [`update`][update.formula] to the submitted `formula` or `formula_list`
-#' imbedded in `.fct`.
+#' embedded in `.fct`.
 #'
 #' Second-order or higher terms (i.e., interactions like `~ a*b`) are parsed
 #' by default but not used differently from first-order terms for generating 
@@ -231,15 +232,14 @@
 #'   mlm_rxy <-
 #'     function(fml, data) {
 #'       mlm_res <- lm(fml, data = data)
-#'       performance::r2_mlm(mlm_res)[["R_xy"]]
+#'       performance::r2_mlm(mlm_res)[["Symmetric Rxy"]]
 #'     }
 #'
 #'   domir(
 #'     cbind(wt, mpg) ~ vs + cyl + am + carb,
 #'     mlm_rxy,
 #'     .all = ~ carb,
-#'     data = mtcars,
-#'     dvnames = c("wt", "mpg")
+#'     data = mtcars
 #'   )
 #' }
 #'
@@ -282,6 +282,19 @@
 #'     .adj = TRUE, .rev = TRUE
 #'   )
 #' }
+#'
+#' ## within-set or within-group dominance analysis
+#' domir(
+#'   mpg ~ am + gear + cyl + vs + qsec + drat,
+#'   lm_r2,
+#'   data = mtcars,
+#'   .wst =
+#'     list(
+#'       ~ am + gear,
+#'       ~ cyl + vs,
+#'       ~ qsec + drat
+#'     )
+#' )
 #' @references
 #' \itemize{
 #' \item Luchman, J. N., Lei, X., & Kaplan, S. (2020). Relative Importance
@@ -329,6 +342,8 @@ domir.formula <- function(
       .rev, .cst, .prg, list(...), FALSE)
   names_for_printing <- determine_display_names(names_for_dominance, .set)
   return_list <- name_return_list(return_list, names_for_printing)
+  if (!.adj) adj_value <- NULL
+  if (is.null(.all)) all_value <- NULL
   return_list <-
     append(
       return_list,
@@ -381,6 +396,8 @@ domir.formula_list <- function(
       .rev, .cst, .prg, list(...), TRUE)
   names_for_printing <- determine_display_names(names_for_dominance, .set)
   return_list <- name_return_list(return_list, names_for_printing)
+  if (!.adj) adj_value <- NULL
+  if (is.null(.all)) all_value <- NULL
   return_list <-
     append(
       return_list,
@@ -412,7 +429,6 @@ domir.formula_list <- function(
 #'  \item{`select_lgl`}{Logical vector for use by `domir` to indicate whether
 #'  names from the `rhs_names` list will be included in a submodel.}
 #' }
-#' @export
 formula_parse <- function(.obj) {
   if (is.null(.obj)) return(NULL)
   rhs_names <-
@@ -635,14 +651,14 @@ fml_all_update <- function(all_parsed, fml_parsed, .is_fml) {
         sapply(
           all_parsed,
           function(elem)
-            paste(as.character(elem$lhs_names), "~",
+            paste(deparse(elem$lhs_names), "~",
                   elem$rhs_names)), NULL),
       Reduce(
         union,
         sapply(
           fml_parsed,
           function(elem) 
-            paste(as.character(elem$lhs_names), "~", elem$rhs_names)), NULL)
+            paste(deparse(elem$lhs_names), "~", elem$rhs_names)), NULL)
     )
   if (length(invalid_all_names) > 0) {
     invalid_all_names <-
@@ -654,7 +670,7 @@ fml_all_update <- function(all_parsed, fml_parsed, .is_fml) {
             function(elem)
               substr(
                 elem,
-                nchar(as.character(all_parsed[[1]]$lhs_names)) + 4,
+                nchar(deparse(all_parsed[[1]]$lhs_names)) + 4,
                 nchar(elem))
           ),
           collapse = ", "
@@ -669,18 +685,18 @@ fml_all_update <- function(all_parsed, fml_parsed, .is_fml) {
       fml_parsed,
       function(elem) {
         lhs_names_all <-
-          unlist(sapply(all_parsed, function(el) as.character(el$lhs_names)))
+          unlist(sapply(all_parsed, function(el) deparse(el$lhs_names)))
         pairs_all <-
           Reduce(
             union,
             sapply(
               all_parsed,
               function(el)
-                paste(as.character(el$lhs_names), "~",
+                paste(deparse(el$lhs_names), "~",
                       el$rhs_names)), NULL)
-        if (as.character(elem$lhs_names) %in% lhs_names_all) {
+        if (deparse(elem$lhs_names) %in% lhs_names_all) {
           iv_dv_pairs <-
-            paste(as.character(elem$lhs_names), "~", elem$rhs_names)
+            paste(deparse(elem$lhs_names), "~", elem$rhs_names)
           which_to_true <- iv_dv_pairs %in% pairs_all
           elem_adj <- elem
           elem_adj$select_lgl <- which_to_true
@@ -720,8 +736,10 @@ est_all_value <- function(.all, fml_parsed, .fct, .adj, .is_fml, ...) {
       lapply(
         fml_parsed,
         function(fml) {
+          rhs <- c(fml$rhs_names[fml$select_lgl], fml$offset)
+          if (length(rhs) == 0) rhs <- "1"
           stats::reformulate(
-            c(fml$rhs_names[fml$select_lgl], fml$offset),
+            rhs,
             response = fml$lhs_names,
             intercept = fml$intercept_lgl)
         }
@@ -932,6 +950,12 @@ check_namelists <-
     if (length(setdiff(unlist(wsts_namelists), unlist(namelist))) > 0) {
       stop("Names in '.wst' missing from '.obj'.", call. = FALSE)
     }
+    if (any(duplicated(unlist(sets_namelists)))) {
+      stop("Duplicated names in '.set's.", call. = FALSE)
+    }
+    if (any(duplicated(unlist(wsts_namelists)))) {
+      stop("Duplicated names in '.wst's.", call. = FALSE)
+    }
     NULL
   }
 
@@ -948,7 +972,7 @@ set_labeller <- function(.set, .is_wst) {
   if (is.null(.set)) return(NULL)
   name_type <- ifelse(.is_wst, "wst", "set")
   if (is.null(names(.set))) {
-    set_labels <- paste(name_type, seq_len(length(.set)))
+    set_labels <- paste(name_type, seq_len(length(.set)), sep = "")
   } else {
     set_labels <- names(.set)
   }
@@ -1065,8 +1089,11 @@ determine_dominance_names <-
 #' @returns Character vector.
 determine_display_names <- function(namelist, .set) {
     regular_names <- namelist[grepl("var", names(namelist))]
+    if (length(regular_names) > 0) names(regular_names) <- NULL
     set_names <- set_labeller(.set, FALSE)
+    if (length(set_names) > 0) names(set_names) <- NULL
     wst_names <- namelist[grepl("wst", names(namelist))]
+    if (length(wst_names) > 0) names(wst_names) <- NULL
     c(unlist(regular_names), set_names, unlist(wst_names))
   }
 #' @title Formatting for names in returned list
@@ -1123,13 +1150,19 @@ name_return_list <- function(return_list, names_for_printing) {
 #'
 #' @exportS3Method
 print.domir <- function(x, .cdl = TRUE, .cpt = TRUE, ...) {
-  if (!is.null(as.list(x$Call)$.prg))
-    switch(
-      as.character(as.logical(deparse(as.list(x$Call)$.prg))),
-      `TRUE` = cat("\n"),
-      `FALSE` = NULL
-    )
-  cat("Overall Value:     ", x[["Value"]], "\n")
+  # if (!is.null(as.list(x$Call)$.prg))
+  #   switch(
+  #     as.character(as.logical(deparse(as.list(x$Call)$.prg))),
+  #     `TRUE` = cat("\n"),
+  #     `FALSE` = NULL
+  #   )
+  # ~~ to remove: begin ~~
+  temp_cpt <- as.list(x$Call)$.cpt
+  temp_cdl <- as.list(x$Call)$.cdl
+  if (!is.null(temp_cpt)) .cpt <- as.logical(temp_cpt)
+  if (!is.null(temp_cdl)) .cdl <- as.logical(temp_cdl)
+  # ~~ to remove: end ~~
+  cat("\nOverall Value:     ", x[["Value"]], "\n")
   if (length(x[["Value_All"]]) > 0)
     cat("All Subset Value:  ", x[["Value_All"]], "\n")
   if (length(x[["Value_Adjust"]]) > 0)
@@ -1177,12 +1210,12 @@ print.domir <- function(x, .cdl = TRUE, .cpt = TRUE, ...) {
 #' \describe{
 #'  \item{\code{Strongest_Dominance}}{Matrix comparing the element in the first
 #'  row to the element in the third row.  The second row denotes the strongest
-#'  designation between the two elements.}
+#'  designation between the two names.}
 #' }
 #'
 #' @details The summary method for class `domir` objects is used for obtaining
 #' the strongest dominance designations (i.e., general, conditional, or
-#' complete) among all pairs of dominance analyzed elements.
+#' complete) among all pairs of dominance analyzed names.
 #'
 #' @exportS3Method
 summary.domir <- function(object, ...) {

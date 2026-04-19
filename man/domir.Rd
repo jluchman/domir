@@ -73,12 +73,12 @@ and the value returned is subtracted from the values returned from all
 subsets in the dominance analysis.}
 
 \item{.cdl}{\code{NULL}.
-Depreciated. Use \code{print(.cdl = FALSE)} to suppress display of conditional
-dominance values.}
+Depreciated. Use \code{.cdl = FALSE} in \code{domir}'s \code{print} method to suppress
+display of conditional dominance values.}
 
 \item{.cpt}{\code{NULL}.
-Depreciated. Use \code{print(.cpt = FALSE)} to suppress display of complete
-dominance values.}
+Depreciated. Use \code{.cpt = FALSE} in \code{domir}'s \code{print} method to suppress
+display of complete dominance values.}
 
 \item{.rev}{Logical.
 If \code{TRUE} then standardized vector, ranks, and complete dominance
@@ -98,7 +98,7 @@ to indicate progress.}
 Returns an object of \code{\link{class}} "domir" composed of:
 \describe{
 \item{\code{General_Dominance}}{Vector of general dominance values.}
-\item{\code{Standardized}}{Vector of general dominance values normalized
+\item{\code{Standardized}}{Vector of general dominance values standardized
 to sum to 1.}
 \item{\code{Ranks}}{Vector of ranks applied to the general dominance values.}
 \item{\code{Conditional_Dominance}}{Matrix of conditional dominance values.
@@ -112,7 +112,7 @@ These proportions determine complete dominance when a value of
 \item{\code{Value_All}}{Value of \code{.fct} associated with names included
 in \code{.all};
 when \code{.adj} is \code{TRUE}, this value will be adjusted for \code{Value_Adjust}.}
-\item{\code{Value_Adjust}}{Value of \code{.fct} associated no included names.}
+\item{\code{Value_Adjust}}{Value of \code{.fct} returned when no names are included.}
 \item{\code{Call}}{The matched call.}
 }
 }
@@ -249,7 +249,8 @@ a character vector of names, a \code{\link[Formula:Formula]{Formula::Formula}} s
 subsets of names will have to be processed in \code{.fct} to obtain the correct
 \code{class}.
 
-The all names will be submitted to \code{.fct} as the first, unnamed argument.
+The \code{formula} or \code{formula_list} of names will be submitted to \code{.fct} as the
+first, unnamed argument.
 }
 
 }
@@ -259,15 +260,16 @@ The all names will be submitted to \code{.fct} as the first, unnamed argument.
 \code{.fct} is expected to be a complete analysis pipeline that receives a
 subset of names of the same \code{class} as \code{.obj} and uses these names in the
 \code{class} as submitted to generate a returned value of the appropriate
-type to dominance analyze. Typically, the returned value is a
-scalar fit statistic/metric extracted from a predictive model.
-
+type to dominance analyze.
 At current, only atomic (i.e., non-\code{list}), numeric scalars (i.e.,
 vectors of length 1) are allowed as returned values.
+\code{domir} is designed for use with predictive models and assumes the returned
+value is a scalar-valued fit statistic/metric.
 
 The \code{.fct} argument is strict about names submitted and returned value
-requirements for functions used. A series of checks to ensure the submitted
-names and returned value adhere to these requirements.
+requirements for functions used.
+A series of checks to ensure the submitted names and returned value adhere
+to these requirements.
 The checks include whether the \code{.obj} can be submitted to \code{.fct} without
 producing an error and whether the returned value from \code{.fct} is a length 1,
 atomic, numeric vector.
@@ -278,22 +280,20 @@ anonymous function to supply as \code{.fct} to satisfy the checks.
 \section{Notes}{
 Prior to version 1.1.0, the \code{formula} method allowed a \code{formula}
 to be submitted to \code{.adj}.
-Submitting an intercept-only \code{formula} as opposed to a
-logical has been depreciated and submitting a \code{formula} with more than an
-intercept is defunct.
+Submitting any argument other than a logical is now defunct.
 
 The \code{formula} and \code{formula_list} methods can be used to pass responses,
 intercepts, and \code{offset}s to all combinations of names.
 If the user seeks to include other model components integral to
 estimation (i.e., a random effect term in \code{\link[lme4:glmer]{lme4::glmer()}}) include them as
 \code{\link[=update.formula]{update}} to the submitted \code{formula} or \code{formula_list}
-imbedded in \code{.fct}.
+embedded in \code{.fct}.
 
 Second-order or higher terms (i.e., interactions like \code{~ a*b}) are parsed
-by default but not used differently from first-order terms for producing
-subsets.
-The values ascribed to such terms may not be valid unless the user ensures
-that second-order and higher terms are used appropriately in \code{.fct}.
+by default but not used differently from first-order terms for generating
+valid combinations.
+The values ascribed to such names may not be valid unless the user ensures
+that second-order and higher term names are used appropriately in \code{.fct}.
 }
 
 \examples{
@@ -320,15 +320,14 @@ if (requireNamespace("performance", quietly = TRUE)) {
   mlm_rxy <-
     function(fml, data) {
       mlm_res <- lm(fml, data = data)
-      performance::r2_mlm(mlm_res)[["R_xy"]]
+      performance::r2_mlm(mlm_res)[["Symmetric Rxy"]]
     }
 
   domir(
     cbind(wt, mpg) ~ vs + cyl + am + carb,
     mlm_rxy,
     .all = ~ carb,
-    data = mtcars,
-    dvnames = c("wt", "mpg")
+    data = mtcars
   )
 }
 
@@ -371,6 +370,19 @@ if (requireNamespace("systemfit", quietly = TRUE)) {
     .adj = TRUE, .rev = TRUE
   )
 }
+
+## within-set or within-group dominance analysis
+domir(
+  mpg ~ am + gear + cyl + vs + qsec + drat,
+  lm_r2,
+  data = mtcars,
+  .wst =
+    list(
+      ~ am + gear,
+      ~ cyl + vs,
+      ~ qsec + drat
+    )
+)
 }
 \references{
 \itemize{
