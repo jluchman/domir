@@ -8,7 +8,7 @@
 ## Citation
 
 Source:
-[`DESCRIPTION`](https://github.com/jluchman/domir/blob/main/DESCRIPTION)
+[`DESCRIPTION`](https://github.com/jluchman/domir/blob/v1.3.0/DESCRIPTION)
 
 Luchman J (2026). *domir: Dominance Analysis Methods*. R package version
 1.3.0, <https://github.com/jluchman/domir>.

@@ -2,6 +2,8 @@
 
 ## domir 1.3.0
 
+CRAN release: 2026-04-19
+
 ### visible
 
 - Package rename from “tools to support relative importance analysis” to

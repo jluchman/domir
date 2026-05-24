@@ -7,8 +7,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <title>Conceptual Introduction to Dominance Analysis • domir</title>
 <script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<link href="../deps/bootstrap-5.3.1/bootstrap.min.css" rel="stylesheet">
-<script src="../deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
+<link href="../deps/bootstrap-5.3.8/bootstrap.min.css" rel="stylesheet">
+<script src="../deps/bootstrap-5.3.8/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
 <link href="../deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
 <script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="Conceptual Introduction to Dominance Analysis">
 </head>
@@ -62,9 +62,9 @@ Implementation with <code>domir</code>
                         <h4 data-toc-skip class="author">Joseph
 Luchman</h4>
             
-            <h4 data-toc-skip class="date">2026-04-19</h4>
+            <h4 data-toc-skip class="date">2026-05-24</h4>
       
-      <small class="dont-index">Source: <a href="https://github.com/jluchman/domir/blob/main/vignettes/domir_basics.Rmd" class="external-link"><code>vignettes/domir_basics.Rmd</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/jluchman/domir/blob/v1.3.0/vignettes/domir_basics.Rmd" class="external-link"><code>vignettes/domir_basics.Rmd</code></a></small>
       <div class="d-none name"><code>domir_basics.Rmd</code></div>
     </div>
 
@@ -486,7 +486,7 @@ statistics and designations reported on above.</p>
 <h4 id="complete-dominance-proportions-1">Complete Dominance Proportions<a class="anchor" aria-label="anchor" href="#complete-dominance-proportions-1"></a>
 </h4>
 <p>Complete dominance proportions between two IVs are computed by:</p>
-<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>C</mi><mrow><msub><mi>X</mi><mi>v</mi></msub><msub><mi>X</mi><mi>z</mi></msub></mrow></msub><mo>=</mo><mspace width="0.167em"></mspace><mfrac><mrow><msubsup><mi>Σ</mi><mrow><mi>j</mi><mo>=</mo><mn>1</mn></mrow><msup><mn>2</mn><mrow><mi>p</mi><mo>−</mo><mn>2</mn></mrow></msup></msubsup><mrow><mo stretchy="false" form="prefix">{</mo><mtable><mtr><mtd columnalign="center" style="text-align: center"><mi>i</mi><mi>f</mi><mspace width="0.167em"></mspace><msub><mi>F</mi><mrow><msub><mi>X</mi><mi>v</mi></msub><mspace width="0.278em"></mspace><mo>∪</mo><mspace width="0.278em"></mspace><msub><mi>S</mi><mi>j</mi></msub></mrow></msub><mspace width="0.167em"></mspace><mo>&gt;</mo><msub><mi>F</mi><mrow><msub><mi>X</mi><mi>z</mi></msub><mspace width="0.278em"></mspace><mo>∪</mo><mspace width="0.278em"></mspace><msub><mi>S</mi><mi>j</mi></msub></mrow></msub><mspace width="0.167em"></mspace><mspace width="0.167em"></mspace><mi>t</mi><mi>h</mi><mi>e</mi><mi>n</mi><mspace width="0.167em"></mspace><mn>1</mn><mspace width="0.167em"></mspace></mtd></mtr><mtr><mtd columnalign="center" style="text-align: center"><mi>i</mi><mi>f</mi><mspace width="0.167em"></mspace><msub><mi>F</mi><mrow><msub><mi>X</mi><mi>v</mi></msub><mspace width="0.278em"></mspace><mo>∪</mo><mspace width="0.278em"></mspace><msub><mi>S</mi><mi>j</mi></msub></mrow></msub><mspace width="0.167em"></mspace><mo>≤</mo><msub><mi>F</mi><mrow><msub><mi>X</mi><mi>z</mi></msub><mspace width="0.278em"></mspace><mo>∪</mo><mspace width="0.278em"></mspace><msub><mi>S</mi><mi>j</mi></msub></mrow></msub><mspace width="0.167em"></mspace><mi>t</mi><mi>h</mi><mi>e</mi><mi>n</mi><mspace width="0.167em"></mspace><mspace width="0.167em"></mspace><mn>0</mn></mtd></mtr></mtable></mrow></mrow><msup><mn>2</mn><mrow><mi>p</mi><mo>−</mo><mn>2</mn></mrow></msup></mfrac></mrow><annotation encoding="application/x-tex">C_{X_vX_z} =\, \frac{\Sigma^{2^{p-2}}_{j=1}{ \{\begin{matrix} if\, F_{X_v\; \cup\;S_j}\, &gt; F_{X_z\; \cup\;S_j}\, \,then\, 1\, \\ if\, F_{X_v\; \cup\;S_j}\, \le F_{X_z\; \cup\;S_j}\,then\, \,0\end{matrix} }}{2^{p-2}}</annotation></semantics></math></p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>C</mi><mrow><msub><mi>X</mi><mi>v</mi></msub><msub><mi>X</mi><mi>z</mi></msub></mrow></msub><mo>=</mo><mspace width="0.167em"></mspace><mfrac><mrow><msubsup><mi mathvariant="normal">Σ</mi><mrow><mi>j</mi><mo>=</mo><mn>1</mn></mrow><msup><mn>2</mn><mrow><mi>p</mi><mo>−</mo><mn>2</mn></mrow></msup></msubsup><mrow><mo stretchy="false" form="prefix">{</mo><mtable><mtr><mtd columnalign="center" style="text-align: center"><mi>i</mi><mi>f</mi><mspace width="0.167em"></mspace><msub><mi>F</mi><mrow><msub><mi>X</mi><mi>v</mi></msub><mspace width="0.278em"></mspace><mo>∪</mo><mspace width="0.278em"></mspace><msub><mi>S</mi><mi>j</mi></msub></mrow></msub><mspace width="0.167em"></mspace><mo>&gt;</mo><msub><mi>F</mi><mrow><msub><mi>X</mi><mi>z</mi></msub><mspace width="0.278em"></mspace><mo>∪</mo><mspace width="0.278em"></mspace><msub><mi>S</mi><mi>j</mi></msub></mrow></msub><mspace width="0.167em"></mspace><mspace width="0.167em"></mspace><mi>t</mi><mi>h</mi><mi>e</mi><mi>n</mi><mspace width="0.167em"></mspace><mn>1</mn><mspace width="0.167em"></mspace></mtd></mtr><mtr><mtd columnalign="center" style="text-align: center"><mi>i</mi><mi>f</mi><mspace width="0.167em"></mspace><msub><mi>F</mi><mrow><msub><mi>X</mi><mi>v</mi></msub><mspace width="0.278em"></mspace><mo>∪</mo><mspace width="0.278em"></mspace><msub><mi>S</mi><mi>j</mi></msub></mrow></msub><mspace width="0.167em"></mspace><mo>≤</mo><msub><mi>F</mi><mrow><msub><mi>X</mi><mi>z</mi></msub><mspace width="0.278em"></mspace><mo>∪</mo><mspace width="0.278em"></mspace><msub><mi>S</mi><mi>j</mi></msub></mrow></msub><mspace width="0.167em"></mspace><mi>t</mi><mi>h</mi><mi>e</mi><mi>n</mi><mspace width="0.167em"></mspace><mspace width="0.167em"></mspace><mn>0</mn></mtd></mtr></mtable></mrow></mrow><msup><mn>2</mn><mrow><mi>p</mi><mo>−</mo><mn>2</mn></mrow></msup></mfrac></mrow><annotation encoding="application/x-tex">C_{X_vX_z} =\, \frac{\Sigma^{2^{p-2}}_{j=1}{ \{\begin{matrix} if\, F_{X_v\; \cup\;S_j}\, &gt; F_{X_z\; \cup\;S_j}\, \,then\, 1\, \\ if\, F_{X_v\; \cup\;S_j}\, \le F_{X_z\; \cup\;S_j}\,then\, \,0\end{matrix} }}{2^{p-2}}</annotation></semantics></math></p>
 <p>Where
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>X</mi><mi>v</mi></msub><annotation encoding="application/x-tex">X_v</annotation></semantics></math>
 and
@@ -631,7 +631,7 @@ conceptually useless to compare the IV to itself.</p>
 <h4 id="computing-conditional-dominance">Computing Conditional Dominance<a class="anchor" aria-label="anchor" href="#computing-conditional-dominance"></a>
 </h4>
 <p>Conditional dominance statistics are computed as:</p>
-<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msubsup><mi>C</mi><msub><mi>X</mi><mi>v</mi></msub><mi>i</mi></msubsup><mo>=</mo><msubsup><mi>Σ</mi><mrow><mi>i</mi><mo>=</mo><mn>1</mn></mrow><mrow><mo stretchy="true" form="prefix">[</mo><mtable><mtr><mtd columnalign="center" style="text-align: center"><mi>p</mi><mo>−</mo><mn>1</mn></mtd></mtr><mtr><mtd columnalign="center" style="text-align: center"><mi>i</mi><mo>−</mo><mn>1</mn></mtd></mtr></mtable><mo stretchy="true" form="postfix">]</mo></mrow></msubsup><mfrac><mrow><msub><mi>F</mi><mrow><msub><mi>X</mi><mi>v</mi></msub><mspace width="0.278em"></mspace><mo>∪</mo><mspace width="0.278em"></mspace><msub><mi>S</mi><mi>i</mi></msub></mrow></msub><mspace width="0.167em"></mspace><mo>−</mo><msub><mi>F</mi><msub><mi>S</mi><mi>i</mi></msub></msub></mrow><mrow><mo stretchy="true" form="prefix">[</mo><mtable><mtr><mtd columnalign="center" style="text-align: center"><mi>p</mi><mo>−</mo><mn>1</mn></mtd></mtr><mtr><mtd columnalign="center" style="text-align: center"><mi>i</mi><mo>−</mo><mn>1</mn></mtd></mtr></mtable><mo stretchy="true" form="postfix">]</mo></mrow></mfrac></mrow><annotation encoding="application/x-tex">C^i_{X_v} = \Sigma^{\begin{bmatrix}p-1\\i-1\end{bmatrix}}_{i=1}{\frac{F_{X_v\; \cup\; S_i}\, - F_{S_i}}{\begin{bmatrix}p-1\\i-1\end{bmatrix}}}</annotation></semantics></math></p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msubsup><mi>C</mi><msub><mi>X</mi><mi>v</mi></msub><mi>i</mi></msubsup><mo>=</mo><msubsup><mi mathvariant="normal">Σ</mi><mrow><mi>i</mi><mo>=</mo><mn>1</mn></mrow><mrow><mo stretchy="true" form="prefix">[</mo><mtable><mtr><mtd columnalign="center" style="text-align: center"><mi>p</mi><mo>−</mo><mn>1</mn></mtd></mtr><mtr><mtd columnalign="center" style="text-align: center"><mi>i</mi><mo>−</mo><mn>1</mn></mtd></mtr></mtable><mo stretchy="true" form="postfix">]</mo></mrow></msubsup><mfrac><mrow><msub><mi>F</mi><mrow><msub><mi>X</mi><mi>v</mi></msub><mspace width="0.278em"></mspace><mo>∪</mo><mspace width="0.278em"></mspace><msub><mi>S</mi><mi>i</mi></msub></mrow></msub><mspace width="0.167em"></mspace><mo>−</mo><msub><mi>F</mi><msub><mi>S</mi><mi>i</mi></msub></msub></mrow><mrow><mo stretchy="true" form="prefix">[</mo><mtable><mtr><mtd columnalign="center" style="text-align: center"><mi>p</mi><mo>−</mo><mn>1</mn></mtd></mtr><mtr><mtd columnalign="center" style="text-align: center"><mi>i</mi><mo>−</mo><mn>1</mn></mtd></mtr></mtable><mo stretchy="true" form="postfix">]</mo></mrow></mfrac></mrow><annotation encoding="application/x-tex">C^i_{X_v} = \Sigma^{\begin{bmatrix}p-1\\i-1\end{bmatrix}}_{i=1}{\frac{F_{X_v\; \cup\; S_i}\, - F_{S_i}}{\begin{bmatrix}p-1\\i-1\end{bmatrix}}}</annotation></semantics></math></p>
 <p>Where
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>S</mi><mi>i</mi></msub><annotation encoding="application/x-tex">S_i</annotation></semantics></math>
 is a subset of IVs not including
@@ -1061,7 +1061,7 @@ conditional dominance designations relative to one another.</p>
 <h4 id="computing-general-dominance">Computing General Dominance<a class="anchor" aria-label="anchor" href="#computing-general-dominance"></a>
 </h4>
 <p>General dominance is computed as:</p>
-<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>C</mi><msub><mi>X</mi><mi>v</mi></msub></msub><mo>=</mo><msubsup><mi>Σ</mi><mrow><mi>i</mi><mo>=</mo><mn>1</mn></mrow><mi>p</mi></msubsup><mfrac><msubsup><mi>C</mi><msub><mi>X</mi><mi>v</mi></msub><mi>i</mi></msubsup><mi>p</mi></mfrac></mrow><annotation encoding="application/x-tex">C_{X_v} = \Sigma^p_{i=1}{\frac{C^i_{X_v}}{p}}</annotation></semantics></math></p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>C</mi><msub><mi>X</mi><mi>v</mi></msub></msub><mo>=</mo><msubsup><mi mathvariant="normal">Σ</mi><mrow><mi>i</mi><mo>=</mo><mn>1</mn></mrow><mi>p</mi></msubsup><mfrac><msubsup><mi>C</mi><msub><mi>X</mi><mi>v</mi></msub><mi>i</mi></msubsup><mi>p</mi></mfrac></mrow><annotation encoding="application/x-tex">C_{X_v} = \Sigma^p_{i=1}{\frac{C^i_{X_v}}{p}}</annotation></semantics></math></p>
 <p>Where,
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msubsup><mi>C</mi><msub><mi>X</mi><mi>x</mi></msub><mi>i</mi></msubsup><annotation encoding="application/x-tex">C^{i}_{X_x}</annotation></semantics></math>
 are the conditional dominance statistics for
@@ -1215,9 +1215,9 @@ acknowledged, difference between DA and many of the relative importance
 statistics produced by methods other than DA, are that many other
 methods are probably most useful for model selection and not for model
 evaluation. In making a distinction between model selection and
-importance, I follow the work of <span class="citation">Azen, Budescu,
-and Reiser (2001)</span> who distinguish between the concept of IV
-criticality and IV importance.</p>
+importance, I follow the work of <span class="citation">Azen et al.
+(2001)</span> who distinguish between the concept of IV criticality and
+IV importance.</p>
 <div class="section level3">
 <h3 id="criticality-model-selection">Criticality: Model Selection<a class="anchor" aria-label="anchor" href="#criticality-model-selection"></a>
 </h3>
@@ -1251,7 +1251,7 @@ procedures and the user is confident that the IVs model and are, in
 fact, reasonable to include. The results from DA and similar methods
 then provide more information about relative contribution to prediction
 which assists in model evaluation.</p>
-<div id="refs" class="references csl-bib-body hanging-indent" entry-spacing="0">
+<div id="refs" class="references csl-bib-body hanging-indent">
 <div id="ref-azen2001criticality" class="csl-entry">
 Azen, Razia, David V Budescu, and Benjamin Reiser. 2001.
 <span>“Criticality of Predictors in Multiple Regression.”</span>

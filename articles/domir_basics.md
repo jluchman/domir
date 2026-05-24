@@ -86,13 +86,14 @@ predictive model with which to illustrate the computation and
 interpretation of the dominance results produced by DA.
 
 DA was developed originally using linear regression (`lm`) with the
-explained variance $R^{2}$ metric as a fit statistic (Budescu 1993). The
+explained variance $`R^2`$ metric as a fit statistic (Budescu 1993). The
 examples below use this model and fit statistic as both are widely used
 and understood in statistics and data science.
 
 Consider this model using the *mtcars* data in the **datasets** package.
 
 ``` r
+
 library(datasets)
 
 lm_cars <- 
@@ -122,13 +123,14 @@ summary(lm_cars)
 ```
 
 The results show that all three IVs are statistically significant at the
-traditional level (i.e., $p < .05$) and that, in total, the
+traditional level (i.e., $`p < .05`$) and that, in total, the
 predictors—*am, cyl*, and *carb*—explain ~80% of the variance in *mpg*.
 
 I intend to conduct a DA on this model using `domir` and implement the
 DA as follows:
 
 ``` r
+
 library(domir)
 
 domir(
@@ -180,7 +182,8 @@ payoff all players/IVs produced in the cooperative game/model.
 The value produced serves as the fit statistic “to be decomposed” by the
 DA and is limiting value for how much each IV will be able to explain.
 The DA will ascribe the three IVs in this model separate components of
-this ~$.8113$ value related to their contributions to predicting *mpg*.
+this ~$`.8113`$ value related to their contributions to predicting
+*mpg*.
 
 Other fit statistic value adjustments are reported in this section as
 well in particular those associated with the all subsets and constant
@@ -203,14 +206,14 @@ payoff/fit statistic from the game/model.
 
 The *General Dominance* column of statistics can be interpreted in terms
 of the fit metric it decomposed. For example, *am* has a value of
-~$0.2157$ which means *am* is associated with an $R^{2}$ of about
+~$`0.2157`$ which means *am* is associated with an $`R^2`$ of about
 twenty-two percentage points of *mpg*’s variance given the predictive
 model and other IVs.
 
 The *Standardized* column of statistics expresses the general dominance
 statistic value as a percentage of the overall fit statistic value and
-thus sums to 100%. *am*’s contributions to the $R^{2}$’s total value is
-~27% (i.e., $\frac{.2157}{.8113} = .2659$).
+thus sums to 100%. *am*’s contributions to the $`R^2`$’s total value is
+~27% (i.e., $`\frac{.2157}{.8113} = .2659`$).
 
 The final *Ranks* column is most relevant to the focal purpose of
 determining the relative importance of the IVs in this model as it
@@ -300,7 +303,7 @@ The fourth section reported on by `domir` prints the *complete dominance
 proportions* associated with each IV pair. Each IV is compared to each
 other IV and has two entries in this matrix. The IV noted in the row
 labels is the ‘dominating’ IV as is implied by the greater than symbol
-(i.e., $>$) preferring it. The IV noted in the column labels is the
+(i.e., $`>`$) preferring it. The IV noted in the column labels is the
 ‘dominated’ IV as is implied by the greater than symbol not preferring
 it. The values reported are the proportion of sub-models in which the IV
 in the row obtains a larger value than the IV in the column.
@@ -344,7 +347,7 @@ DA requires evaluating the contribution IVs make to prediction given all
 possible orders in which they are included in the prediction model. As
 was noted above, this is an experimental design-like approach where all
 possible combinations of the IVs included or excluded are estimated as
-sub-models. When there are $p$ IVs in the model there will be $2^{p}$
+sub-models. When there are $`p`$ IVs in the model there will be $`2^p`$
 sub-models estimated. The experimental design-like approach of the
 method makes it widely applicable across predictive models and fit
 statistic values but is computationally expensive as each additional IV
@@ -354,10 +357,10 @@ required sub-models.
 ### DA Results: The Full-Factorial Design
 
 The DA results related to the `lm` model with three IVs discussed above
-is composed of 8 sub-models and their $R^{2}$ values. The `domir`
+is composed of 8 sub-models and their $`R^2`$ values. The `domir`
 function, if supplied a predictive modeling function that can record
 each sub-model’s results, can be adapted to capture each sub-model’s
-$R^{2}$ value along with the IVs that comprise it.
+$`R^2`$ value along with the IVs that comprise it.
 
 The code below constructs a wrapper function to export results from each
 sub-model to an external data frame. The code to produce these results
@@ -367,6 +370,7 @@ executed, all the sub-models’ data are captured for the illustration to
 come.
 
 ``` r
+
 lm_capture <- 
   function(formula, data, ...) { # wrapper program that accepts formula, data, and ellipsis arguments
     count <<- count + 1 # increment counter in enclosing environment
@@ -406,23 +410,22 @@ default, the sub-model where all IVs are excluded is assumed to result
 in a fit statistic value of 0 and is not estimated directly (which can
 be changed with the `.adj` argument).
 
-The $R^{2}$ values recorded in *DA_results* are used to compute the
+The $`R^2`$ values recorded in *DA_results* are used to compute the
 dominance statistics and designations reported on above.
 
 #### Complete Dominance Proportions
 
 Complete dominance proportions between two IVs are computed by:
 
-$$C_{X_{v}X_{z}} = \,\frac{\Sigma_{j = 1}^{2^{p - 2}}{\{\begin{matrix}
-{if\, F_{X_{v}\; \cup \; S_{j}}\, > F_{X_{z}\; \cup \; S_{j}}\,\, then\, 1\,} \\
-{if\, F_{X_{v}\; \cup \; S_{j}}\, \leq F_{X_{z}\; \cup \; S_{j}}\, then\,\, 0}
-\end{matrix}}}{2^{p - 2}}$$
+``` math
+C_{X_vX_z} =\, \frac{\Sigma^{2^{p-2}}_{j=1}{ \{\begin{matrix} if\, F_{X_v\; \cup\;S_j}\, > F_{X_z\; \cup\;S_j}\, \,then\, 1\, \\ if\, F_{X_v\; \cup\;S_j}\, \le F_{X_z\; \cup\;S_j}\,then\, \,0\end{matrix} }}{2^{p-2}}
+```
 
-Where $X_{v}$ and $X_{z}$ are two IVs, $S_{j}$ is a distinct set of the
-other IVs in the model not including $X_{v}$ and $X_{z}$ which can
-include the null set ($\varnothing$) with no other IVs, and $F$ is a
+Where $`X_v`$ and $`X_z`$ are two IVs, $`S_j`$ is a distinct set of the
+other IVs in the model not including $`X_v`$ and $`X_z`$ which can
+include the null set ($`\emptyset`$) with no other IVs, and $`F`$ is a
 model fit statistic. This computation is then the proportion of all
-comparable sub-models where $X_{v}$ is greater than $X_{z}$.
+comparable sub-models where $`X_v`$ is greater than $`X_z`$.
 
 The results from *DA_results* can then be used to compute the complete
 dominance proportions. The comparison begins with the results for `am`
@@ -433,41 +436,41 @@ and `cyl`.
 | mpg ~ am        | 0.360 | mpg ~ cyl        | 0.726 |
 | mpg ~ am + carb | 0.704 | mpg ~ cyl + carb | 0.741 |
 
-Complete Dominance Comparisons: `am` versus `cyl`
+Complete Dominance Comparisons: `am` versus `cyl` {.table}
 
 The rows in the table above are aligned such that comparable models are
-in the rows. As applied to this example, the $S_{j}$ sets are
-$\varnothing$ (i.e., the null set) with no other IVs and the set also
+in the rows. As applied to this example, the $`S_j`$ sets are
+$`\emptyset`$ (i.e., the null set) with no other IVs and the set also
 including *carb*.
 
-The $R^{2}$ values across the comparable models show that *cyl* has
-larger $R^{2}$ values than, and thus completely dominates, *am*.
+The $`R^2`$ values across the comparable models show that *cyl* has
+larger $`R^2`$ values than, and thus completely dominates, *am*.
 
 | formula        |   R^2 | formula          |   R^2 |
 |:---------------|------:|:-----------------|------:|
 | mpg ~ am       | 0.360 | mpg ~ carb       | 0.304 |
 | mpg ~ am + cyl | 0.759 | mpg ~ cyl + carb | 0.741 |
 
-Complete Dominance Comparisons: `am` versus `carb`
+Complete Dominance Comparisons: `am` versus `carb` {.table}
 
-Here the $S_{j}$ sets are, again, $\varnothing$ and the set also
+Here the $`S_j`$ sets are, again, $`\emptyset`$ and the set also
 including *cyl*.
 
-The $R^{2}$ values across the comparable models show that *am* has
-larger $R^{2}$ values than and completely dominates *carb*.
+The $`R^2`$ values across the comparable models show that *am* has
+larger $`R^2`$ values than and completely dominates *carb*.
 
 | formula        |   R^2 | formula         |   R^2 |
 |:---------------|------:|:----------------|------:|
 | mpg ~ cyl      | 0.726 | mpg ~ carb      | 0.304 |
 | mpg ~ am + cyl | 0.759 | mpg ~ am + carb | 0.704 |
 
-Complete Dominance Comparisons: `cyl` versus `carb`
+Complete Dominance Comparisons: `cyl` versus `carb` {.table}
 
-Finally, the $S_{j}$ sets are the $\varnothing$ and the set also
+Finally, the $`S_j`$ sets are the $`\emptyset`$ and the set also
 including *am*.
 
-The $R^{2}$ values across the comparable models show that *cyl* has
-larger $R^{2}$ values than and completely dominates *carb*.
+The $`R^2`$ values across the comparable models show that *cyl* has
+larger $`R^2`$ values than and completely dominates *carb*.
 
 Each of these three sets of comparisons are represented in the
 *Complete_Dominance* matrix as a series of proportions. Note that the
@@ -475,6 +478,7 @@ diagonal of the matrix is `NA` values as it is conceptually useless to
 compare the IV to itself.
 
 ``` r
+
 lm_da$Complete_Dominance
 #>        >_am >_cyl >_carb
 #> am_>     NA     0      1
@@ -486,25 +490,18 @@ lm_da$Complete_Dominance
 
 Conditional dominance statistics are computed as:
 
-$$C_{X_{v}}^{i} = \Sigma_{i = 1}^{\lbrack\begin{matrix}
-{p - 1} \\
-{i - 1}
-\end{matrix}\rbrack}\frac{F_{X_{v}\; \cup \; S_{i}}\, - F_{S_{i}}}{\begin{bmatrix}
-{p - 1} \\
-{i - 1}
-\end{bmatrix}}$$
+``` math
+C^i_{X_v} = \Sigma^{\begin{bmatrix}p-1\\i-1\end{bmatrix}}_{i=1}{\frac{F_{X_v\; \cup\; S_i}\, - F_{S_i}}{\begin{bmatrix}p-1\\i-1\end{bmatrix}}}
+```
 
-Where $S_{i}$ is a subset of IVs not including $X_{v}$ and
-$\begin{bmatrix}
-{p - 1} \\
-{i - 1}
-\end{bmatrix}$ is the number of distinct combinations produced choosing
-the number of elements in the bottom value ($i - 1$) given the number of
-elements in the top value ($p - 1$; i.e., the value produced by
-`choose(p-1, i-1)`).
+Where $`S_i`$ is a subset of IVs not including $`X_v`$ and
+$`\begin{bmatrix}p-1\\i-1\end{bmatrix}`$ is the number of distinct
+combinations produced choosing the number of elements in the bottom
+value ($`i-1`$) given the number of elements in the top value ($`p-1`$;
+i.e., the value produced by `choose(p-1, i-1)`).
 
 In effect, the formula above amounts to an average of the differences
-between each model containing $X_{v}$ from the comparable model not
+between each model containing $`X_v`$ from the comparable model not
 containing it by the number of IVs in the model total. These values then
 reflect the effect of including the IV at a specific order in the model.
 As applied to the results from *DA_results*, *am*’s conditional
@@ -514,20 +511,23 @@ dominance statistics are computed with the following differences:
 |:----------------|------------:|:-------------------|---------------:|-----------:|
 | mpg ~ am        |        0.36 | mpg ~ 1            |              0 |       0.36 |
 
-Conditional Dominance Computations: `am` with One IV/Alone
+Conditional Dominance Computations: `am` with One IV/Alone {.table
+style="width:100%;"}
 
 | formula minuend | R^2 minuend | formula subtrahend | R^2 subtrahend | difference |
 |:----------------|------------:|:-------------------|---------------:|-----------:|
 | mpg ~ am + cyl  |       0.759 | mpg ~ cyl          |          0.726 |      0.033 |
 | mpg ~ am + carb |       0.704 | mpg ~ carb         |          0.304 |      0.400 |
 
-Conditional Dominance Computations: `am` with Two IVs
+Conditional Dominance Computations: `am` with Two IVs {.table
+style="width:100%;"}
 
-| formula minuend       | R^2 minuend | formula subtrahend | R^2 subtrahend | difference |
-|:----------------------|------------:|:-------------------|---------------:|-----------:|
-| mpg ~ am + cyl + carb |       0.811 | mpg ~ cyl + carb   |          0.741 |      0.071 |
+| formula minuend | R^2 minuend | formula subtrahend | R^2 subtrahend | difference |
+|:---|---:|:---|---:|---:|
+| mpg ~ am + cyl + carb | 0.811 | mpg ~ cyl + carb | 0.741 | 0.071 |
 
 Conditional Dominance Computations: `am` with Three IVs/Full Model
+{.table}
 
 The rows of each table represent a difference to be recorded for the
 conditional dominance statistics computation. In the position one, two,
@@ -550,20 +550,22 @@ Next the computations for *cyl* are reported.
 |:----------------|------------:|:-------------------|---------------:|-----------:|
 | mpg ~ cyl       |       0.726 | mpg ~ 1            |              0 |      0.726 |
 
-Conditional Dominance Computations: `cyl` with One IV/Alone
+Conditional Dominance Computations: `cyl` with One IV/Alone {.table
+style="width:100%;"}
 
 | formula minuend  | R^2 minuend | formula subtrahend | R^2 subtrahend | difference |
 |:-----------------|------------:|:-------------------|---------------:|-----------:|
 | mpg ~ am + cyl   |       0.759 | mpg ~ am           |          0.360 |      0.399 |
 | mpg ~ cyl + carb |       0.741 | mpg ~ carb         |          0.304 |      0.437 |
 
-Conditional Dominance Computations: `cyl` with Two IVs
+Conditional Dominance Computations: `cyl` with Two IVs {.table}
 
-| formula minuend       | R^2 minuend | formula subtrahend | R^2 subtrahend | difference |
-|:----------------------|------------:|:-------------------|---------------:|-----------:|
-| mpg ~ am + cyl + carb |       0.811 | mpg ~ am + carb    |          0.704 |      0.108 |
+| formula minuend | R^2 minuend | formula subtrahend | R^2 subtrahend | difference |
+|:---|---:|:---|---:|---:|
+| mpg ~ am + cyl + carb | 0.811 | mpg ~ am + carb | 0.704 | 0.108 |
 
 Conditional Dominance Computations: `cyl` with Three IVs/Full Model
+{.table}
 
 Again, the differences are averaged resulting in the 0.726 value when
 first, the 0.418 when second, and 0.108 when third.
@@ -574,20 +576,22 @@ Finally, the computations for *carb*.
 |:----------------|------------:|:-------------------|---------------:|-----------:|
 | mpg ~ carb      |       0.304 | mpg ~ 1            |              0 |      0.304 |
 
-Conditional Dominance Computations: `carb` with One IV/Alone
+Conditional Dominance Computations: `carb` with One IV/Alone {.table
+style="width:100%;"}
 
 | formula minuend  | R^2 minuend | formula subtrahend | R^2 subtrahend | difference |
 |:-----------------|------------:|:-------------------|---------------:|-----------:|
 | mpg ~ am + carb  |       0.704 | mpg ~ am           |          0.360 |      0.344 |
 | mpg ~ cyl + carb |       0.741 | mpg ~ cyl          |          0.726 |      0.014 |
 
-Conditional Dominance Computations: `carb` with Two IVs
+Conditional Dominance Computations: `carb` with Two IVs {.table}
 
-| formula minuend       | R^2 minuend | formula subtrahend | R^2 subtrahend | difference |
-|:----------------------|------------:|:-------------------|---------------:|-----------:|
-| mpg ~ am + cyl + carb |       0.811 | mpg ~ am + cyl     |          0.759 |      0.052 |
+| formula minuend | R^2 minuend | formula subtrahend | R^2 subtrahend | difference |
+|:---|---:|:---|---:|---:|
+| mpg ~ am + cyl + carb | 0.811 | mpg ~ am + cyl | 0.759 | 0.052 |
 
 Conditional Dominance Computations: `carb` with Three IVs/Full Model
+{.table}
 
 And again, the differences are averaged resulting in the 0.304 value
 when first, the 0.179 when second, and 0.052 when third.
@@ -596,6 +600,7 @@ These nine values then populate the conditional dominance statistic
 matrix.
 
 ``` r
+
 lm_da$Conditional_Dominance
 #>      include_at_1 include_at_2 include_at_3
 #> am      0.3597989    0.2164938   0.07076149
@@ -615,7 +620,7 @@ Below the comparisons begin with *am* and *cyl*
 | include_at_2 | 0.216 | 0.418 | FALSE      |
 | include_at_3 | 0.071 | 0.108 | FALSE      |
 
-Conditional Dominance Designation: `am` Compared to `cyl`
+Conditional Dominance Designation: `am` Compared to `cyl` {.table}
 
 The table above is a transpose of the conditional dominance statistic
 matrix with an additional *comparison* column indicating whether the
@@ -634,7 +639,7 @@ Next is the comparison between *am* and *carb*
 | include_at_2 | 0.216 | 0.179 | TRUE       |
 | include_at_3 | 0.071 | 0.052 | TRUE       |
 
-Conditional Dominance Designation: `am` Compared to `carb`
+Conditional Dominance Designation: `am` Compared to `carb` {.table}
 
 Here *am* conditionally dominates *carb* as all values are `TRUE`.
 
@@ -646,7 +651,7 @@ The final comparison between *cyl* and *carb*
 | include_at_2 | 0.418 | 0.179 | TRUE       |
 | include_at_3 | 0.108 | 0.052 | TRUE       |
 
-Conditional Dominance Designation: `cyl` Compared to `carb`
+Conditional Dominance Designation: `cyl` Compared to `carb` {.table}
 
 *cyl* also conditionally dominates *carb* as all values are `TRUE`.
 
@@ -671,10 +676,12 @@ relative to one another.
 
 General dominance is computed as:
 
-$$C_{X_{v}} = \Sigma_{i = 1}^{p}\frac{C_{X_{v}}^{i}}{p}$$
+``` math
+C_{X_v} = \Sigma^p_{i=1}{\frac{C^i_{X_v}}{p}}
+```
 
-Where, $C_{X_{x}}^{i}$ are the conditional dominance statistics for
-$X_{v}$ with $i$ IVs. Hence, the general dominance statistics are the
+Where, $`C^{i}_{X_x}`$ are the conditional dominance statistics for
+$`X_v`$ with $`i`$ IVs. Hence, the general dominance statistics are the
 arithmetic average of all the conditional dominance statistics for an
 IV.
 
@@ -685,7 +692,7 @@ is:
 |-------------:|-------------:|-------------:|------------------:|
 |         0.36 |        0.216 |        0.071 |             0.216 |
 
-General Dominance Computations: `am`
+General Dominance Computations: `am` {.table}
 
 Next to *cyl*.
 
@@ -693,7 +700,7 @@ Next to *cyl*.
 |-------------:|-------------:|-------------:|------------------:|
 |        0.726 |        0.418 |        0.108 |             0.417 |
 
-General Dominance Computations: `cyl`
+General Dominance Computations: `cyl` {.table}
 
 And lastly *carb*.
 
@@ -701,12 +708,13 @@ And lastly *carb*.
 |-------------:|-------------:|-------------:|------------------:|
 |        0.304 |        0.179 |        0.052 |             0.178 |
 
-General Dominance Computations: `carb`
+General Dominance Computations: `carb` {.table}
 
 Taken as a set, these values represent the general dominance
 statistic/Shapley value decomposition vector:
 
 ``` r
+
 lm_da$General_Dominance
 #>        am       cyl      carb 
 #> 0.2156848 0.4173094 0.1783081
@@ -722,7 +730,7 @@ ranking each value.
 | cyl  |             0.417 |     1 |
 | carb |             0.178 |     3 |
 
-General Dominance Designations
+General Dominance Designations {.table}
 
 The rank ordering above shows that *am* is generally dominated by *cyl*,
 *am* generally dominates *carb*, and *cyl* also generally dominates
@@ -737,7 +745,7 @@ had general dominance designations relative to one another.
 It is also worth pointing out a subtle feature of the general dominance
 statistics that tends to be more explicit discussions about the Shapley
 value decomposition. This feature is that each general dominance
-statistic is a weighted average of **all** $2^{p}$ fit statistics.
+statistic is a weighted average of **all** $`2^p`$ fit statistics.
 
 To see how this is the case, first recall the computations related to
 obtaining conditional dominance statistics for the *am* IV. If you look
@@ -761,6 +769,7 @@ To access the strongest dominance designations, the DA object can be
 submitted to the `summary` function.
 
 ``` r
+
 summary(lm_da)$Strongest_Dominance
 #>                                                                            
 #>  "am"                         "am"                   "cyl"                 
@@ -780,8 +789,8 @@ acknowledged, difference between DA and many of the relative importance
 statistics produced by methods other than DA, are that many other
 methods are probably most useful for model selection and not for model
 evaluation. In making a distinction between model selection and
-importance, I follow the work of Azen, Budescu, and Reiser (2001) who
-distinguish between the concept of IV criticality and IV importance.
+importance, I follow the work of Azen et al. (2001) who distinguish
+between the concept of IV criticality and IV importance.
 
 ### Criticality: Model Selection
 

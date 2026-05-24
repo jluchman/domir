@@ -8,11 +8,11 @@ version](http://www.r-pkg.org/badges/version-last-release/domir)](https://cran.r
 
 # Overview
 
-**domir** implements several methods to compute dominance
-analysis[¹](#fn1). Dominance analysis is a relative importance analysis
-approach that derives conceptually from Shapley values in that it
-ascribes ‘values’ from some function to inputs (known as ‘names’ in the
-package) to that function.
+**domir** implements several methods to compute dominance analysis[^1].
+Dominance analysis is a relative importance analysis approach that
+derives conceptually from Shapley values in that it ascribes ‘values’
+from some function to inputs (known as ‘names’ in the package) to that
+function.
 
 When applied to predictive models, the method compares components of a
 fit metric ascribed to each ‘name’ (i.e., independent variable,
@@ -40,10 +40,11 @@ regression model.
 
 `lm(mpg ~ am + vs + cyl, data = mtcars)`
 
-Using the variance explained $R^{2}$ as fit statistic as implemented by
+Using the variance explained $`R^2`$ as fit statistic as implemented by
 `lm`’s `summary` method as the returned value, `domir` produces:
 
 ``` r
+
 lm_wrapper <-       
   function(formula, data) {
     lm(formula, data = data) |> 
@@ -88,7 +89,7 @@ function and is necessary for the effective use of `domir`. In fact,
 `domir`’s value is in that it allows the use of such pipelines as the
 user can define them to apply to almost any predictive model. This
 example uses wrapper function, `lm_wrapper`, that accepts a `formula`
-and returns the $R^{2}$. A user could use an anonymous function defined
+and returns the $`R^2`$. A user could use an anonymous function defined
 within the `domir` call that has a similar format as an alternative.
 
 # Comparison with Existing Relative Importance Packages
@@ -102,6 +103,7 @@ The `calc.relimpo` function in the **relaimpo** package with
 example below:
 
 ``` r
+
 relaimpo::calc.relimp(mpg ~ am + vs + cyl, data = mtcars, type = "lmg")
 ```
 
@@ -131,7 +133,7 @@ relaimpo::calc.relimp(mpg ~ am + vs + cyl, data = mtcars, type = "lmg")
 ```
 
 **relaimpo** is for importance analysis with linear regression with
-variance explained $R^{2}$ as a fit statistic and is optimized to
+variance explained $`R^2`$ as a fit statistic and is optimized to
 analyze that model-fit statistic pairing across multiple ways of
 submitting data (i.e., correlation matrices, fitted `lm` object, a
 `data.frame`).
@@ -140,6 +142,7 @@ The `dominanceAnalysis` function in **dominanceAnalysis** produces many
 of the same statistics as `domir` as in the example below:
 
 ``` r
+
 dominanceanalysis::dominanceAnalysis(lm(mpg ~ am + vs + cyl, data = mtcars))
 ```
 
@@ -172,8 +175,6 @@ package to parse model components and implement the methodology.
 Further examples of `domir`s functionality will be populated on the
 [**domir** wiki](https://github.com/jluchman/domir/wiki).
 
-------------------------------------------------------------------------
-
-1.  see this
+[^1]: see this
     [vignette](https://CRAN.R-project.org/package=domir/vignettes/domir_basics.html)
     for a conceptual discussion of dominance analysis
